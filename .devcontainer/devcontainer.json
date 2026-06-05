@@ -1,0 +1,33 @@
+{
+  "name": "build123d-cad-dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "username": "vscode",
+      "uid": "automatic",
+      "gid": "automatic"
+    }
+  },
+  "postCreateCommand": "(test -f pyproject.toml && uv sync) || echo 'Skipping uv sync until pyproject.toml exists'; bash .devcontainer/install-ocp-cad-viewer.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": ["tests"],
+        "editor.formatOnSave": true,
+        "ruff.enable": true
+      }
+    }
+  }
+}
