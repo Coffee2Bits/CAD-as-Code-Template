@@ -14,7 +14,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | **Modeling** | build123d parts and assemblies under `cad/` |
 | **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
 | **Quality** | pytest geometry tests, ruff, mypy |
-| **CI** | [Dagger](https://dagger.io/) pipeline — same checks locally and in GitHub Actions |
+| **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions to any other pipeline tool; same checks everywhere |
 | **Agents** | MCP servers for build123d execution and OCP Viewer screenshots |
 | **Publish** | MakerRepo decorators and `mr` CLI for artifact discovery and export |
 
