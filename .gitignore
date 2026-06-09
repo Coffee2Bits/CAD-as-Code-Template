@@ -22,9 +22,7 @@ build/
 dist/
 *.egg-info/
 
-# CAD/generated exports
-exports/*
-!exports/.gitkeep
+# CAD/generated mesh files (never commit except tests/fixtures/)
 *.stl
 *.step
 *.stp

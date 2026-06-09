@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["cad"]
+packages = ["cad", "cad_tooling"]
 
 [dependency-groups]
 dev = [
@@ -36,7 +36,7 @@ target-version = "py311"
 "cad/parts/*.py" = ["F403", "F405"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "cad_tooling_tests"]
 pythonpath = ["."]
 addopts = "-q"
 

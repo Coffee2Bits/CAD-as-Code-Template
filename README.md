@@ -61,11 +61,11 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
    ```bash
    uv run mr artifacts list
-   uv run mr artifacts export sphere -o exports/ --format step
-   uv run mr generators export sphere_generator -p '{"radius": 15}' -o exports/ --format step
+   uv run mr artifacts export sphere -o /tmp/out --format step
+   uv run mr generators export sphere_generator -p '{"radius": 15}' -o /tmp/out --format step
    ```
 
-   Outputs land in `exports/` (gitignored). For ad-hoc exports in tests or scripts, use `cad.export.export_part(make_sphere(), "sphere")` — see [`tests/test_exports.py`](tests/test_exports.py).
+   For ad-hoc exports in tests or scripts, use `cad_tooling.export.export_part(make_sphere(), "sphere", tmp_path)` — see [`tests/test_exports.py`](tests/test_exports.py).
 
 6. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
 
@@ -111,14 +111,11 @@ If commands are still missing after reopening the container:
 │   └── install-ocp-cad-viewer.sh
 ├── cad/
 │   ├── parts/                    # Reusable parametric parts (@artifact, @customizable)
-│   ├── assemblies/               # Composed models
-│   └── export.py                 # STEP / STL / GLB helpers
+│   └── assemblies/               # Composed models
+├── cad_tooling/                  # Export, render, release helpers (see cad_tooling/README.md)
 ├── main.py                       # Entry point — builds and displays a sphere
-├── exports/                      # Generated artifacts (gitignored)
-├── tests/
-│   ├── test_sphere.py
-│   ├── test_exports.py
-│   └── test_makerrepo.py
+├── tests/                        # CAD model and integration tests
+├── cad_tooling_tests/            # Unit tests for cad_tooling
 └── pyproject.toml
 ```
 
@@ -159,7 +156,7 @@ Coverage includes validity, bounding boxes, volume checks, and STEP round-trip e
 ```bash
 uv run ruff check .
 uv run ruff format --check .
-uv run mypy cad tests
+uv run mypy cad cad_tooling tests cad_tooling_tests
 uv run pytest
 ```
 
@@ -169,7 +166,7 @@ Or run the same pipeline as CI (requires Docker on the host and a devcontainer r
 dagger call -m ./ci check --source=.
 dagger call -m ./ci test --source=.       # pytest only
 dagger call -m ./ci lint --source=.       # ruff + mypy only
-dagger call -m ./ci artifacts --source=.  # cad.export smoke
+dagger call -m ./ci artifacts --source=.  # cad_tooling.export smoke
 dagger call -m ./ci release-artifact --source=. export --path=./dist
 ```
 
@@ -221,10 +218,10 @@ Run from the repo root (included in dev dependencies):
 
 ```bash
 uv run mr artifacts list                          # discover @artifact functions
-uv run mr artifacts export sphere -o exports/     # export STEP/STL/glTF/3MF/…
+uv run mr artifacts export sphere -o /tmp/out     # export STEP/STL/glTF/3MF/…
 uv run mr artifacts view sphere                   # send to OCP CAD Viewer
 uv run mr generators list                         # discover @customizable functions
-uv run mr generators export sphere_generator -o exports/ -p '{"radius": 15}'
+uv run mr generators export sphere_generator -o /tmp/out -p '{"radius": 15}'
 ```
 
 For full command reference, see the [MakerRepo CLI docs](https://docs.makerrepo.com/makerrepo-cli/).
@@ -302,14 +299,14 @@ The turnkey workspace is in place. Shipped items:
 - [x] `pyproject.toml`, `.gitignore`, and package scaffold
 - [x] `main.py` sphere entry point (thin viewer script; geometry in `cad/parts/`)
 - [x] `cad/parts/sphere.py` with `make_sphere`, `@artifact`, and `@customizable`
-- [x] `cad/export.py` for ad-hoc STEP / STL / GLB bundles in tests and scripts
+- [x] `cad_tooling/` for ad-hoc STEP / STL / GLB export, release renders, and release notes
 - [x] `.makerrepo/config.yaml` and MakerRepo dependencies (`makerrepo`, `makerrepo-cli`)
 - [x] pytest suite — geometry, exports, and MakerRepo discovery (`tests/test_makerrepo.py`)
 - [x] `.cursor/mcp.json` with build123d-mcp and ocp-viewer-mcp launcher scripts
 - [x] Ephemeral OCP CAD Viewer VSIX via devcontainer lifecycle scripts
 - [x] End-to-end verification in devcontainer
 - [x] Dagger CI module (`ci/`) with lint, artifacts, and test gates
-- [x] GitHub Actions release workflow (`.github/workflows/release.yml`) — sphere STL to Releases + GHCR
+- [x] GitHub Actions release workflow (`.github/workflows/release.yml`) — artifact STLs to GitHub Releases
 - [x] [AGENTS.md](AGENTS.md) — repo conventions for AI agents
 
 Work planned after this milestone. Order may shift based on project needs.
@@ -322,20 +319,23 @@ Pushes and pull requests to `main` run the Dagger pipeline when changes touch mo
 |----------|--------------|
 | `check` | lint + artifacts + test (used in GitHub Actions) |
 | `test` | `uv run pytest` |
-| `lint` | `uv run ruff check .`, `ruff format --check .`, `mypy cad tests` |
-| `artifacts` | `python -m cad.export smoke` (discover and export all artifacts as STEP + STL) |
-| `release-artifact` | `python -m cad.export release` (export all artifacts as STL for release) |
+| `lint` | `uv run ruff check .`, `ruff format --check .`, `mypy cad cad_tooling tests cad_tooling_tests` |
+| `artifacts` | `python -m cad_tooling.export smoke` (discover and export all artifacts as STEP + STL) |
+| `release-artifact` | `python -m cad_tooling.export release` (STL + PNG previews; per-artifact `@render` settings) |
 
 The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) for Open CASCADE / Mesa parity with local dev. OCP viewer VSIX and MCP servers are not part of CI.
+
+### Release preview renders
+
+Each artifact's release PNG is configured with `@render` on the `@artifact` function. See [`cad/parts/sphere.py`](cad/parts/sphere.py) and [CAD tooling](cad_tooling/README.md) for CLI commands, camera presets, and override behavior.
 
 ### Releases
 
 Pushing a semver tag (e.g. `v0.0.1`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
 
 1. **Quality gate** — same Dagger `check` as CI (lint, artifact smoke, pytest).
-2. **Export** — all `@artifact` models as STL via `cad.export`.
-3. **GitHub Release** — attaches `dist/*.stl`.
-4. **GHCR package** — publishes the same STL to `ghcr.io/<owner>/<repo-name>:<tag>` via [ORAS](https://oras.land/) (package name matches the GitHub repository name).
+2. **Export** — all `@artifact` models as STL plus PNG preview renders via `cad_tooling.render` (Open CASCADE offscreen rendering; Xvfb in CI).
+3. **GitHub Release** — attaches `dist/*.stl`, matching `dist/*.png` previews, and a generated release body listing each artifact with embedded preview images.
 
 **Cut a release** (from `main`, after CI is green):
 
@@ -344,20 +344,30 @@ git tag v0.0.1
 git push origin v0.0.1
 ```
 
-**Download the STL:**
-
-- **Releases page** — open the tag on GitHub and download `sphere.stl`.
-- **GHCR (programmatic)** — after installing [ORAS](https://oras.land/docs/installation):
-
-  ```bash
-  oras pull ghcr.io/<owner>/<repo-name>:v0.0.1
-  ```
+**Download assets:** open the tag on GitHub Releases. The release page lists every `@artifact` with an embedded preview image and download links for each STL and PNG.
 
 Keep `pyproject.toml` `version` in sync with release tags. Local dry-run:
 
 ```bash
-dagger call -m ./ci release-artifact --source=. export --path=./dist
+uv run python -m cad_tooling.export release -o dist/
+uv run python -m cad_tooling.export release-notes \
+  --assets-dir dist \
+  --repo YOUR_ORG/YOUR_REPO \
+  --tag v0.0.1 \
+  -o dist/RELEASE_BODY.md
 ```
+
+**Release note URLs:** preview images and STL links in `RELEASE_BODY.md` use absolute GitHub Release asset URLs, not relative paths. GitHub does not resolve `sphere.png` or `./sphere.png` in a release body against attached assets — the body is not a repo file. Use the `releases/download` form so images render inline on the published release page:
+
+```markdown
+![sphere](https://github.com/YOUR_ORG/YOUR_REPO/releases/download/v0.0.1/sphere.png)
+
+[sphere.stl](https://github.com/YOUR_ORG/YOUR_REPO/releases/download/v0.0.1/sphere.stl)
+```
+
+`release-notes` builds these from `--repo` and `--tag`. Local `dist/` paths are only for exporting files on disk; the workflow uploads those assets and the generated body references them by release URL. Images in `dist/RELEASE_BODY.md` will not preview locally until the tag is published with `dist/*.png` attached.
+
+See [`.github/release_template.md`](.github/release_template.md) for the release notes format.
 
 **Local Dagger** (inside the devcontainer after rebuild):
 
@@ -388,6 +398,10 @@ dagger call -m ./ci release-artifact --source=. export --path=./dist
 - Rebuilding clean parametric code from imported STL usually requires human or agent interpretation.
 - MCP servers in this space are experimental until vetted and pinned.
 - VSIX extension install may require a manual step if the editor remote CLI (`code` / `cursor`) is unavailable in the container.
+
+## Additional resources
+
+- [CAD tooling](cad_tooling/README.md) — export helpers, headless OCP rendering, `@render`, release notes, and CI integration
 
 ## License
 

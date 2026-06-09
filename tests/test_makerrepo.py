@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import trimesh
 
-from cad.export import export_artifacts, list_artifacts, list_generators
+from cad_tooling.export import export_artifacts, export_release, list_artifacts, list_generators
 from cad.parts.sphere import make_sphere
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -38,3 +38,18 @@ def test_artifact_export_stl(tmp_path: Path):
 
     assert len(mesh.vertices) > 0
     assert mesh.volume == pytest.approx(expected.volume, rel=0.02)
+
+
+def test_release_export_includes_previews(tmp_path: Path):
+    paths = export_release(tmp_path, root=REPO_ROOT)
+    stl_paths = [path for path in paths if path.suffix == ".stl"]
+    png_paths = [path for path in paths if path.suffix == ".png"]
+
+    assert len(stl_paths) >= 1
+    assert len(png_paths) == len(stl_paths)
+
+    for stl_path, png_path in zip(stl_paths, png_paths):
+        assert stl_path.exists() and stl_path.stat().st_size > 0
+        assert png_path.exists() and png_path.stat().st_size > 10_000
+        assert png_path.stem == stl_path.stem
+        assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"

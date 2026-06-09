@@ -1,4 +1,5 @@
 from build123d import Align, BuildPart, Part, Sphere
+from cad_tooling.render_decorator import render
 from mr import artifact, customizable
 from pydantic import BaseModel, Field
 
@@ -12,6 +13,7 @@ def make_sphere(radius: float = 10) -> Part:
 
 
 @artifact(cover=True, short_desc="Demo sphere for workspace smoke tests")
+@render(camera="iso", face_color=(0.31, 0.63, 1.0))
 def sphere() -> Part:
     """Default-radius sphere published as a MakerRepo artifact."""
     return make_sphere()

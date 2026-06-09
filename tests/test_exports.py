@@ -4,7 +4,7 @@ import pytest
 import trimesh
 from build123d import import_step
 
-from cad.export import export_part
+from cad_tooling.export import export_part
 from cad.parts.sphere import make_sphere
 
 

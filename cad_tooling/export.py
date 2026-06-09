@@ -9,6 +9,14 @@ from pathlib import Path
 from typing import Literal
 
 from build123d import Compound, Mesher, Part, export_brep, export_gltf, export_step, export_stl
+from cad_tooling.release_notes import ReleaseAsset
+from cad_tooling.render import render_stl
+from cad_tooling.render_config import (
+    RenderConfig,
+    add_render_config_arguments,
+    render_config_from_namespace,
+    resolve_render_config,
+)
 from mr import Result
 from mr.data_types import Artifact, Customizable
 from mr.registry import Registry, collect
@@ -205,7 +213,7 @@ def export_artifacts(
     return written
 
 
-def export_part(part: Part | Compound, name: str, out_dir: str | Path = "exports") -> None:
+def export_part(part: Part | Compound, name: str, out_dir: str | Path) -> None:
     """Export ad-hoc geometry to STEP, STL, and GLB (scripts and geometry tests)."""
     out = Path(out_dir)
     export_shape(part, out / f"{name}.step", "step")
@@ -222,21 +230,63 @@ def ci_smoke(root: Path | None = None) -> None:
     export_artifacts(out_dir, "stl", root=root)
 
 
-def export_release(out_dir: Path | None = None, root: Path | None = None) -> list[Path]:
-    """Export all artifacts as STL for GitHub release publishing."""
-    return export_artifacts(out_dir or Path("/tmp/release-artifacts"), "stl", root=root)
+def export_release_assets(
+    out_dir: Path | None = None,
+    root: Path | None = None,
+    *,
+    render_overrides: RenderConfig | None = None,
+) -> list[ReleaseAsset]:
+    """Export all artifacts as STL with matching PNG previews."""
+    out = out_dir or Path("/tmp/release-artifacts")
+    registry = load_registry(root)
+    targets = _resolve_items(registry, None, "artifacts", "artifact")
+
+    assets: list[ReleaseAsset] = []
+    for artifact in targets:
+        shape = _shape(realize_artifact(artifact))
+        stl_path = out / f"{artifact.name}.stl"
+        png_path = out / f"{artifact.name}.png"
+        preview_config = resolve_render_config(
+            artifact_func=artifact.func,
+            overrides=render_overrides,
+        )
+        export_shape(shape, stl_path, "stl")
+        render_stl(stl_path, png_path, config=preview_config)
+        assets.append(ReleaseAsset(artifact=artifact, stl_path=stl_path, png_path=png_path))
+    return assets
+
+
+def export_release(
+    out_dir: Path | None = None,
+    root: Path | None = None,
+    *,
+    render_overrides: RenderConfig | None = None,
+) -> list[Path]:
+    """Export all artifacts as STL and PNG previews for GitHub release publishing."""
+    paths: list[Path] = []
+    for asset in export_release_assets(out_dir, root, render_overrides=render_overrides):
+        paths.extend([asset.stl_path, asset.png_path])
+    return paths
 
 
 def _main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="python -m cad.export")
+    parser = argparse.ArgumentParser(prog="python -m cad_tooling.export")
     sub = parser.add_subparsers(dest="command", required=True)
 
     smoke = sub.add_parser("smoke", help="Run CI artifact export smoke test")
     smoke.add_argument("--root", type=Path, default=None)
 
-    release = sub.add_parser("release", help="Export release STL artifacts")
+    release = sub.add_parser("release", help="Export release STL and PNG preview artifacts")
     release.add_argument("-o", "--output", type=Path, default=Path("/tmp/release-artifacts"))
     release.add_argument("--root", type=Path, default=None)
+    add_render_config_arguments(release)
+
+    notes = sub.add_parser("release-notes", help="Write GitHub Release notes markdown")
+    notes.add_argument("-o", "--output", type=Path, required=True)
+    notes.add_argument("--assets-dir", type=Path, required=True)
+    notes.add_argument("--repo", required=True, help="GitHub repository (owner/name)")
+    notes.add_argument("--tag", required=True, help="Release tag (e.g. v0.0.1)")
+    notes.add_argument("--root", type=Path, default=None)
 
     export_cmd = sub.add_parser("export", help="Export artifacts by name (default: all)")
     export_cmd.add_argument("-o", "--output", type=Path, required=True)
@@ -248,8 +298,14 @@ def _main(argv: list[str] | None = None) -> int:
     if args.command == "smoke":
         ci_smoke(args.root)
     elif args.command == "release":
-        for path in export_release(args.output, args.root):
+        render_overrides = render_config_from_namespace(args)
+        for path in export_release(args.output, args.root, render_overrides=render_overrides):
             print(path)
+    elif args.command == "release-notes":
+        from cad_tooling.release_notes import collect_release_assets, render_release_body
+
+        assets = collect_release_assets(args.assets_dir.resolve(), args.root)
+        args.output.write_text(render_release_body(args.repo, args.tag, assets))
     else:
         names = tuple(args.names) or None
         for path in export_artifacts(args.output, args.format, names, root=args.root):
