@@ -13,7 +13,6 @@ SOURCE_IGNORE = Ignore(
         ".pytest_cache",
         ".mypy_cache",
         ".ruff_cache",
-        "exports",
         "ocp-cad-viewer-*.vsix",
         ".cursor",
     ]
@@ -54,17 +53,19 @@ class Ci:
         base = self._project(source)
         await base.with_exec(["uv", "run", "ruff", "check", "."]).stdout()
         await base.with_exec(["uv", "run", "ruff", "format", "--check", "."]).stdout()
-        return await base.with_exec(["uv", "run", "mypy", "cad", "tests"]).stdout()
+        return await base.with_exec(
+            ["uv", "run", "mypy", "cad", "cad_tooling", "tests", "cad_tooling_tests"]
+        ).stdout()
 
     @function
     async def artifacts(
         self,
         source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
     ) -> str:
-        """Discover and export MakerRepo artifacts (python -m cad.export smoke)."""
+        """Discover and export MakerRepo artifacts (python -m cad_tooling.export smoke)."""
         return (
             await self._project(source)
-            .with_exec(["uv", "run", "python", "-m", "cad.export", "smoke"])
+            .with_exec(["uv", "run", "python", "-m", "cad_tooling.export", "smoke"])
             .stdout()
         )
 
@@ -73,7 +74,7 @@ class Ci:
         self,
         source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
     ) -> dagger.Directory:
-        """Export release STL artifacts for GitHub Releases and GHCR."""
+        """Export release STL and PNG preview artifacts for GitHub Releases."""
         return (
             self._project(source)
             .with_exec(
@@ -82,7 +83,7 @@ class Ci:
                     "run",
                     "python",
                     "-m",
-                    "cad.export",
+                    "cad_tooling.export",
                     "release",
                     "-o",
                     "/tmp/release-artifacts",

@@ -26,10 +26,15 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 │   └── config.yaml           # Repo-level MakerRepo defaults
 ├── cad/                      # All durable model code
 │   ├── parts/                # Reusable parametric components
-│   ├── assemblies/           # Composed products built from parts
-│   └── export.py             # Shared export helpers (STEP/STL/GLB)
-├── tests/                    # Geometry, export, and MR discovery tests
-├── exports/                  # Generated output (gitignored)
+│   └── assemblies/           # Composed products built from parts
+├── cad_tooling/              # Export, render, and release helpers — see cad_tooling/README.md
+│   ├── export.py
+│   ├── render.py
+│   ├── render_config.py
+│   ├── render_decorator.py
+│   └── release_notes.py
+├── tests/                    # CAD model and integration tests
+├── cad_tooling_tests/        # Unit tests for cad_tooling (mirrors package layout)
 ├── ci/                       # Dagger CI module
 ├── .devcontainer/            # Dev container (Open CASCADE parity with CI)
 └── .cursor/                  # MCP launcher scripts (not model code)
@@ -41,11 +46,11 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 |------|---------|-------------|
 | `cad/parts/` | Single reusable components (brackets, enclosures, fasteners helpers, etc.) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. |
 | `cad/assemblies/` | Products composed from parts (positions, patterns, constraints) | Import from `cad.parts`; do not duplicate part geometry. Assemblies may define their own `@artifact` / `@customizable` entry points. |
-| `cad/export.py` | MakerRepo-aware export helpers and ad-hoc geometry export | Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. |
+| `cad_tooling/` | MakerRepo-aware export, OCP rendering, release notes | See [cad_tooling/README.md](cad_tooling/README.md). Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. Import `@render` from `cad_tooling.render_decorator`. |
 | `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. |
-| `tests/` | pytest coverage | Mirror `cad/` structure: `test_<part>.py`, `test_makerrepo.py` for discovery smoke tests. |
+| `tests/` | pytest coverage for CAD models and MR integration | Mirror `cad/` structure: `test_<part>.py`, `test_makerrepo.py` for discovery smoke tests. |
+| `cad_tooling_tests/` | pytest coverage for workspace tooling | Mirror `cad_tooling/` module layout; keep detached from `tests/`. |
 | `.makerrepo/config.yaml` | MR repo config | Set export defaults and optional `pythonpaths`; do not put model logic here. |
-| `exports/` | Local build output | Never commit. CI and tests use `tmp_path` or `/tmp`. |
 
 ---
 
@@ -104,6 +109,7 @@ def make_<part>(...) -> Part:
 
 # 2. Artifact — fixed default configuration, no arguments
 @artifact(cover=False, short_desc="...")
+@render(camera="iso")  # optional — per-artifact release PNG settings
 def <part>() -> Part:
     return make_<part>(...)
 
@@ -127,6 +133,7 @@ def <part>_generator(parameters: <Part>Parameters) -> Part:
 | Decorator | Add when | Skip when |
 |-----------|----------|-----------|
 | `@artifact` | A fixed default build should be listed, exported, or published (demo, product SKU, cover image) | Internal helper geometry, intermediate construction steps, `sample=True` test cuts |
+| `@render` | Release PNG preview needs a custom camera, colors, or size for this artifact | Omit to use built-in defaults in `cad_tooling/render_config.py` |
 | `@customizable` | Users should vary dimensions/material choices via parameters | Fixed one-off geometry with no parametric intent |
 | `@cached` | A sub-build is expensive and called repeatedly with the same args | Simple/fast builders |
 
@@ -138,6 +145,27 @@ def <part>_generator(parameters: <Part>Parameters) -> Part:
 | `sample=True` | Dev/test geometry not meant for end users |
 | `short_desc` | Required for user-facing artifacts; keep under 128 chars |
 | `export_step` / `export_3mf` | Omit to inherit from [`.makerrepo/config.yaml`](.makerrepo/config.yaml) |
+
+### `@render` (release previews)
+
+Place `@render` directly above the function, with `@artifact` above it:
+
+```python
+@artifact(short_desc="Mounting bracket")
+@render(camera="top", azimuth=15, face_color=(0.4, 0.7, 1.0), width=1024)
+def bracket() -> Part:
+    return make_bracket()
+```
+
+| Field | Purpose |
+|-------|---------|
+| `camera` | Preset: `iso`, `top`, `bottom`, `front`, `back`, `left`, `right`, `axo_left`, `axo_right` |
+| `azimuth` / `elevation` | Extra pose in degrees (after preset) |
+| `width` / `height` | PNG size |
+| `background` / `face_color` | RGB triplets in 0.0–1.0 |
+| `fit_margin` | Passed to `V3d_View.FitAll` |
+
+Resolution order at render time: **defaults** → **`@render` on the artifact** → **CLI flags** (`cad_tooling.render` / `cad_tooling.export release`).
 
 ### `@customizable` requirements
 
@@ -194,14 +222,14 @@ uv run mr artifacts list
 uv run mr artifacts list -o json
 
 # Export — format from --format or file extension
-uv run mr artifacts export sphere -o exports/ --format step
-uv run mr artifacts export sphere -o exports/sphere.stl
+uv run mr artifacts export sphere -o /tmp/out --format step
+uv run mr artifacts export sphere -o /tmp/out/sphere.stl
 
 # View in OCP CAD Viewer (extension must be running)
 uv run mr artifacts view sphere
 
 # Headless snapshot
-uv run mr artifacts snapshot sphere -o exports/sphere.png
+uv run mr artifacts snapshot sphere -o /tmp/out/sphere.png
 ```
 
 Refer to artifacts by **name** (`sphere`) or **module/name** (`cad.parts.sphere/sphere`) when names collide.
@@ -215,8 +243,8 @@ Supported export formats: `step`, `stl`, `brep`, `gltf`, `3mf`, `svg`, `dxf`.
 uv run mr generators list
 
 # Export with a JSON parameter payload
-uv run mr generators export sphere_generator -p '{"radius": 15}' -o exports/
-uv run mr generators export sphere_generator -p @params.json -o exports/sphere.step
+uv run mr generators export sphere_generator -p '{"radius": 15}' -o /tmp/out/
+uv run mr generators export sphere_generator -p @params.json -o /tmp/out/sphere.step
 
 # View / snapshot (same pattern as artifacts)
 uv run mr generators view sphere_generator -p '{"radius": 20}'
@@ -239,7 +267,7 @@ When adding or changing a published model:
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
 3. Add pytest tests (geometry + export).
 4. Confirm MR discovery: `uv run mr artifacts list` / `generators list`.
-5. Export smoke test: `python -m cad.export export -o /tmp/out --format step` (or import `export_artifacts` in pytest).
+5. Export smoke test: `python -m cad_tooling.export export -o /tmp/out --format step` (or import `export_artifacts` in pytest).
 6. Run full quality gate: `uv run pytest`, `uv run ruff check .`, `uv run mypy cad tests`.
 
 ---
@@ -262,7 +290,7 @@ Keep files under **300–400 lines**. Split large parts into submodules if neede
 GitHub Actions runs `dagger call -m ./ci check`, which executes:
 
 1. **lint** — ruff + mypy
-2. **artifacts** — `python -m cad.export smoke` (discover all `@artifact` functions, export STEP + STL)
+2. **artifacts** — `python -m cad_tooling.export smoke` (discover all `@artifact` functions, export STEP + STL)
 3. **test** — pytest (includes `test_makerrepo.py`)
 
 Local equivalent:
@@ -271,7 +299,7 @@ Local equivalent:
 dagger call -m ./ci check --source=.
 ```
 
-Any new `@artifact` is picked up automatically by `cad.export` and `tests/test_makerrepo.py`. No CI edits required when adding artifacts.
+Any new `@artifact` is picked up automatically by `cad_tooling.export` and `tests/test_makerrepo.py`. No CI edits required when adding artifacts.
 
 ---
 
@@ -280,9 +308,8 @@ Any new `@artifact` is picked up automatically by `cad.export` and `tests/test_m
 Pushing a semver tag (`v*.*.*`) triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml):
 
 1. Dagger `check` (same gates as CI)
-2. `release-artifact` — `python -m cad.export release` (all artifacts as STL)
-3. GitHub Release — attaches `dist/*.stl`
-4. GHCR — `ghcr.io/<owner>/<repo-name>:<tag>` via ORAS (cover artifact STL; package name matches the GitHub repository name)
+2. `release-artifact` — `python -m cad_tooling.export release` (all artifacts as STL + OCP PNG previews)
+3. GitHub Release — attaches `dist/*.stl`, `dist/*.png`, and generated release notes (`dist/RELEASE_BODY.md`) with embedded previews
 
 **Cut a release:**
 
@@ -294,10 +321,17 @@ git push origin v0.0.1
 Keep `pyproject.toml` `version` aligned with the tag. Local dry-run:
 
 ```bash
+uv run python -m cad_tooling.export release -o dist/
+uv run python -m cad_tooling.export release-notes \
+  --assets-dir dist --repo OWNER/REPO --tag v0.0.1 -o dist/RELEASE_BODY.md
 dagger call -m ./ci release-artifact --source=. export --path=./dist
 ```
 
-When adding new `@artifact` models, update `release-artifact` (or generalize it to export all artifacts) and extend release assets accordingly.
+Release notes format: [`.github/release_template.md`](../.github/release_template.md). New `@artifact` functions are picked up automatically — no workflow edits required.
+
+### Release preview configuration
+
+Per-artifact PNG settings live on the `@render` decorator next to each `@artifact` (see [`cad/parts/sphere.py`](cad/parts/sphere.py)). Full CLI and preset reference: [cad_tooling/README.md](cad_tooling/README.md).
 
 ---
 
@@ -306,7 +340,7 @@ When adding new `@artifact` models, update `release-artifact` (or generalize it 
 - **Units**: millimeters unless a part docstring says otherwise.
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
-- **Exports**: `exports/` locally; never commit generated meshes.
+- **Exports**: write to `/tmp` or pytest `tmp_path`; never commit generated meshes (except golden fixtures under `tests/fixtures/`).
 - **Prototyping**: use build123d-mcp `execute` for experiments; promote stable code into `cad/parts/` with tests.
 - **Visualization**: `main.py` or `show_object()` for OCP CAD Viewer; `mr artifacts view` for MR-driven viewing.
 
@@ -318,4 +352,5 @@ When adding new `@artifact` models, update `release-artifact` (or generalize it 
 - [MakerRepo CLI](https://docs.makerrepo.com/makerrepo-cli/)
 - [MakerRepo artifacts](https://docs.makerrepo.com/makerrepo-library/artifacts/)
 - [MakerRepo generators](https://docs.makerrepo.com/makerrepo-library/generators/)
+- [CAD tooling](cad_tooling/README.md) — export, render, release notes
 - Live example: [`cad/parts/sphere.py`](cad/parts/sphere.py)

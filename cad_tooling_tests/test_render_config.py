@@ -1,0 +1,156 @@
+import argparse
+
+import pytest
+
+from cad_tooling.render_config import (
+    CAMERA_PRESET_CHOICES,
+    CameraConfig,
+    RenderConfig,
+    add_render_config_arguments,
+    render_config_from_namespace,
+    resolve_render_config,
+    resolve_render_config_for_artifact_name,
+)
+from cad_tooling.render_decorator import get_render_config_from_func, render
+
+
+def test_render_decorator_stores_config():
+    @render(width=640, camera="top", azimuth=10)
+    def demo_part():
+        return None
+
+    config = get_render_config_from_func(demo_part)
+    assert config is not None
+    assert config.width == 640
+    assert config.camera.preset == "top"
+    assert config.camera.azimuth == 10
+
+
+def test_resolve_render_config_merges_defaults_and_overrides():
+    @render(camera="top")
+    def demo_part():
+        return None
+
+    config = resolve_render_config(
+        artifact_func=demo_part,
+        overrides=RenderConfig.model_validate({"width": 1024}),
+    )
+
+    assert config.width == 1024
+    assert config.height == 600
+    assert config.camera.preset == "top"
+
+
+def test_merge_preserves_unset_base_fields():
+    base = RenderConfig.model_validate({"width": 800, "camera": {"preset": "top"}})
+    overrides = RenderConfig.model_validate({"width": 1024})
+    merged = base.merge(overrides)
+    assert merged.width == 1024
+    assert merged.camera.preset == "top"
+
+
+def test_merge_deep_merges_nested_camera():
+    base = RenderConfig.model_validate({"camera": {"preset": "iso", "azimuth": 5}})
+    overrides = RenderConfig.model_validate({"camera": {"azimuth": 15}})
+    merged = base.merge(overrides)
+    assert merged.camera.preset == "iso"
+    assert merged.camera.azimuth == 15
+
+
+def test_camera_config_defaults():
+    camera = CameraConfig()
+    assert camera.preset == "iso"
+    assert camera.azimuth == 0
+    assert camera.elevation == 0
+
+
+def test_render_config_from_namespace_all_fields():
+    parser = argparse.ArgumentParser()
+    add_render_config_arguments(parser)
+    args = parser.parse_args(
+        [
+            "--width",
+            "640",
+            "--height",
+            "480",
+            "--background",
+            "0.1,0.2,0.3",
+            "--face-color",
+            "0.4,0.5,0.6",
+            "--fit-margin",
+            "0.05",
+            "--camera",
+            "front",
+            "--azimuth",
+            "12",
+            "--elevation",
+            "8",
+        ]
+    )
+    config = render_config_from_namespace(args)
+    assert config is not None
+    assert config.width == 640
+    assert config.height == 480
+    assert config.background == (0.1, 0.2, 0.3)
+    assert config.face_color == (0.4, 0.5, 0.6)
+    assert config.fit_margin == 0.05
+    assert config.camera.preset == "front"
+    assert config.camera.azimuth == 12
+    assert config.camera.elevation == 8
+
+
+def test_render_config_from_namespace_empty_returns_none():
+    parser = argparse.ArgumentParser()
+    add_render_config_arguments(parser)
+    args = parser.parse_args([])
+    assert render_config_from_namespace(args) is None
+
+
+def test_invalid_rgb_rejected():
+    with pytest.raises(ValueError, match="RGB"):
+        RenderConfig.model_validate({"background": [1.5, 0, 0]})
+
+
+def test_invalid_rgb_length_rejected():
+    with pytest.raises(ValueError, match="RGB"):
+        RenderConfig.model_validate({"face_color": [0.5, 0.5]})
+
+
+def test_invalid_width_rejected():
+    with pytest.raises(ValueError):
+        RenderConfig.model_validate({"width": 0})
+
+
+def test_camera_preset_choices_complete():
+    assert set(CAMERA_PRESET_CHOICES) == {
+        "iso",
+        "top",
+        "bottom",
+        "front",
+        "back",
+        "left",
+        "right",
+        "axo_left",
+        "axo_right",
+    }
+
+
+def test_resolve_render_config_for_artifact_name(repo_root):
+    config = resolve_render_config_for_artifact_name("sphere", root=repo_root)
+    assert config.camera.preset == "iso"
+    assert config.face_color == (0.31, 0.63, 1.0)
+
+
+def test_resolve_render_config_for_unknown_artifact(repo_root):
+    with pytest.raises(ValueError, match="Artifact not found"):
+        resolve_render_config_for_artifact_name("missing-part", root=repo_root)
+
+
+def test_sphere_artifact_has_render_config(repo_root):
+    from cad_tooling.export import list_artifacts
+
+    artifact = next(item for item in list_artifacts(repo_root) if item.name == "sphere")
+    config = get_render_config_from_func(artifact.func)
+    assert config is not None
+    assert config.camera.preset == "iso"
+    assert config.face_color == (0.31, 0.63, 1.0)
