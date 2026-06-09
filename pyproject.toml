@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "programmatic-cad-workspace"
+version = "0.1.0"
+description = "Programmatic CAD modeling workspace using build123d"
+requires-python = ">=3.11"
+dependencies = [
+  "build123d",
+  "ocp-vscode",
+  "numpy",
+  "trimesh",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["cad"]
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "ruff",
+  "mypy",
+  "ocp-viewer-mcp>=0.1.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+"cad/parts/*.py" = ["F403", "F405"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true

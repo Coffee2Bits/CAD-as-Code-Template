@@ -21,3 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip uv
+
+ARG DAGGER_VERSION=0.21.4
+RUN curl -fsSL https://dl.dagger.io/dagger/install.sh | \
+    DAGGER_VERSION=${DAGGER_VERSION} BIN_DIR=/usr/local/bin sh

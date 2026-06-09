@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "build123d-mcp": {
+      "command": "bash",
+      "args": [".cursor/run-build123d-mcp.sh"]
+    },
+    "ocp-viewer": {
+      "command": "bash",
+      "args": [".cursor/run-ocp-viewer-mcp.sh"]
+    }
+  }
+}

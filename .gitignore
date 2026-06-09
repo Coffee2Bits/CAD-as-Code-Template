@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ci/.venv/
+ci/sdk/
+
+# Build/package output
+build/
+dist/
+*.egg-info/
+
+# CAD/generated exports
+exports/*
+!exports/.gitkeep
+*.stl
+*.step
+*.stp
+*.3mf
+*.brep
+*.glb
+*.gltf
+*.svg
+*.dxf
+
+# OCP / viewer / local cache
+.ocp_vscode/
+*.obj
+
+# Ephemeral OCP CAD Viewer VSIX (downloaded to workspace root, not committed)
+ocp-cad-viewer-*.vsix
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+# Golden fixtures (opt-in versioning)
+!tests/fixtures/**/*.step
+!tests/fixtures/**/*.stl
