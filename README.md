@@ -355,5 +355,4 @@ The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) 
 - VSIX extension install may require a manual step if the editor remote CLI (`code` / `cursor`) is unavailable in the container.
 
 ## License
-
-Add a license file when the project scope is finalized.
+Completely free for any and all uses. No guarantees are provided.

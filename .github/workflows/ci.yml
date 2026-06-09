@@ -3,8 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - "cad/**"
   pull_request:
     branches: [main]
+    paths:
+      - "cad/**"
 
 jobs:
   check:
