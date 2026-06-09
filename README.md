@@ -335,7 +335,7 @@ Pushing a semver tag (e.g. `v0.0.1`) runs [`.github/workflows/release.yml`](.git
 1. **Quality gate** — same Dagger `check` as CI (lint, artifact smoke, pytest).
 2. **Export** — all `@artifact` models as STL via `cad.export`.
 3. **GitHub Release** — attaches `dist/*.stl`.
-4. **GHCR package** — publishes the same STL to `ghcr.io/<owner>/cad-sphere:<tag>` via [ORAS](https://oras.land/).
+4. **GHCR package** — publishes the same STL to `ghcr.io/<owner>/<repo-name>:<tag>` via [ORAS](https://oras.land/) (package name matches the GitHub repository name).
 
 **Cut a release** (from `main`, after CI is green):
 
@@ -350,7 +350,7 @@ git push origin v0.0.1
 - **GHCR (programmatic)** — after installing [ORAS](https://oras.land/docs/installation):
 
   ```bash
-  oras pull ghcr.io/<owner>/cad-sphere:v0.0.1
+  oras pull ghcr.io/<owner>/<repo-name>:v0.0.1
   ```
 
 Keep `pyproject.toml` `version` in sync with release tags. Local dry-run:
