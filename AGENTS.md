@@ -282,7 +282,7 @@ Pushing a semver tag (`v*.*.*`) triggers [`.github/workflows/release.yml`](../.g
 1. Dagger `check` (same gates as CI)
 2. `release-artifact` — `python -m cad.export release` (all artifacts as STL)
 3. GitHub Release — attaches `dist/*.stl`
-4. GHCR — `ghcr.io/<owner>/cad-sphere:<tag>` via ORAS (cover artifact STL)
+4. GHCR — `ghcr.io/<owner>/<repo-name>:<tag>` via ORAS (cover artifact STL; package name matches the GitHub repository name)
 
 **Cut a release:**
 
