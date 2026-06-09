@@ -5,16 +5,16 @@ import trimesh
 from build123d import import_step
 
 from cad.export import export_part
-from cad.parts.example_ocp_text import make_example_ocp_text
+from cad.parts.sphere import make_sphere
 
 
 def test_stl_export(tmp_path: Path):
-    part = make_example_ocp_text()
-    export_part(part, "example_ocp_text", tmp_path)
+    part = make_sphere()
+    export_part(part, "sphere", tmp_path)
 
-    stl_path = tmp_path / "example_ocp_text.stl"
-    step_path = tmp_path / "example_ocp_text.step"
-    glb_path = tmp_path / "example_ocp_text.glb"
+    stl_path = tmp_path / "sphere.stl"
+    step_path = tmp_path / "sphere.step"
+    glb_path = tmp_path / "sphere.glb"
 
     assert stl_path.exists()
     assert stl_path.stat().st_size > 0
@@ -28,10 +28,10 @@ def test_stl_export(tmp_path: Path):
 
 
 def test_step_round_trip_preserves_volume(tmp_path: Path):
-    part = make_example_ocp_text(font_size=16, depth=6)
-    export_part(part, "round_trip_ocp_text", tmp_path)
+    part = make_sphere(radius=12)
+    export_part(part, "round_trip_sphere", tmp_path)
 
-    step_path = tmp_path / "round_trip_ocp_text.step"
+    step_path = tmp_path / "round_trip_sphere.step"
     reimported = import_step(step_path)
 
     assert reimported.volume == pytest.approx(part.volume, rel=0.02)

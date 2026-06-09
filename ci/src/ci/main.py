@@ -57,10 +57,34 @@ class Ci:
         return await base.with_exec(["uv", "run", "mypy", "cad", "tests"]).stdout()
 
     @function
+    async def artifacts(
+        self,
+        source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
+    ) -> str:
+        """Discover and export MakerRepo artifacts (mr artifacts list + export)."""
+        base = self._project(source)
+        await base.with_exec(["uv", "run", "mr", "artifacts", "list"]).stdout()
+        return await base.with_exec(
+            [
+                "uv",
+                "run",
+                "mr",
+                "artifacts",
+                "export",
+                "sphere",
+                "-o",
+                "/tmp/mr-artifacts",
+                "--format",
+                "step",
+            ]
+        ).stdout()
+
+    @function
     async def check(
         self,
         source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
     ) -> str:
-        """Run lint, then test."""
+        """Run lint, artifacts, then test."""
         await self.lint(source)
+        await self.artifacts(source)
         return await self.test(source)
