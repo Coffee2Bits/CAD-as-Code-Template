@@ -176,16 +176,45 @@ The Dagger module builds the `.devcontainer/Dockerfile` image, runs `uv sync --g
 
 [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) adds Manufacturing-as-Code metadata to build123d functions. Decorators are **non-intrusive** — they do not change how your builders run; they only annotate functions so [makerrepo-cli](https://docs.makerrepo.com/makerrepo-cli/) (or MakerRepo.com CI) can discover, build, and export them.
 
-| Decorator | Purpose |
-|-----------|---------|
-| `@artifact` | Fixed CAD model published as a build artifact |
-| `@customizable` | Parametric generator with a Pydantic parameter model |
-| `@cached` | Cache expensive sub-builds by arguments |
+Import decorators from `mr` (not `makerrepo`):
+
+```python
+from mr import artifact, customizable, cached
+```
+
+### MakerRepo annotations
+
+| Annotation | Applies to | Purpose |
+|------------|------------|---------|
+| `@artifact` | Fixed publishable models | Registers a default-configuration part or assembly for discovery, export, and release. Use `short_desc=` for human-readable listings; `cover=True` marks the repo thumbnail (at most one). |
+| `@customizable` | Parametric generators | Registers a function with a single Pydantic parameter model so users can vary dimensions via `mr generators export … -p '{…}'`. Requires `sample_parameters=` with valid defaults. |
+| `@cached` | Expensive sub-builds | Caches repeated builds with the same arguments. Use on helpers that are costly to rebuild, not on simple geometry. |
+
+`@artifact` and `@customizable` sit on entry points in `cad/parts/` or `cad/assemblies/` — not on bare `make_*` builders and not in `main.py`. See [AGENTS.md](AGENTS.md) for the three-layer pattern (`make_*` → `@artifact` / `@customizable`).
+
+### Custom tooling: `@render`
+
+[`@render`](cad_tooling/README.md#render-decorator) is **workspace custom tooling**, not a MakerRepo annotation. It lives in `cad_tooling` and exists to support `@artifact` release workflows: each published model can declare camera, colors, and PNG size for GitHub Release previews and `cad_tooling.export release`.
+
+Place `@render` directly below `@artifact` on the same function:
+
+```python
+from cad_tooling.render_decorator import render
+from mr import artifact
+
+@artifact(short_desc="Demo sphere")
+@render(camera="iso", face_color=(0.31, 0.63, 1.0))
+def sphere() -> Part:
+    return make_sphere()
+```
+
+MakerRepo discovery ignores `@render`; release export reads it when generating matching STL and PNG assets. Full preset list, CLI overrides, and resolution order: [CAD tooling — `@render`](cad_tooling/README.md#render-decorator).
 
 ### Example (sphere part)
 
 ```python
 from build123d import Align, BuildPart, Part, Sphere
+from cad_tooling.render_decorator import render
 from mr import artifact, customizable
 from pydantic import BaseModel, Field
 
@@ -195,6 +224,7 @@ def make_sphere(radius: float = 10) -> Part:
     return part.part
 
 @artifact(cover=True, short_desc="Demo sphere for workspace smoke tests")
+@render(camera="iso", face_color=(0.31, 0.63, 1.0))
 def sphere() -> Part:
     return make_sphere()
 
@@ -298,7 +328,7 @@ The turnkey workspace is in place. Shipped items:
 
 - [x] `pyproject.toml`, `.gitignore`, and package scaffold
 - [x] `main.py` sphere entry point (thin viewer script; geometry in `cad/parts/`)
-- [x] `cad/parts/sphere.py` with `make_sphere`, `@artifact`, and `@customizable`
+- [x] `cad/parts/sphere.py` with `make_sphere`, `@artifact`, `@customizable`, and `@render`
 - [x] `cad_tooling/` for ad-hoc STEP / STL / GLB export, release renders, and release notes
 - [x] `.makerrepo/config.yaml` and MakerRepo dependencies (`makerrepo`, `makerrepo-cli`)
 - [x] pytest suite — geometry, exports, and MakerRepo discovery (`tests/test_makerrepo.py`)
@@ -327,7 +357,7 @@ The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) 
 
 ### Release preview renders
 
-Each artifact's release PNG is configured with `@render` on the `@artifact` function. See [`cad/parts/sphere.py`](cad/parts/sphere.py) and [CAD tooling](cad_tooling/README.md) for CLI commands, camera presets, and override behavior.
+Each artifact's release PNG is configured with [`@render`](cad_tooling/README.md#render-decorator) on the `@artifact` function. See [`cad/parts/sphere.py`](cad/parts/sphere.py) and [CAD tooling — `@render`](cad_tooling/README.md#render-decorator) for CLI commands, camera presets, and override behavior.
 
 ### Releases
 
