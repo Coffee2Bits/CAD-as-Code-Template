@@ -84,6 +84,8 @@ uv run python -m cad_tooling.render dist/sphere.stl -o dist/sphere-top.png --cam
 
 Common flags: `--width`, `--height`, `--background R,G,B`, `--face-color R,G,B`, `--camera`, `--azimuth`, `--elevation`, `--fit-margin`.
 
+<a id="render-decorator"></a>
+
 ### `@render` decorator
 
 Attach preview settings to an `@artifact` entry point in `cad/`:
