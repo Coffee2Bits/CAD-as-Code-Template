@@ -1,8 +1,22 @@
-# Programmatic CAD Modeling Workspace
+# CAD-as-Code, in a box
 
-Python-based parametric CAD modeling using [build123d](https://build123d.readthedocs.io/), with live visualization in Cursor, automated geometry tests, and export to standard CAD formats.
+A turnkey workspace for **parametric CAD in Python**. Reopen this repo in any **VS Code-based IDE** with [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers) support — VS Code, Cursor, and compatible forks — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and CI, already wired together.
 
-**Status:** First milestone complete — devcontainer, sphere entry point, tests, exports, MCP servers, and Dagger CI are in place.
+Define geometry with [build123d](https://build123d.readthedocs.io/), preview it in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), validate with pytest, and export to STEP, STL, and GLB. Publish artifacts through [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) (`mr`). Python is the source of truth; mesh files are generated, not hand-edited.
+
+![Dev environment: VS Code-based IDE with build123d code and OCP CAD Viewer showing a parametric sphere](dev_preview.png)
+
+## **What's in the box:**
+
+| Layer | What you get |
+|-------|--------------|
+| **IDE** | Dev container (`.devcontainer/`) — VS Code, Cursor, or any compatible fork; dependencies sync on start |
+| **Modeling** | build123d parts and assemblies under `cad/` |
+| **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
+| **Quality** | pytest geometry tests, ruff, mypy |
+| **CI** | [Dagger](https://dagger.io/) pipeline — same checks locally and in GitHub Actions |
+| **Agents** | MCP servers for build123d execution and OCP Viewer screenshots |
+| **Publish** | MakerRepo decorators and `mr` CLI for artifact discovery and export |
 
 **AI agents:** see [AGENTS.md](AGENTS.md) for repo structure, parts/assemblies conventions, and MakerRepo usage.
 
@@ -11,7 +25,7 @@ Python-based parametric CAD modeling using [build123d](https://build123d.readthe
 | Tool | Role |
 |------|------|
 | [build123d](https://github.com/gumyr/build123d) | Parametric CAD-as-code (Open CASCADE) |
-| [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer) | Live 3D visualization in Cursor/VS Code |
+| [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer) | Live 3D visualization in VS Code-based IDEs |
 | [ocp-vscode](https://github.com/bernhard-42/ocp_vscode) | Python bridge for `show_object` |
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
@@ -24,7 +38,7 @@ Python-based parametric CAD modeling using [build123d](https://build123d.readthe
 
 ## Quick start
 
-1. Open this repo in **Cursor** and choose **Reopen in Container** (uses `.devcontainer/`).
+1. Open this repo in **VS Code**, **Cursor**, or another VS Code-based IDE with Dev Containers support, then choose **Reopen in Container** (uses `.devcontainer/`).
 2. Dependencies sync automatically on container start (`postStartCommand`). Run manually if needed:
 
    ```bash
@@ -59,23 +73,23 @@ Python-based parametric CAD modeling using [build123d](https://build123d.readthe
    uv run mr generators list
    ```
 
-7. Reload MCP servers in Cursor (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
+7. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
 
-### OCP CAD Viewer extension (Cursor)
+### OCP CAD Viewer extension
 
 The VSIX is **not committed** — it is downloaded to the workspace root as `ocp-cad-viewer-3.4.0.vsix` (gitignored).
 
-**Cursor-specific note:** v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes on activation in Cursor's extension host (`ERR_REQUIRE_ESM`). The devcontainer scripts patch the VSIX before install.
+**Cursor-specific note:** v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes on activation in Cursor's extension host (`ERR_REQUIRE_ESM`). The devcontainer scripts patch the VSIX before install. VS Code is unaffected.
 
 Setup:
 
 1. **Download + patch (container lifecycle):** `onCreateCommand` / `postCreateCommand` run `.devcontainer/install-ocp-cad-viewer.sh download`.
-2. **Install patched VSIX (after attach):** `postStartCommand` runs `.devcontainer/install-ocp-cad-viewer.sh install-cli` via the Cursor remote CLI.
+2. **Install patched VSIX (after attach):** `postStartCommand` runs `.devcontainer/install-ocp-cad-viewer.sh install-cli` via the editor remote CLI (`code` or `cursor`).
 
 If commands are still missing after reopening the container:
 
 1. Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli` from a connected terminal.
-2. **Developer: Reload Window** in Cursor (required after reinstall).
+2. **Developer: Reload Window** in your editor (required after reinstall).
 3. Open the OCP CAD Viewer panel (activity bar icon), then run `uv run python main.py`.
 
 ## Project layout
@@ -83,7 +97,7 @@ If commands are still missing after reopening the container:
 ```text
 .
 ├── .cursor/
-│   ├── mcp.json                  # Cursor MCP server config (committed)
+│   ├── mcp.json                  # MCP server config for Cursor (committed)
 │   ├── run-build123d-mcp.sh
 │   └── run-ocp-viewer-mcp.sh
 ├── .makerrepo/
@@ -224,9 +238,9 @@ To publish artifacts on [MakerRepo.com](https://makerrepo.com), create a reposit
 
 ## MCP servers
 
-Two MCP servers are configured for agent-assisted CAD. [`.cursor/mcp.json`](.cursor/mcp.json) is committed to the repo; launcher scripts resolve paths relative to the workspace so they work inside the devcontainer.
+Two MCP servers are configured for agent-assisted CAD. [`.cursor/mcp.json`](.cursor/mcp.json) is committed for **Cursor**; launcher scripts resolve paths relative to the workspace so they work inside the devcontainer. Other editors may need equivalent MCP configuration.
 
-Reload MCP servers in Cursor (**Settings → MCP**) after container rebuilds.
+In Cursor, reload MCP servers (**Settings → MCP**) after container rebuilds.
 
 ### Configured servers
 
@@ -270,10 +284,10 @@ Launcher scripts pin `build123d-mcp==0.3.36` (Python 3.12 via `uv tool run`) and
 | Issue | Fix |
 |-------|-----|
 | build123d-mcp won't start | Ensure `uv` is on PATH; first launch downloads Python 3.12 + deps (network required) |
-| ocp-viewer connection failed | Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli`, then **Reload Window** in Cursor. Open OCP CAD Viewer panel before running `show_object()` scripts |
-| MCP tools missing after container rebuild | Run `uv sync`; reload MCP in Cursor |
+| ocp-viewer connection failed | Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli`, then **Developer: Reload Window**. Open OCP CAD Viewer panel before running `show_object()` scripts |
+| MCP tools missing after container rebuild | Run `uv sync`; in Cursor, reload MCP (**Settings → MCP**) |
 
-### Other MCP candidates (not configured)
+### Other MCP candidates (not configured and not an endorsement)
 
 | Repository | Description |
 |------------|-------------|
@@ -330,18 +344,6 @@ The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) 
 - Golden fixture tests for export stability
 - Printer-specific export profiles (e.g. Bambu) if `3dp-mcp-server` or similar is adopted
 
-## First milestone
-
-The repo is “working” when all of the following hold inside the devcontainer:
-
-- `uv sync` succeeds
-- OCP CAD Viewer VSIX is downloaded to `ocp-cad-viewer-3.4.0.vsix` (gitignored) and installed by Cursor on devcontainer attach
-- `uv run python main.py` runs (viewer panel may need manual VSIX install)
-- `uv run pytest` passes
-- `uv run mr artifacts list` finds the sphere artifact
-- Export one-liner produces non-empty files in `exports/`
-- `.cursor/mcp.json` configures build123d-mcp and ocp-viewer-mcp
-
 ## Known limitations
 
 - build123d is code-first — not a full GUI CAD application.
@@ -350,7 +352,7 @@ The repo is “working” when all of the following hold inside the devcontainer
 - STEP is the reliable interchange format; STL is lossy.
 - Rebuilding clean parametric code from imported STL usually requires human or agent interpretation.
 - MCP servers in this space are experimental until vetted and pinned.
-- VSIX extension install may require a manual step in Cursor if the CLI is unavailable in the container.
+- VSIX extension install may require a manual step if the editor remote CLI (`code` / `cursor`) is unavailable in the container.
 
 ## License
 
