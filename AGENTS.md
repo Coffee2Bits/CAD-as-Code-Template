@@ -41,7 +41,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 |------|---------|-------------|
 | `cad/parts/` | Single reusable components (brackets, enclosures, fasteners helpers, etc.) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. |
 | `cad/assemblies/` | Products composed from parts (positions, patterns, constraints) | Import from `cad.parts`; do not duplicate part geometry. Assemblies may define their own `@artifact` / `@customizable` entry points. |
-| `cad/export.py` | Format export utilities shared by scripts and tests | Use for ad-hoc exports; prefer `mr artifacts export` for published artifacts. |
+| `cad/export.py` | MakerRepo-aware export helpers and ad-hoc geometry export | Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. |
 | `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. |
 | `tests/` | pytest coverage | Mirror `cad/` structure: `test_<part>.py`, `test_makerrepo.py` for discovery smoke tests. |
 | `.makerrepo/config.yaml` | MR repo config | Set export defaults and optional `pythonpaths`; do not put model logic here. |
@@ -239,7 +239,7 @@ When adding or changing a published model:
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
 3. Add pytest tests (geometry + export).
 4. Confirm MR discovery: `uv run mr artifacts list` / `generators list`.
-5. Export smoke test: `uv run mr artifacts export <name> -o /tmp/mr-test --format step`.
+5. Export smoke test: `python -m cad.export export -o /tmp/out --format step` (or import `export_artifacts` in pytest).
 6. Run full quality gate: `uv run pytest`, `uv run ruff check .`, `uv run mypy cad tests`.
 
 ---
@@ -262,7 +262,7 @@ Keep files under **300–400 lines**. Split large parts into submodules if neede
 GitHub Actions runs `dagger call -m ./ci check`, which executes:
 
 1. **lint** — ruff + mypy
-2. **artifacts** — `mr artifacts list` + export `sphere` to STEP
+2. **artifacts** — `python -m cad.export smoke` (discover all `@artifact` functions, export STEP + STL)
 3. **test** — pytest (includes `test_makerrepo.py`)
 
 Local equivalent:
@@ -271,7 +271,33 @@ Local equivalent:
 dagger call -m ./ci check --source=.
 ```
 
-Any new `@artifact` that replaces `sphere` as the CI smoke artifact requires updating [`ci/src/ci/main.py`](ci/src/ci/main.py) and possibly [`tests/test_makerrepo.py`](tests/test_makerrepo.py).
+Any new `@artifact` is picked up automatically by `cad.export` and `tests/test_makerrepo.py`. No CI edits required when adding artifacts.
+
+---
+
+## Releases
+
+Pushing a semver tag (`v*.*.*`) triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml):
+
+1. Dagger `check` (same gates as CI)
+2. `release-artifact` — `python -m cad.export release` (all artifacts as STL)
+3. GitHub Release — attaches `dist/*.stl`
+4. GHCR — `ghcr.io/<owner>/cad-sphere:<tag>` via ORAS (cover artifact STL)
+
+**Cut a release:**
+
+```bash
+git tag v0.0.1
+git push origin v0.0.1
+```
+
+Keep `pyproject.toml` `version` aligned with the tag. Local dry-run:
+
+```bash
+dagger call -m ./ci release-artifact --source=. export --path=./dist
+```
+
+When adding new `@artifact` models, update `release-artifact` (or generalize it to export all artifacts) and extend release assets accordingly.
 
 ---
 

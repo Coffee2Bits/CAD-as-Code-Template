@@ -169,7 +169,8 @@ Or run the same pipeline as CI (requires Docker on the host and a devcontainer r
 dagger call -m ./ci check --source=.
 dagger call -m ./ci test --source=.       # pytest only
 dagger call -m ./ci lint --source=.       # ruff + mypy only
-dagger call -m ./ci artifacts --source=.  # mr artifacts list + export
+dagger call -m ./ci artifacts --source=.  # cad.export smoke
+dagger call -m ./ci release-artifact --source=. export --path=./dist
 ```
 
 The Dagger module builds the `.devcontainer/Dockerfile` image, runs `uv sync --group dev`, then executes checks inside that environment — matching GitHub Actions.
@@ -308,7 +309,7 @@ The turnkey workspace is in place. Shipped items:
 - [x] Ephemeral OCP CAD Viewer VSIX via devcontainer lifecycle scripts
 - [x] End-to-end verification in devcontainer
 - [x] Dagger CI module (`ci/`) with lint, artifacts, and test gates
-- [x] GitHub Actions workflow (`.github/workflows/ci.yml`)
+- [x] GitHub Actions release workflow (`.github/workflows/release.yml`) — sphere STL to Releases + GHCR
 - [x] [AGENTS.md](AGENTS.md) — repo conventions for AI agents
 
 Work planned after this milestone. Order may shift based on project needs.
@@ -322,9 +323,41 @@ Pushes and pull requests to `main` run the Dagger pipeline when changes touch mo
 | `check` | lint + artifacts + test (used in GitHub Actions) |
 | `test` | `uv run pytest` |
 | `lint` | `uv run ruff check .`, `ruff format --check .`, `mypy cad tests` |
-| `artifacts` | `mr artifacts list` + export sphere to STEP (MakerRepo smoke test) |
+| `artifacts` | `python -m cad.export smoke` (discover and export all artifacts as STEP + STL) |
+| `release-artifact` | `python -m cad.export release` (export all artifacts as STL for release) |
 
 The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) for Open CASCADE / Mesa parity with local dev. OCP viewer VSIX and MCP servers are not part of CI.
+
+### Releases
+
+Pushing a semver tag (e.g. `v0.0.1`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
+
+1. **Quality gate** — same Dagger `check` as CI (lint, artifact smoke, pytest).
+2. **Export** — all `@artifact` models as STL via `cad.export`.
+3. **GitHub Release** — attaches `dist/*.stl`.
+4. **GHCR package** — publishes the same STL to `ghcr.io/<owner>/cad-sphere:<tag>` via [ORAS](https://oras.land/).
+
+**Cut a release** (from `main`, after CI is green):
+
+```bash
+git tag v0.0.1
+git push origin v0.0.1
+```
+
+**Download the STL:**
+
+- **Releases page** — open the tag on GitHub and download `sphere.stl`.
+- **GHCR (programmatic)** — after installing [ORAS](https://oras.land/docs/installation):
+
+  ```bash
+  oras pull ghcr.io/<owner>/cad-sphere:v0.0.1
+  ```
+
+Keep `pyproject.toml` `version` in sync with release tags. Local dry-run:
+
+```bash
+dagger call -m ./ci release-artifact --source=. export --path=./dist
+```
 
 **Local Dagger** (inside the devcontainer after rebuild):
 
