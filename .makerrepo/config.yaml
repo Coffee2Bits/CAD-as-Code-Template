@@ -1,0 +1,6 @@
+# MakerRepo repository configuration
+# https://docs.makerrepo.com/makerrepo-library/
+artifacts:
+  default_config:
+    export_step: true
+    export_3mf: false

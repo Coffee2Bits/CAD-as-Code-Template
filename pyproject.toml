@@ -12,6 +12,7 @@ dependencies = [
   "ocp-vscode",
   "numpy",
   "trimesh",
+  "makerrepo>=0.5.6",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -24,6 +25,7 @@ dev = [
   "ruff",
   "mypy",
   "ocp-viewer-mcp>=0.1.0",
+  "makerrepo-cli>=0.3.6",
 ]
 
 [tool.ruff]
