@@ -11,9 +11,18 @@
       "username": "vscode",
       "uid": "automatic",
       "gid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "moby": true
     }
   },
-  "postCreateCommand": "(test -f pyproject.toml && uv sync) || echo 'Skipping uv sync until pyproject.toml exists'; bash .devcontainer/install-ocp-cad-viewer.sh",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "onCreateCommand": "bash .devcontainer/install-ocp-cad-viewer.sh download",
+  "postCreateCommand": "uv sync && bash .devcontainer/install-ocp-cad-viewer.sh download",
+  "postStartCommand": "uv sync && bash .devcontainer/install-ocp-cad-viewer.sh install-cli",
   "customizations": {
     "vscode": {
       "extensions": [

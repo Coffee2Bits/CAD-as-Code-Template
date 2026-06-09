@@ -2,9 +2,7 @@
 
 Python-based parametric CAD modeling using [build123d](https://build123d.readthedocs.io/), with live visualization in Cursor, automated geometry tests, and export to standard CAD formats.
 
-**Status:** Devcontainer scaffolding is in place. Core library, tests, exports, and documentation are being built out toward the [first milestone](#first-milestone). See [Roadmap](#roadmap) for planned CI and MCP integration.
-
-Detailed agent/setup specification: [`build123d-cursor-project-brief.md`](build123d-cursor-project-brief.md).
+**Status:** First milestone complete — devcontainer, OCP text example, tests, exports, MCP servers, and Dagger CI are in place.
 
 ## Stack
 
@@ -16,11 +14,14 @@ Detailed agent/setup specification: [`build123d-cursor-project-brief.md`](build1
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
 | [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) | Linting and type checking |
+| [Dagger](https://dagger.io/) | Portable CI pipeline (local + GitHub Actions) |
+| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP tools for interactive CAD generation and inspection |
+| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP screenshots from OCP CAD Viewer for agent vision |
 
 ## Quick start
 
 1. Open this repo in **Cursor** and choose **Reopen in Container** (uses `.devcontainer/`).
-2. After the container builds, sync dependencies:
+2. Dependencies sync automatically on container start (`postStartCommand`). Run manually if needed:
 
    ```bash
    uv sync
@@ -35,49 +36,67 @@ Detailed agent/setup specification: [`build123d-cursor-project-brief.md`](build1
 4. View the example part in the OCP CAD Viewer:
 
    ```bash
-   uv run python examples/view_example_plate.py
+   uv run python examples/view_example.py
    ```
 
 5. Export STEP, STL, and GLB:
 
    ```bash
-   uv run python -c "from cad.export import export_part; from cad.parts.example_plate import make_example_plate; export_part(make_example_plate(), 'example_plate')"
+   uv run python -c "from cad.export import export_part; from cad.parts.example_ocp_text import make_example_ocp_text; export_part(make_example_ocp_text(), 'example_ocp_text')"
    ```
 
    Outputs land in `exports/` (gitignored).
 
-### OCP CAD Viewer extension
+6. Reload MCP servers in Cursor (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
 
-The devcontainer downloads the VSIX during `postCreateCommand`. If the extension is not active:
+### OCP CAD Viewer extension (Cursor)
 
-1. Open **Extensions** in Cursor.
-2. Choose **Install from VSIX**.
-3. Select `.devcontainer/vsix/ocp-cad-viewer-3.4.0.vsix`.
+The VSIX is **not committed** — it is downloaded to the workspace root as `ocp-cad-viewer-3.4.0.vsix` (gitignored).
+
+**Cursor-specific note:** v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes on activation in Cursor's extension host (`ERR_REQUIRE_ESM`). The devcontainer scripts patch the VSIX before install.
+
+Setup:
+
+1. **Download + patch (container lifecycle):** `onCreateCommand` / `postCreateCommand` run `.devcontainer/install-ocp-cad-viewer.sh download`.
+2. **Install patched VSIX (after attach):** `postStartCommand` runs `.devcontainer/install-ocp-cad-viewer.sh install-cli` via the Cursor remote CLI.
+
+If commands are still missing after reopening the container:
+
+1. Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli` from a connected terminal.
+2. **Developer: Reload Window** in Cursor (required after reinstall).
+3. Open the OCP CAD Viewer panel (activity bar icon), then run `uv run python examples/view_example.py`.
 
 ## Project layout
 
 ```text
 .
 ├── .cursor/
-│   └── mcp.json.example          # MCP opt-in template (not installed by default)
+│   ├── mcp.json                  # Cursor MCP server config (committed)
+│   ├── run-build123d-mcp.sh
+│   └── run-ocp-viewer-mcp.sh
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # Dagger CI on push/PR
+├── ci/
+│   ├── dagger.json               # Dagger module config
+│   ├── pyproject.toml
+│   └── src/ci/main.py            # test, lint, check functions
 ├── .devcontainer/
 │   ├── devcontainer.json
 │   ├── Dockerfile
 │   └── install-ocp-cad-viewer.sh
 ├── cad/
 │   ├── parts/                    # Reusable parametric parts
-│   │   └── example_plate.py
-│   ├── assemblies/               # Composed models (minimal demo first)
-│   │   └── example_assembly.py
+│   │   └── example_ocp_text.py
+│   ├── assemblies/               # Composed models
 │   └── export.py                 # STEP / STL / GLB helpers
 ├── examples/
-│   └── view_example_plate.py
+│   └── view_example.py
 ├── exports/                      # Generated artifacts (gitignored)
 ├── tests/
-│   ├── test_example_plate.py
+│   ├── test_example_ocp_text.py
 │   └── test_exports.py
-├── pyproject.toml
-└── build123d-cursor-project-brief.md
+└── pyproject.toml
 ```
 
 ## Development workflow
@@ -102,9 +121,14 @@ The devcontainer downloads the VSIX during `postCreateCommand`. If the extension
 
 Initial implementation covers STEP, STL, and GLB. Additional formats will be added when a concrete model needs them.
 
-### Assemblies
+### Testing
 
-`cad/assemblies/example_assembly.py` is intentionally **minimal** — enough to prove that parts compose correctly (e.g. two plates positioned relative to each other). More complex assemblies, constraints, and BOM-style structure will be added as real models require them.
+```bash
+uv run pytest          # geometry and export tests
+uv run pytest -v       # verbose output
+```
+
+Coverage includes validity, bounding boxes, volume checks, and STEP round-trip export.
 
 ### Quality checks (local)
 
@@ -115,70 +139,75 @@ uv run mypy cad tests
 uv run pytest
 ```
 
-## MCP servers (candidates — vet before enabling)
+Or run the same pipeline as CI (requires Docker on the host and a devcontainer rebuild so the socket is mounted):
 
-MCP integration is **optional** and **not installed by default**. Copy `.cursor/mcp.json.example` to `.cursor/mcp.json` only after vetting a server. Real `mcp.json` is gitignored.
+```bash
+dagger call -m ./ci check --source=.
+dagger call -m ./ci test --source=.    # pytest only
+dagger call -m ./ci lint --source=.    # ruff + mypy only
+```
 
-Review each repo for maintenance, install method, PyPI availability, and security before enabling.
+The Dagger module builds the `.devcontainer/Dockerfile` image, runs `uv sync --group dev`, then executes checks inside that environment — matching GitHub Actions.
 
-### build123d / OCP (primary candidates)
+## MCP servers
 
-| Repository | Description | Notes for vetting |
-|------------|-------------|-------------------|
-| [pzfreo/build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP server for build123d model generation | Check PyPI/`uvx` support, tool surface, and pin commit |
-| [dmilad/ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | Screenshots from OCP CAD Viewer for agent vision | Requires OCP viewer running; verify Cursor compatibility |
-| [brs077/3dp-mcp-server](https://github.com/brs077/3dp-mcp-server) | 3D-printable CAD with build123d (Bambu Lab X1C focus) | Evaluate if printer-specific tooling is in scope |
-| [jdilla1277/agentcad](https://github.com/jdilla1277/agentcad) | CAD CLI and MCP server for AI agents | Broader agent CAD toolkit — check overlap with build123d-mcp |
+Two MCP servers are configured for agent-assisted CAD. [`.cursor/mcp.json`](.cursor/mcp.json) is committed to the repo; launcher scripts resolve paths relative to the workspace so they work inside the devcontainer.
 
-### CadQuery alternatives
+Reload MCP servers in Cursor (**Settings → MCP**) after container rebuilds.
 
-Useful if cross-framework agent tooling is needed; this repo standardizes on build123d.
+### Configured servers
 
-| Repository | Description |
-|------------|-------------|
-| [rishigundakaram/cadquery-mcp-server](https://github.com/rishigundakaram/cadquery-mcp-server) | CadQuery MCP server |
-| [mikekuniavsky/mcp-cadquery-server-public](https://github.com/mikekuniavsky/mcp-cadquery-server-public) | Public CadQuery MCP server |
+| Server | Package | Pin | Role |
+|--------|---------|-----|------|
+| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | `build123d-mcp` | `0.3.36` | Run build123d code in a sandboxed session; measure, render, export, compare geometry |
+| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | `ocp-viewer-mcp` | `0.1.0` | Capture screenshots from OCP CAD Viewer so agents can see displayed models |
 
-### FreeCAD alternatives
+**build123d-mcp** runs in an isolated `uv tool` environment (Python 3.12 required for VTK/OCP wheels). Key tools: `execute`, `measure`, `render_view`, `export`, `session_state`.
 
-For GUI-driven or FreeCAD-native workflows, not the default for this codebase.
+**ocp-viewer-mcp** runs in this project's `.venv` (installed via `uv sync` dev dependencies). Requires the OCP CAD Viewer extension and a model displayed via `show_object()`.
 
-| Repository | Description |
-|------------|-------------|
-| [blwfish/freecad-mcp](https://github.com/blwfish/freecad-mcp) | FreeCAD MCP integration |
-| [lucygoodchild/freecad-mcp-server](https://github.com/lucygoodchild/freecad-mcp-server) | FreeCAD MCP server |
-
-### Enabling MCP (after vetting)
-
-1. Inspect the chosen repo: install docs, dependencies, last commit, open issues.
-2. Pin a version or commit hash in install instructions.
-3. Copy and edit the example config:
-
-   ```bash
-   cp .cursor/mcp.json.example .cursor/mcp.json
-   ```
-
-4. Restart Cursor or reload MCP servers.
-5. Document the chosen server and pin in this README (future step once vetted).
-
-Placeholder shape (adjust per server after inspection):
+### Workspace MCP config
 
 ```json
 {
   "mcpServers": {
-    "build123d": {
-      "command": "uvx",
-      "args": ["build123d-mcp"]
+    "build123d-mcp": {
+      "command": "bash",
+      "args": [".cursor/run-build123d-mcp.sh"]
     },
     "ocp-viewer": {
-      "command": "uvx",
-      "args": ["ocp-viewer-mcp"]
+      "command": "bash",
+      "args": [".cursor/run-ocp-viewer-mcp.sh"]
     }
   }
 }
 ```
 
-If a server is not on PyPI, use `uv run` against a cloned repo — see `.cursor/mcp.json.example` and the brief for local-development patterns.
+Launcher scripts pin `build123d-mcp==0.3.36` (Python 3.12 via `uv tool run`) and run `ocp-viewer-mcp` from the project `.venv`. To bump versions, edit the launcher scripts and reload MCP.
+
+### Typical agent workflow
+
+1. Use **build123d-mcp** `execute` to prototype geometry incrementally; verify with `measure` and `render_view`.
+2. Move stable parts into `cad/parts/` as normal Python modules with pytest coverage.
+3. Run `uv run python examples/view_example.py` and display in OCP CAD Viewer.
+4. Use **ocp-viewer-mcp** `capture_ocp_screenshot` to let the agent visually confirm the viewer output.
+
+### Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| build123d-mcp won't start | Ensure `uv` is on PATH; first launch downloads Python 3.12 + deps (network required) |
+| ocp-viewer connection failed | Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli`, then **Reload Window** in Cursor. Open OCP CAD Viewer panel before running `show_object()` scripts |
+| MCP tools missing after container rebuild | Run `uv sync`; reload MCP in Cursor |
+
+### Other MCP candidates (not configured)
+
+| Repository | Description |
+|------------|-------------|
+| [brs077/3dp-mcp-server](https://github.com/brs077/3dp-mcp-server) | 3D-printable CAD with build123d (Bambu Lab X1C focus) |
+| [jdilla1277/agentcad](https://github.com/jdilla1277/agentcad) | CAD CLI and MCP server for AI agents |
+| [rishigundakaram/cadquery-mcp-server](https://github.com/rishigundakaram/cadquery-mcp-server) | CadQuery MCP server |
+| [blwfish/freecad-mcp](https://github.com/blwfish/freecad-mcp) | FreeCAD MCP integration |
 
 ## Roadmap
 
@@ -186,35 +215,38 @@ Work planned after the first milestone. Order may shift based on project needs.
 
 ### Near term (first milestone)
 
-- [ ] `pyproject.toml`, `.gitignore`, and package scaffold
-- [ ] `cad/parts/example_plate.py`
-- [ ] Minimal `cad/assemblies/example_assembly.py`
-- [ ] `cad/export.py` and viewer example
-- [ ] pytest suite for geometry and exports
-- [ ] `.cursor/mcp.json.example`
-- [ ] End-to-end verification in devcontainer
+- [x] `pyproject.toml`, `.gitignore`, and package scaffold
+- [x] `cad/parts/example_ocp_text.py`
+- [x] `cad/export.py` and viewer example
+- [x] pytest suite for geometry and exports
+- [x] `.cursor/mcp.json` with build123d-mcp and ocp-viewer-mcp launcher scripts
+- [x] Ephemeral OCP CAD Viewer VSIX via devcontainer lifecycle scripts
+- [x] End-to-end verification in devcontainer
+- [x] Dagger CI module (`ci/`) and GitHub Actions workflow
 
-### CI and automation (planned)
+### CI and automation
 
-Goal: every push/PR runs the same checks as local dev, inside an environment that matches the devcontainer.
+Every push and pull request to `main` runs the Dagger pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
-**Proposed GitHub Actions workflow:**
+| Function | What it runs |
+|----------|--------------|
+| `check` | lint + test (used in GitHub Actions) |
+| `test` | `uv run pytest` |
+| `lint` | `uv run ruff check .`, `ruff format --check .`, `mypy cad tests` |
 
-| Job | Steps |
-|-----|-------|
-| **test** | Checkout → build or reuse devcontainer image → `uv sync` → `uv run pytest` |
-| **lint** | `uv run ruff check .` → `uv run ruff format --check .` → `uv run mypy cad tests` |
-| **export-smoke** (optional) | Run export one-liner in CI `tmp_path`; assert non-empty STEP/STL/GLB (no committed artifacts) |
+The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) for Open CASCADE / Mesa parity with local dev. OCP viewer VSIX and MCP servers are not part of CI.
 
-**Tooling options under consideration:**
+**Local Dagger** (inside the devcontainer after rebuild):
 
-- **Devcontainer CI** — `devcontainers/ci` or equivalent so CI uses the same Dockerfile as local dev (best parity for Open CASCADE / GL libs).
-- **uv in CI** — `astral-sh/setup-uv` with cached `.venv` for speed once base image is stable.
+1. Host Docker must be running and `/var/run/docker.sock` mounted (configured in `devcontainer.json`).
+2. Run from the repo root: `dagger call -m ./ci check --source=.`
+
+**Future CI additions:**
+
 - **Pre-commit** (optional) — ruff format/check on commit; pytest left to CI to keep commits fast.
 - **Coverage** — `pytest-cov` threshold on `cad/` once the library grows.
+- **Export-smoke** — export one-liner in CI `tmp_path`; assert non-empty STEP/STL/GLB.
 - **Export regression** (later) — golden STEP/STL fixtures under `tests/fixtures/` with `.gitignore` exceptions for intentional baselines.
-
-**Not in initial CI scope:** MCP server installs, OCP viewer UI, or headless 3D rendering screenshots (unless `ocp-viewer-mcp` is vetted and scripted).
 
 ### Future modeling and library work
 
@@ -229,11 +261,11 @@ Goal: every push/PR runs the same checks as local dev, inside an environment tha
 The repo is “working” when all of the following hold inside the devcontainer:
 
 - `uv sync` succeeds
-- OCP CAD Viewer VSIX is present under `.devcontainer/vsix/`
-- `uv run python examples/view_example_plate.py` runs (viewer panel may need manual VSIX install)
+- OCP CAD Viewer VSIX is downloaded to `ocp-cad-viewer-3.4.0.vsix` (gitignored) and installed by Cursor on devcontainer attach
+- `uv run python examples/view_example.py` runs (viewer panel may need manual VSIX install)
 - `uv run pytest` passes
 - Export one-liner produces non-empty files in `exports/`
-- `.cursor/mcp.json.example` exists; no unvetted MCP server is installed silently
+- `.cursor/mcp.json` configures build123d-mcp and ocp-viewer-mcp
 
 ## Known limitations
 
