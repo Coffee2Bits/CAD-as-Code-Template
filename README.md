@@ -57,23 +57,17 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
    uv run python main.py
    ```
 
-5. Export STEP, STL, and GLB:
-
-   ```bash
-   uv run python -c "from cad.export import export_part; from cad.parts.sphere import make_sphere; export_part(make_sphere(), 'sphere')"
-   ```
-
-   Outputs land in `exports/` (gitignored).
-
-6. List and export MakerRepo artifacts:
+5. Export the sphere (MakerRepo CLI — preferred for published artifacts):
 
    ```bash
    uv run mr artifacts list
    uv run mr artifacts export sphere -o exports/ --format step
-   uv run mr generators list
+   uv run mr generators export sphere_generator -p '{"radius": 15}' -o exports/ --format step
    ```
 
-7. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
+   Outputs land in `exports/` (gitignored). For ad-hoc exports in tests or scripts, use `cad.export.export_part(make_sphere(), "sphere")` — see [`tests/test_exports.py`](tests/test_exports.py).
+
+6. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
 
 ### OCP CAD Viewer extension
 
@@ -96,6 +90,8 @@ If commands are still missing after reopening the container:
 
 ```text
 .
+├── AGENTS.md                     # Agent conventions (parts, assemblies, MakerRepo)
+├── LICENSE
 ├── .cursor/
 │   ├── mcp.json                  # MCP server config for Cursor (committed)
 │   ├── run-build123d-mcp.sh
@@ -298,22 +294,28 @@ Launcher scripts pin `build123d-mcp==0.3.36` (Python 3.12 via `uv tool run`) and
 
 ## Roadmap
 
-Work planned after the first milestone. Order may shift based on project needs.
+### First milestone (complete)
 
-### Near term (first milestone)
+The turnkey workspace is in place. Shipped items:
 
 - [x] `pyproject.toml`, `.gitignore`, and package scaffold
-- [x] `main.py` sphere entry point
-- [x] `cad/export.py`
-- [x] pytest suite for geometry and exports
+- [x] `main.py` sphere entry point (thin viewer script; geometry in `cad/parts/`)
+- [x] `cad/parts/sphere.py` with `make_sphere`, `@artifact`, and `@customizable`
+- [x] `cad/export.py` for ad-hoc STEP / STL / GLB bundles in tests and scripts
+- [x] `.makerrepo/config.yaml` and MakerRepo dependencies (`makerrepo`, `makerrepo-cli`)
+- [x] pytest suite — geometry, exports, and MakerRepo discovery (`tests/test_makerrepo.py`)
 - [x] `.cursor/mcp.json` with build123d-mcp and ocp-viewer-mcp launcher scripts
 - [x] Ephemeral OCP CAD Viewer VSIX via devcontainer lifecycle scripts
 - [x] End-to-end verification in devcontainer
-- [x] Dagger CI module (`ci/`) and GitHub Actions workflow
+- [x] Dagger CI module (`ci/`) with lint, artifacts, and test gates
+- [x] GitHub Actions workflow (`.github/workflows/ci.yml`)
+- [x] [AGENTS.md](AGENTS.md) — repo conventions for AI agents
+
+Work planned after this milestone. Order may shift based on project needs.
 
 ### CI and automation
 
-Every push and pull request to `main` runs the Dagger pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+Pushes and pull requests to `main` run the Dagger pipeline when changes touch model code, tests, CI, dependencies, or agent docs — see path filters in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 | Function | What it runs |
 |----------|--------------|
@@ -355,4 +357,5 @@ The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) 
 - VSIX extension install may require a manual step if the editor remote CLI (`code` / `cursor`) is unavailable in the container.
 
 ## License
-Completely free for any and all uses. No guarantees are provided.
+
+See [LICENSE](LICENSE).

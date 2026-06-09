@@ -5,10 +5,22 @@ on:
     branches: [main]
     paths:
       - "cad/**"
+      - "tests/**"
+      - "ci/**"
+      - ".github/workflows/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".makerrepo/**"
   pull_request:
     branches: [main]
     paths:
       - "cad/**"
+      - "tests/**"
+      - "ci/**"
+      - ".github/workflows/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".makerrepo/**"
 
 jobs:
   check:
