@@ -61,23 +61,33 @@ class Ci:
         self,
         source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
     ) -> str:
-        """Discover and export MakerRepo artifacts (mr artifacts list + export)."""
-        base = self._project(source)
-        await base.with_exec(["uv", "run", "mr", "artifacts", "list"]).stdout()
-        return await base.with_exec(
-            [
-                "uv",
-                "run",
-                "mr",
-                "artifacts",
-                "export",
-                "sphere",
-                "-o",
-                "/tmp/mr-artifacts",
-                "--format",
-                "step",
-            ]
+        """Discover and export MakerRepo artifacts (python -m cad.export smoke)."""
+        return await self._project(source).with_exec(
+            ["uv", "run", "python", "-m", "cad.export", "smoke"]
         ).stdout()
+
+    @function
+    async def release_artifact(
+        self,
+        source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
+    ) -> dagger.Directory:
+        """Export release STL artifacts for GitHub Releases and GHCR."""
+        return (
+            self._project(source)
+            .with_exec(
+                [
+                    "uv",
+                    "run",
+                    "python",
+                    "-m",
+                    "cad.export",
+                    "release",
+                    "-o",
+                    "/tmp/release-artifacts",
+                ]
+            )
+            .directory("/tmp/release-artifacts")
+        )
 
     @function
     async def check(

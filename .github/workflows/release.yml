@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run checks
+        uses: dagger/dagger-for-github@v8.4.0
+        with:
+          version: "0.21.4"
+          verb: call
+          module: ./ci
+          args: check --source=.
+          dagger-flags: "--progress plain"
+
+  release:
+    name: Publish sphere STL
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Export sphere STL
+        uses: dagger/dagger-for-github@v8.4.0
+        with:
+          version: "0.21.4"
+          verb: call
+          module: ./ci
+          args: release-artifact --source=. export --path=./dist
+          dagger-flags: "--progress plain"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.stl
+          generate_release_notes: true
+          body: |
+            MakerRepo artifacts exported as STL from this repository.
+
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+        with:
+          version: 1.2.2
+
+      - name: Push STL to GHCR
+        env:
+          GHCR_PACKAGE: ghcr.io/${{ github.repository_owner }}/cad-sphere
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io \
+            -u "${{ github.actor }}" --password-stdin
+          oras push "${GHCR_PACKAGE}:${{ github.ref_name }}" \
+            --artifact-type application/vnd.cad-as-code.stl \
+            -a "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            "dist/sphere.stl:application/sla"
