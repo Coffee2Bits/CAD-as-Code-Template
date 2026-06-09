@@ -62,9 +62,11 @@ class Ci:
         source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
     ) -> str:
         """Discover and export MakerRepo artifacts (python -m cad.export smoke)."""
-        return await self._project(source).with_exec(
-            ["uv", "run", "python", "-m", "cad.export", "smoke"]
-        ).stdout()
+        return (
+            await self._project(source)
+            .with_exec(["uv", "run", "python", "-m", "cad.export", "smoke"])
+            .stdout()
+        )
 
     @function
     async def release_artifact(
