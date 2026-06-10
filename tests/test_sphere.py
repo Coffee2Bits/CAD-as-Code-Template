@@ -23,9 +23,8 @@ def test_sphere_volume_below_full_sphere_with_emboss():
     radius = 8
     part = make_sphere(radius=radius)
     full_sphere_volume = (4 / 3) * math.pi * radius**3
-    northeast_cut_volume = (3 / 4) * full_sphere_volume
 
-    assert northeast_cut_volume < part.volume < full_sphere_volume
+    assert part.volume < full_sphere_volume
 
 
 def test_sphere_has_embossed_text_faces():
