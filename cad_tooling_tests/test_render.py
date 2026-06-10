@@ -6,11 +6,12 @@ import pytest
 from cad_tooling.export import export_release, list_artifacts
 from cad_tooling.release_notes import (
     ReleaseAsset,
+    RenderPreview,
     collect_release_assets,
     release_download_url,
     render_release_body,
 )
-from cad_tooling.render import CAMERA_PRESETS, _main, render_stl
+from cad_tooling.render import CAMERA_PRESETS, _main, load_viewer_script, render_input, render_stl
 
 
 def test_release_download_url():
@@ -21,10 +22,13 @@ def test_release_download_url():
 def test_render_release_body_lists_artifacts_with_previews(repo_root: Path):
     artifact = next(item for item in list_artifacts(repo_root) if item.name == "sphere")
     assets = [
-        ReleaseAsset(
-            artifact=artifact,
-            stl_path=Path("sphere.stl"),
-            png_path=Path("sphere.png"),
+        ReleaseAsset.from_png_paths(
+            artifact,
+            Path("sphere.stl"),
+            (
+                Path("sphere_front_800x600.png"),
+                Path("sphere_iso_800x600.png"),
+            ),
         )
     ]
 
@@ -33,11 +37,25 @@ def test_render_release_body_lists_artifacts_with_previews(repo_root: Path):
     assert "# Release artifacts" in body
     assert "## sphere" in body
     assert "Demo sphere for workspace smoke tests" in body
+    assert '<p align="center">' in body
     assert (
-        "![sphere](https://github.com/acme/cad-template/releases/download/v0.0.1/sphere.png)"
+        'src="https://github.com/acme/cad-template/releases/download/v0.0.1/sphere_front_800x600.png"'
         in body
     )
-    assert "|" not in body
+    assert (
+        'src="https://github.com/acme/cad-template/releases/download/v0.0.1/sphere_iso_800x600.png"'
+        in body
+    )
+    assert (
+        "- [front (800×600)]"
+        "(https://github.com/acme/cad-template/releases/download/v0.0.1/sphere_front_800x600.png)"
+        in body
+    )
+    assert (
+        "- [iso (800×600)]"
+        "(https://github.com/acme/cad-template/releases/download/v0.0.1/sphere_iso_800x600.png)"
+        in body
+    )
     assert (
         "[sphere.stl](https://github.com/acme/cad-template/releases/download/v0.0.1/sphere.stl)"
         in body
@@ -53,8 +71,16 @@ def test_render_release_body_sorts_artifacts():
         desc = None
 
     assets = [
-        ReleaseAsset(FakeArtifact(), Path("alpha.stl"), Path("alpha.png")),
-        ReleaseAsset(artifact_a, Path("sphere.stl"), Path("sphere.png")),
+        ReleaseAsset(
+            FakeArtifact(),
+            Path("alpha.stl"),
+            (RenderPreview("alpha iso 800x600", Path("alpha_iso_800x600.png")),),
+        ),
+        ReleaseAsset.from_png_paths(
+            artifact_a,
+            Path("sphere.stl"),
+            (Path("sphere_front_800x600.png"), Path("sphere_iso_800x600.png")),
+        ),
     ]
     body = render_release_body("acme/repo", "v1.0.0", assets)
     assert body.index("## alpha") < body.index("## sphere")
@@ -83,6 +109,15 @@ def test_collect_release_assets_missing_png(tmp_path: Path, repo_root: Path):
     export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
     with pytest.raises(FileNotFoundError, match="Missing release preview"):
         collect_release_assets(tmp_path, root=repo_root)
+
+
+def test_collect_release_assets_accepts_legacy_png_name(tmp_path: Path, repo_root: Path):
+    from cad_tooling.export import export_artifacts
+
+    export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
+    (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    assets = collect_release_assets(tmp_path, root=repo_root)
+    assert assets[0].png_path.name == "sphere.png"
 
 
 def test_camera_presets_cover_all_config_choices():
@@ -114,6 +149,34 @@ def test_render_cli_without_artifact_lookup(tmp_path: Path, repo_root: Path):
     png_path = tmp_path / "fallback.png"
     assert _main([str(stl_path), "-o", str(png_path), "--camera", "top"]) == 0
     assert png_path.exists()
+
+
+def test_export_release_writes_descriptive_png_names(tmp_path: Path, repo_root: Path):
+    export_release(tmp_path, root=repo_root)
+    assert (tmp_path / "sphere_front_800x600.png").exists()
+    assert (tmp_path / "sphere_iso_800x600.png").exists()
+    assert not (tmp_path / "sphere.png").exists()
+
+
+def test_load_viewer_script_reads_main_py(repo_root: Path):
+    shape, artifact_name, artifact_func = load_viewer_script(repo_root / "main.py", root=repo_root)
+    assert artifact_name == "sphere"
+    assert artifact_func is not None
+    assert artifact_func.__name__ == "sphere"
+    assert shape.volume > 0
+
+
+def test_render_main_py_to_directory(tmp_path: Path, repo_root: Path):
+    written = render_input(repo_root / "main.py", tmp_path)
+    assert len(written) == 2
+    assert all(path.exists() for path in written)
+    assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in written)
+
+
+def test_render_main_shorthand_without_extension(tmp_path: Path, repo_root: Path):
+    written = render_input(repo_root / "main", tmp_path)
+    assert len(written) == 2
+    assert all(path.exists() for path in written)
 
 
 def test_ensure_display_starts_xvfb_when_no_display():

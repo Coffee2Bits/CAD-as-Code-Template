@@ -9,13 +9,14 @@ from pathlib import Path
 from typing import Literal
 
 from build123d import Compound, Mesher, Part, export_brep, export_gltf, export_step, export_stl
-from cad_tooling.release_notes import ReleaseAsset
+from cad_tooling.release_notes import ReleaseAsset, RenderPreview
+from cad_tooling.render_config import render_output_filename, render_preview_label
 from cad_tooling.render import render_stl
 from cad_tooling.render_config import (
     RenderConfig,
     add_render_config_arguments,
     render_config_from_namespace,
-    resolve_render_config,
+    resolve_render_configs,
 )
 from mr import Result
 from mr.data_types import Artifact, Customizable
@@ -245,14 +246,25 @@ def export_release_assets(
     for artifact in targets:
         shape = _shape(realize_artifact(artifact))
         stl_path = out / f"{artifact.name}.stl"
-        png_path = out / f"{artifact.name}.png"
-        preview_config = resolve_render_config(
+        preview_configs = resolve_render_configs(
             artifact_func=artifact.func,
             overrides=render_overrides,
         )
         export_shape(shape, stl_path, "stl")
-        render_stl(stl_path, png_path, config=preview_config)
-        assets.append(ReleaseAsset(artifact=artifact, stl_path=stl_path, png_path=png_path))
+        render_previews: list[RenderPreview] = []
+        for preview_config in preview_configs:
+            png_path = out / render_output_filename(artifact.name, preview_config)
+            render_stl(stl_path, png_path, config=preview_config)
+            render_previews.append(
+                RenderPreview(label=render_preview_label(preview_config), png_path=png_path)
+            )
+        assets.append(
+            ReleaseAsset(
+                artifact=artifact,
+                stl_path=stl_path,
+                render_previews=tuple(render_previews),
+            )
+        )
     return assets
 
 
@@ -265,7 +277,8 @@ def export_release(
     """Export all artifacts as STL and PNG previews for GitHub release publishing."""
     paths: list[Path] = []
     for asset in export_release_assets(out_dir, root, render_overrides=render_overrides):
-        paths.extend([asset.stl_path, asset.png_path])
+        paths.append(asset.stl_path)
+        paths.extend(asset.png_paths)
     return paths
 
 

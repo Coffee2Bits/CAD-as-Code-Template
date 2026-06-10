@@ -21,7 +21,8 @@ from pydantic import BaseModel, Field
 
 EMBOSSED_TEXT = "Example Text"
 EMBOSS_DEPTH = 0.5
-TEXT_POSITION_ON_PATH = 0.75  # front equator on the XY great circle
+# -Y equator point on the XY great circle (OCCT back view)
+TEXT_POSITION_ON_PATH = 0.75
 
 
 def _equator_circle_edge(radius: float) -> Edge:
@@ -81,7 +82,21 @@ def make_sphere(radius: float = 10) -> Part:
 
 
 @artifact(cover=True, short_desc="Demo sphere for workspace smoke tests")
-@render(camera="iso", face_color=(0.31, 0.63, 1.0))
+@render(
+    renders=[
+        {
+            "camera": "front",
+            "width": 800,
+            "height": 600,
+            "face_color": (0.31, 0.63, 1.0),
+        },
+        {
+            "camera": "iso",
+            "width": 800,
+            "height": 600,
+            "face_color": (0.31, 0.63, 1.0)},
+    ]
+)
 def sphere() -> Part:
     """Default-radius sphere published as a MakerRepo artifact."""
     return make_sphere()

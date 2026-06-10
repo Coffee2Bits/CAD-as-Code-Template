@@ -151,6 +151,7 @@ If commands are still missing after reopening the container:
 | | `just export dist/export step sphere` | Export via `cad_tooling.export` |
 | | `just release dist/` | STL + PNG release bundle |
 | | `just release-notes OWNER/REPO v0.0.1` | Generate `dist/RELEASE_BODY.md` |
+| | `just render` | Headless PNG preview(s) from `main.py` to `dist/` |
 | | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
 | **release** | `just version-bump` | Bump `pyproject.toml` patch version via `uv version --bump` |
 | | `just version-bump minor` | Bump minor (also accepts `major`, `alpha`, `beta`, `rc`, …) |

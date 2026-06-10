@@ -80,3 +80,24 @@ def test_get_render_config_from_undecorated_function():
         return None
 
     assert get_render_config_from_func(plain) is None
+
+
+def test_render_renders_list_stores_multiple_configs():
+    @render(renders=[{"camera": "iso"}, {"camera": "top", "width": 1024}])
+    def demo():
+        return None
+
+    from cad_tooling.render_decorator import get_render_configs_from_func
+
+    configs = get_render_configs_from_func(demo)
+    assert len(configs) == 2
+    assert configs[0].camera.preset == "iso"
+    assert configs[1].camera.preset == "top"
+    assert configs[1].width == 1024
+
+
+def test_render_rejects_mixed_renders_and_keywords():
+    import pytest
+
+    with pytest.raises(ValueError, match="not both"):
+        render(renders=[{"camera": "iso"}], camera="top")

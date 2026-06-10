@@ -146,6 +146,5 @@ def test_main_release_applies_render_overrides(tmp_path: Path, repo_root: Path):
         )
         == 0
     )
-    png = tmp_path / "sphere.png"
-    assert png.exists()
-    assert png.stat().st_size > 0
+    assert (tmp_path / "sphere_front_400x300.png").exists()
+    assert (tmp_path / "sphere_iso_400x300.png").exists()
