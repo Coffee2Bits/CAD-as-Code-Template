@@ -352,6 +352,7 @@ Order may shift based on project needs.
 - Export regression tests with golden STEP/STL fixtures under `tests/fixtures/`
 - Printer-specific export profiles (e.g. Bambu) if `3dp-mcp-server` or similar is adopted
 - Pre-commit hooks (optional ruff format/check on commit; pytest left to CI)
+- [release-please](https://github.com/googleapis/release-please) for automated semver bumps, changelogs, and release PRs
 - `pytest-cov` coverage threshold on `cad/` once the library grows
 - CI demonstration of topology optimization (e.g. [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/))
 
