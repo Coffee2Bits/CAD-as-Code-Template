@@ -341,6 +341,39 @@ For any other code change (tooling, tests, CI, config), skip steps 1–5 as appl
 
 ---
 
+## Formatter and linter alignment
+
+**Ruff is the single toolchain** for Python lint (`ruff check`) and format (`ruff format`). CI enforces both via `just lint` / Dagger `lint`. Editor format-on-save, pre-commit, and agents must use the **same** Ruff binary and `pyproject.toml` config — never a different formatter or linter.
+
+### Required alignment
+
+| Layer | Must use |
+|-------|----------|
+| CI / `just lint` | `uv run ruff check .` + `uv run ruff format --check .` |
+| Editor format-on-save | Ruff extension (`charliermarsh.ruff`), `importStrategy: fromEnvironment` |
+| Pre-commit | `uv run ruff check --fix` + `uv run ruff format` (see [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) |
+| Agents after Python edits | `just format` (or `uv run ruff format .`) before the completion gate |
+
+Workspace settings live in [`.vscode/settings.json`](.vscode/settings.json); the dev container mirrors them in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json).
+
+### Do not use
+
+- Black, autopep8, yapf, isort standalone, or the built-in Python formatter for this repo.
+- A Ruff extension version bundled with the IDE instead of the project venv — `fromEnvironment` is required.
+- Hand-edited formatting that skips `ruff format` when CI will check it.
+
+### When format-on-save disagrees with CI
+
+That is a **configuration bug**, not a reason to weaken CI or skip `ruff format --check`. Fix editor/MCP settings so save-time formatting matches `uv run ruff format`. Leaving them misaligned causes an endless regression loop: auto-format rewrites files, CI rejects them, agents “fix” them, auto-format breaks them again.
+
+Before marking Python work complete, confirm:
+
+```bash
+uv run ruff format --check .
+```
+
+---
+
 ## Task completion gate
 
 **Required:** do not consider a task or plan complete until the CI gate passes locally. Run it yourself — do not assume prior green runs still apply after your edits.
@@ -559,6 +592,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 ## Conventions summary
 
 - **Commits and PRs**: use [Conventional Commits](#commit-messages-release-please) (`feat:`, `fix:`, `deps:`, `docs:` for releasable work; squash-merge to `main`).
+- **Formatter and linter**: keep [Ruff aligned](#formatter-and-linter-alignment) across editor, pre-commit, and CI — mismatches cause endless format regressions.
 - **Completion gate**: run `just ci` (or `just quality && just export-smoke`) and confirm success before marking any task complete.
 - **Units**: millimeters unless a part docstring says otherwise.
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.

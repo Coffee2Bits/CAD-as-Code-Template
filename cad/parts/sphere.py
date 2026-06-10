@@ -17,13 +17,14 @@ from build123d import (
     Vector,
     add,
 )
+from mr import artifact, customizable
+from pydantic import BaseModel, Field
+
 from cad.parts.m3_hex_nut import (
     make_m3_hex_nut_pocket_cutter,
     positioned_m3_hex_nut_at_seat,
 )
 from cad_tooling.render_decorator import render
-from mr import artifact, customizable
-from pydantic import BaseModel, Field
 
 EMBOSSED_TEXT = "Example Text"
 EMBOSS_DEPTH = 0.5
@@ -206,8 +207,7 @@ def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
             "height": 600,
             "face_color": (0.31, 0.63, 1.0),
         },
-        {"camera": "iso", "width": 800, "height": 600,
-            "face_color": (0.31, 0.63, 1.0)},
+        {"camera": "iso", "width": 800, "height": 600, "face_color": (0.31, 0.63, 1.0)},
     ]
 )
 def sphere() -> Part:
