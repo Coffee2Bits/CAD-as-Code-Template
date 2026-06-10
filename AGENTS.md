@@ -47,7 +47,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 
 | Path | Purpose | Agent rules |
 |------|---------|-------------|
-| `cad/parts/` | Single reusable components (brackets, enclosures, fasteners helpers, etc.) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. |
+| `cad/parts/` | Single reusable components (brackets, enclosures, product-specific geometry) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. Prefer [external part libraries](#external-part-libraries) for catalog fasteners, structural sections, gears, and V-Slot — thin-wrap here, do not reimplement ISO tables. |
 | `cad/assemblies/` | Products composed from parts (positions, patterns, constraints) | Import from `cad.parts`; do not duplicate part geometry. Assemblies may define their own `@artifact` / `@customizable` entry points. |
 | `cad_tooling/` | MakerRepo-aware export, OCP rendering, release notes | See [cad_tooling/README.md](cad_tooling/README.md). Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. Import `@render` from `cad_tooling.render_decorator`. |
 | `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. **Always run after editing `cad/parts/` or `cad/assemblies/`** (see [Visual verification](#visual-verification-after-cad-edits)). |
@@ -98,6 +98,29 @@ Do **not**:
 - Put assembly composition logic in `cad/parts/`.
 - Put reusable part geometry in `cad/assemblies/`.
 - Add `@artifact` to `main.py` — MR scans packages under `cad/` and top-level modules; keep publishable functions next to the model they build.
+- Reimplement standard catalog geometry (ISO fasteners, beam tables, gear tooth math, V-Slot profiles) when an [external part library](#external-part-libraries) already provides it.
+
+---
+
+## External part libraries
+
+Optional [build123d](https://build123d.readthedocs.io/) extensions are **commented out** in [`pyproject.toml`](pyproject.toml). Uncomment the package you need and run `uv sync` before importing. Human-oriented links and install lines: [README — References](README.md#references--build123d-part-libraries).
+
+Use the **one-line scope** below as the first categorizer — if the task fits a row, reach for that library instead of hand-building catalog geometry in `cad/parts/`.
+
+| Library | One-line scope | Reach for it when the task involves… |
+|---------|----------------|--------------------------------------|
+| [bd_warehouse](https://github.com/gumyr/bd_warehouse) | Catalog mechanical parts: fasteners, bearings, flanges, pipes, threads, and sprockets. | Metric/imperial **nuts, screws, washers**; **clearance, tap, threaded, or captive-nut holes**; **bearings** and press-fit holes; **pipe/flange** runs; **helical threads**; **sprockets**; basic **OpenBuilds** fasteners (see also bd-vslot for extrusion). Docs: [bd-warehouse.readthedocs.io](https://bd-warehouse.readthedocs.io/). |
+| [bd_beams_and_bars](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | Standard structural beams and bars for frames and welded assemblies. | **I-beams, angles, channels**, and other **construction/structural profiles**; welded or bolted **frames** where section tables matter. Git install only. Docs: [bd-beams-and-bars.3d.experimentslabs.com](https://bd-beams-and-bars.3d.experimentslabs.com/). |
+| [py_gearworks](https://github.com/GarryBGoode/py_gearworks) | Parametric gears, gear pairs, and drive trains. | **Spur, helical, bevel, planetary, rack** geometry; **meshing gear pairs** and drivetrain layout (prefer over bd_warehouse’s simpler gear helpers for dedicated gear work). |
+| [bd-vslot](https://github.com/keeeal/bd-vslot) | V-Slot extrusion profiles and linear-frame components. | **V-Slot / OpenBuilds-style extrusion** rails, gantry **linear frames**, and slot-compatible **frame hardware** (PyPI: `bd-vslot`). Docs: [bd-vslot.readthedocs.io](https://bd-vslot.readthedocs.io/). |
+
+**Integration rules**
+
+- Add a **thin wrapper** in `cad/parts/` (e.g. `make_m5_hex_nut` calling `bd_warehouse.fastener.HexNut`) when the repo needs a stable builder API or MakerRepo entry points — not a fork of library internals.
+- Keep **`simple=True`** (default) on bd_warehouse fasteners in tests and CI unless the task explicitly needs modeled threads.
+- Library objects are build123d solids/`BasePartObject` — return `.part` (or equivalent) from `make_*` builders so tests and assemblies stay consistent.
+- New `@artifact` wrappers around library-backed parts still need pytest geometry checks and the [agent workflow checklist](#agent-workflow-checklist).
 
 ---
 
@@ -278,11 +301,36 @@ just view
 
 Skip this only for edits that do not touch model geometry or display behavior (e.g. docstring-only changes).
 
+### Test-driven development
+
+Follow this order for feature work — do not weaken or delete tests just to land an implementation:
+
+1. **Define desired behavior first** — write or update tests that describe what the feature should do (geometry, discovery, export, margins, fit) before or alongside the model change.
+2. **Diagnose incongruent tests** — when a test fails, decide whether the test or the product is wrong. If the test encodes brittle assumptions (fixed counts, closed sets, or incidental repo state) instead of the behavior under change, update the test — do not weaken the product or delete coverage just to make a bad test pass.
+3. **Implement** — change model or tooling code until behavior matches the tests.
+
+**Cutout / reference alignment (required when embedding hardware):**
+
+- Use one **shared seat** (origin + axis) for the pocket cutter and the visual/reference solid — never compute placement from different faces or formulas.
+- Prefer a **hex prism cutter** in the same pose as the reference hardware: derive plane and rotation from the positioned reference nut, then convert margin in millimetres to a larger hex profile (`across_flats + 2 × margin` or an equivalent scale factor). Never scale or offset the visual reference solid; never use face offset if it rounds the hex into a circular pocket.
+- Add tests that the zero-margin cutter matches the reference pose, and that the positioned reference fits inside the cutout with no solid overlap.
+- After geometry edits, run `just view` and confirm the reference part sits flush inside its margin cutout in OCP CAD Viewer.
+
+**Test design rules for this repo:**
+
+| Pattern | Prefer | Avoid |
+|---------|--------|-------|
+| Artifact discovery | `assert "sphere" in names` (required part present) | `assert names == {"sphere"}` (breaks when unrelated parts are added) |
+| Partial export / release checks | Scope to the artifact under test, e.g. `collect_release_assets(..., names=("sphere",))` | Requiring every discovered artifact in a test that only exported one STL |
+| Geometry changes | Explicit assertions for the new behavior (pocket depth, fit, margin) | Loosening unrelated bounds so old inequalities still pass |
+| Cutouts vs reference parts | Assert profile alignment (shared seat origin, matched hex rotation, wall-normal angles) and flush fit; use the same plane/orientation helpers for the cutter and the reference solid | Hand-drawn pocket sketches with separate placement math from the reference part |
+| Reference / library parts | Keep `@artifact` when the part should be discoverable; use `sample=True` only for throwaway dev geometry | Dropping publish metadata to silence discovery tests |
+
 ### Agent workflow checklist
 
 When adding or changing a published model:
 
-1. Implement `make_*` builder in `cad/parts/` or `cad/assemblies/`.
+1. Implement `make_*` builder in `cad/parts/` or `cad/assemblies/` (or wrap an [external part library](#external-part-libraries) when the geometry is catalog-standard).
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
 3. Add pytest tests (geometry + export).
 4. **Visual verify:** update `main.py` if needed, then `just view` (see [Visual verification](#visual-verification-after-cad-edits)).
@@ -326,8 +374,9 @@ Skip only when the change cannot affect CI (e.g. typo in a comment with no tooli
 | Change | Required tests |
 |--------|----------------|
 | New part | Validity, key dimensions, volume/bbox; export round-trip where applicable |
+| Part wrapping an [external library](#external-part-libraries) | Same as new part; assert fit/clearance against the library instance (e.g. nut in pocket), not duplicated ISO constants |
 | New assembly | Overall bounds; confirms sub-parts are present; critical interfaces |
-| New `@artifact` | Will be picked up by `tests/test_makerrepo.py` — ensure the artifact name appears in `mr artifacts list` |
+| New `@artifact` | Will be picked up by `tests/test_makerrepo.py` — ensure the artifact name appears in `mr artifacts list`; do not require exclusive discovery (other artifacts may coexist) |
 | New `@customizable` | Same discovery test; consider a test that exports with non-default parameters |
 
 Keep files under **300–400 lines**. Split large parts into submodules if needed.
@@ -515,7 +564,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
 - **Exports**: write to `/tmp` or pytest `tmp_path`; never commit generated meshes (except golden fixtures under `tests/fixtures/`).
-- **Prototyping**: use build123d-mcp `execute` for experiments; promote stable code into `cad/parts/` with tests.
+- **Prototyping**: use build123d-mcp `execute` for experiments; promote stable code into `cad/parts/` with tests. For catalog parts, prototype with the matching [external library](#external-part-libraries) rather than one-off ISO dimensions.
 - **Visualization**: after every `cad/parts/` or `cad/assemblies/` edit, run `just view` (update imports in `main.py` first if the displayed model changed). Use `just mr-view <name>` for MR-driven viewing of `@artifact` entry points.
 
 ---
@@ -528,3 +577,15 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - [MakerRepo generators](https://docs.makerrepo.com/makerrepo-library/generators/)
 - [CAD tooling](cad_tooling/README.md) — export, render, release notes
 - Live example: [`cad/parts/sphere.py`](cad/parts/sphere.py)
+- [build123d external part libraries](https://build123d.readthedocs.io/en/latest/external.html#part-libraries) — upstream index
+
+### External part libraries (optional deps)
+
+See [External part libraries](#external-part-libraries) for when to use each. Install via commented lines in `pyproject.toml`.
+
+| Library | One-line scope |
+|---------|----------------|
+| [bd_warehouse](https://github.com/gumyr/bd_warehouse) | Catalog mechanical parts: fasteners, bearings, flanges, pipes, threads, and sprockets. |
+| [bd_beams_and_bars](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | Standard structural beams and bars for frames and welded assemblies. |
+| [py_gearworks](https://github.com/GarryBGoode/py_gearworks) | Parametric gears, gear pairs, and drive trains. |
+| [bd-vslot](https://github.com/keeeal/bd-vslot) | V-Slot extrusion profiles and linear-frame components. |

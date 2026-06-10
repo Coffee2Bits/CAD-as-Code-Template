@@ -13,6 +13,13 @@ dependencies = [
   "numpy",
   "trimesh",
   "makerrepo>=0.5.6",
+  # Optional build123d part libraries — uncomment as needed, then run `uv sync`
+  # (see README → References for descriptions and source links).
+  # "bd_warehouse>=0.2.0",
+  # "bd-vslot",
+  # "bd_beams_and_bars @ git+https://gitlab.com/experimentslabs/3d/bd_beams_and_bars.git",
+  # "py_gearworks @ git+https://github.com/GarryBGoode/py_gearworks.git",
+  "bd-warehouse>=0.2.0",
 ]
 
 [tool.hatch.build.targets.wheel]
