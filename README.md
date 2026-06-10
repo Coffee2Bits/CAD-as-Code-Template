@@ -339,7 +339,21 @@ The turnkey workspace is in place. Shipped items:
 - [x] GitHub Actions release workflow (`.github/workflows/release.yml`) — artifact STLs to GitHub Releases
 - [x] [AGENTS.md](AGENTS.md) — repo conventions for AI agents
 
-Work planned after this milestone. Order may shift based on project needs.
+### Future work
+
+Order may shift based on project needs.
+
+- Additional parts and real assemblies (constraints, patterns)
+- Import [build123d part libraries](https://build123d.readthedocs.io/en/latest/external.html#part-libraries) (e.g. [bd_warehouse](https://bd-warehouse.readthedocs.io/), [bd_beams_and_bars](https://bd-beams-and-bars.3d.experimentslabs.com/), [py_gearworks](https://github.com/GarryBGoode/py_gearworks), [bd_vslot](https://bd-vslot.readthedocs.io))
+- [PartCAD](https://partcad.org/) integration — import and publish packaged CAD models
+- Bill of materials (BOM) generation from assemblies
+- 3MF, SVG, and DXF export helpers where models need them
+- Import helpers (STEP → build123d) with human/agent review workflow
+- Export regression tests with golden STEP/STL fixtures under `tests/fixtures/`
+- Printer-specific export profiles (e.g. Bambu) if `3dp-mcp-server` or similar is adopted
+- Pre-commit hooks (optional ruff format/check on commit; pytest left to CI)
+- `pytest-cov` coverage threshold on `cad/` once the library grows
+- CI demonstration of topology optimization (e.g. [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/))
 
 ### CI and automation
 
@@ -403,21 +417,6 @@ See [`.github/release_template.md`](.github/release_template.md) for the release
 
 1. Host Docker must be running and `/var/run/docker.sock` mounted (configured in `devcontainer.json`).
 2. Run from the repo root: `dagger call -m ./ci check --source=.`
-
-**Future CI additions:**
-
-- **Pre-commit** (optional) — ruff format/check on commit; pytest left to CI to keep commits fast.
-- **Coverage** — `pytest-cov` threshold on `cad/` once the library grows.
-- ~~**Export-smoke** — export one-liner in CI `tmp_path`; assert non-empty STEP/STL/GLB.~~ (covered by `artifacts` + `test_makerrepo.py`)
-- **Export regression** (later) — golden STEP/STL fixtures under `tests/fixtures/` with `.gitignore` exceptions for intentional baselines.
-
-### Future modeling and library work
-
-- Additional parts and real assemblies (constraints, patterns, hardware library)
-- 3MF, SVG, and DXF export helpers where models need them
-- Import helpers (STEP → build123d) with human/agent review workflow
-- Golden fixture tests for export stability
-- Printer-specific export profiles (e.g. Bambu) if `3dp-mcp-server` or similar is adopted
 
 ## Known limitations
 
