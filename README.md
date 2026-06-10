@@ -4,7 +4,7 @@ A turnkey workspace for **parametric CAD in Python**. Reopen this repo in any **
 
 Define geometry with [build123d](https://build123d.readthedocs.io/), preview it in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), validate with pytest, and export to STEP, STL, and GLB. Publish artifacts through [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) (`mr`). Python is the source of truth; mesh files are generated, not hand-edited.
 
-![Dev environment: VS Code-based IDE with build123d code and OCP CAD Viewer showing a parametric sphere](dev_preview.png)
+![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](repo_preview.png)
 
 ## **What's in the box:**
 
