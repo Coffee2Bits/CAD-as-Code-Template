@@ -99,9 +99,7 @@ def test_export_part_writes_step_stl_glb(tmp_path: Path):
 
 def test_main_export_command(tmp_path: Path, repo_root: Path):
     out = tmp_path / "sphere.step"
-    assert (
-        _main(["export", "-o", str(out), "-f", "step", "sphere", "--root", str(repo_root)]) == 0
-    )
+    assert _main(["export", "-o", str(out), "-f", "step", "sphere", "--root", str(repo_root)]) == 0
     assert out.exists()
 
 

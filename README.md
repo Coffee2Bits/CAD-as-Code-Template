@@ -14,6 +14,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | **Modeling** | build123d parts and assemblies under `cad/` |
 | **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
 | **Quality** | pytest geometry tests, ruff, mypy |
+| **Make** | [just](https://github.com/casey/just) command runner (`justfile`) for dev, export, and CI |
 | **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions to any other pipeline tool; same checks everywhere |
 | **Agents** | MCP servers for build123d execution and OCP Viewer screenshots |
 | **Publish** | MakerRepo decorators and `mr` CLI for artifact discovery and export |
@@ -28,6 +29,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer) | Live 3D visualization in VS Code-based IDEs |
 | [ocp-vscode](https://github.com/bernhard-42/ocp_vscode) | Python bridge for `show_object` |
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
+| [just](https://github.com/casey/just) | Command runner for common dev, export, and CI tasks (`justfile`) |
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
 | [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) | Linting and type checking |
 | [Dagger](https://dagger.io/) | Portable CI pipeline (local + GitHub Actions) |
@@ -42,27 +44,31 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 2. Dependencies sync automatically on container start (`postStartCommand`). Run manually if needed:
 
    ```bash
-   uv sync
+   just sync
    ```
 
 3. Run tests:
 
    ```bash
-   uv run pytest
+   just test
    ```
+
+   Or directly: `uv run pytest`
 
 4. View the sphere in the OCP CAD Viewer:
 
    ```bash
-   uv run python main.py
+   just view
    ```
+
+   Or directly: `uv run python main.py`
 
 5. Export the sphere (MakerRepo CLI — preferred for published artifacts):
 
    ```bash
-   uv run mr artifacts list
-   uv run mr artifacts export sphere -o /tmp/out --format step
-   uv run mr generators export sphere_generator -p '{"radius": 15}' -o /tmp/out --format step
+   just mr-artifacts
+   just mr-export sphere /tmp/out step
+   just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'
    ```
 
    For ad-hoc exports in tests or scripts, use `cad_tooling.export.export_part(make_sphere(), "sphere", tmp_path)` — see [`tests/test_exports.py`](tests/test_exports.py).
@@ -113,6 +119,7 @@ If commands are still missing after reopening the container:
 │   ├── parts/                    # Reusable parametric parts (@artifact, @customizable)
 │   └── assemblies/               # Composed models
 ├── cad_tooling/                  # Export, render, release helpers (see cad_tooling/README.md)
+├── justfile                      # Common dev, export, and CI commands (`just --list`)
 ├── main.py                       # Entry point — builds and displays a sphere
 ├── tests/                        # CAD model and integration tests
 ├── cad_tooling_tests/            # Unit tests for cad_tooling
@@ -120,6 +127,37 @@ If commands are still missing after reopening the container:
 ```
 
 ## Development workflow
+
+### Make commands (`just`)
+
+[just](https://github.com/casey/just) wraps the most common repo tasks. It is preinstalled in the devcontainer; run `just` or `just --list` from the repo root to see all recipes.
+
+| Group | Command | What it runs |
+|-------|---------|--------------|
+| **setup** | `just sync` | `uv sync` |
+| | `just sync-frozen` | `uv sync --group dev --frozen` (matches CI) |
+| **dev** | `just view` | Display `main.py` in OCP CAD Viewer |
+| | `just test` | `uv run pytest` (pass extra args: `just test -v tests/test_sphere.py`) |
+| **quality** | `just lint` | ruff check + format check + mypy |
+| | `just format` | `uv run ruff format .` |
+| | `just quality` | lint + test (local gate before pushing) |
+| **makerrepo** | `just mr-artifacts` | List `@artifact` functions |
+| | `just mr-generators` | List `@customizable` functions |
+| | `just mr-export sphere /tmp/out step` | Export one artifact |
+| | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
+| | `just mr-snapshot sphere` | Headless artifact PNG via `mr` |
+| | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
+| **export** | `just export-smoke` | Discover and export all artifacts (CI smoke) |
+| | `just export dist/export step sphere` | Export via `cad_tooling.export` |
+| | `just release dist/` | STL + PNG release bundle |
+| | `just release-notes OWNER/REPO v0.0.1` | Generate `dist/RELEASE_BODY.md` |
+| | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
+| **ci** | `just ci` | Full Dagger pipeline (lint + artifacts + test) |
+| | `just ci-test` | Dagger pytest only |
+| | `just ci-lint` | Dagger ruff + mypy only |
+| | `just ci-artifacts` | Dagger artifact smoke export |
+| | `just ci-release dist/` | Dagger release STL + PNG export to `dist/` |
+
 
 ### Modeling conventions
 
@@ -154,6 +192,14 @@ Coverage includes validity, bounding boxes, volume checks, and STEP round-trip e
 ### Quality checks (local)
 
 ```bash
+just quality          # lint + pytest
+just lint             # ruff + mypy only
+just format           # apply ruff formatting
+```
+
+Or run the same checks individually:
+
+```bash
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy cad cad_tooling tests cad_tooling_tests
@@ -161,6 +207,16 @@ uv run pytest
 ```
 
 Or run the same pipeline as CI (requires Docker on the host and a devcontainer rebuild so the socket is mounted):
+
+```bash
+just ci               # full gate
+just ci-test          # pytest only
+just ci-lint          # ruff + mypy only
+just ci-artifacts     # cad_tooling.export smoke
+just ci-release dist/ # release STL + PNG to dist/
+```
+
+Equivalent Dagger invocations:
 
 ```bash
 dagger call -m ./ci check --source=.
@@ -320,26 +376,7 @@ Launcher scripts pin `build123d-mcp==0.3.36` (Python 3.12 via `uv tool run`) and
 | [rishigundakaram/cadquery-mcp-server](https://github.com/rishigundakaram/cadquery-mcp-server) | CadQuery MCP server |
 | [blwfish/freecad-mcp](https://github.com/blwfish/freecad-mcp) | FreeCAD MCP integration |
 
-## Roadmap
-
-### First milestone (complete)
-
-The turnkey workspace is in place. Shipped items:
-
-- [x] `pyproject.toml`, `.gitignore`, and package scaffold
-- [x] `main.py` sphere entry point (thin viewer script; geometry in `cad/parts/`)
-- [x] `cad/parts/sphere.py` with `make_sphere`, `@artifact`, `@customizable`, and `@render`
-- [x] `cad_tooling/` for ad-hoc STEP / STL / GLB export, release renders, and release notes
-- [x] `.makerrepo/config.yaml` and MakerRepo dependencies (`makerrepo`, `makerrepo-cli`)
-- [x] pytest suite — geometry, exports, and MakerRepo discovery (`tests/test_makerrepo.py`)
-- [x] `.cursor/mcp.json` with build123d-mcp and ocp-viewer-mcp launcher scripts
-- [x] Ephemeral OCP CAD Viewer VSIX via devcontainer lifecycle scripts
-- [x] End-to-end verification in devcontainer
-- [x] Dagger CI module (`ci/`) with lint, artifacts, and test gates
-- [x] GitHub Actions release workflow (`.github/workflows/release.yml`) — artifact STLs to GitHub Releases
-- [x] [AGENTS.md](AGENTS.md) — repo conventions for AI agents
-
-### Future work
+## Future work Roadmap
 
 Order may shift based on project needs.
 
@@ -394,6 +431,13 @@ git push origin v0.0.1
 Keep `pyproject.toml` `version` in sync with release tags. Local dry-run:
 
 ```bash
+just release dist/
+just release-notes YOUR_ORG/YOUR_REPO v0.0.1
+```
+
+Or directly:
+
+```bash
 uv run python -m cad_tooling.export release -o dist/
 uv run python -m cad_tooling.export release-notes \
   --assets-dir dist \
@@ -417,7 +461,7 @@ See [`.github/release_template.md`](.github/release_template.md) for the release
 **Local Dagger** (inside the devcontainer after rebuild):
 
 1. Host Docker must be running and `/var/run/docker.sock` mounted (configured in `devcontainer.json`).
-2. Run from the repo root: `dagger call -m ./ci check --source=.`
+2. Run from the repo root: `just ci` (or `dagger call -m ./ci check --source=.`)
 
 ## Known limitations
 

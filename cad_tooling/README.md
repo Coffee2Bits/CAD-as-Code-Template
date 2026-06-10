@@ -121,12 +121,19 @@ The GitHub Release workflow runs `release-notes` after exporting assets. See [`.
 
 ## Testing
 
+```bash
+just test               # or: uv run pytest
+just test -v tests/     # pass extra pytest args after `just test`
+```
+
 Tooling tests live in `cad_tooling_tests/` (separate from CAD model tests in `tests/`):
 
 ```bash
-uv run pytest cad_tooling_tests
-uv run pytest                    # runs both test directories
+just test cad_tooling_tests
+just test                    # runs both test directories
 ```
+
+Or use `just --list` for export, render, and CI recipes.
 
 ## When to use `mr` vs `cad_tooling`
 
