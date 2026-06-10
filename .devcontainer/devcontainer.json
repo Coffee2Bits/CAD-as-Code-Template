@@ -21,8 +21,8 @@
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
   "onCreateCommand": "bash .devcontainer/install-ocp-cad-viewer.sh download",
-  "postCreateCommand": "uv sync && bash .devcontainer/install-ocp-cad-viewer.sh download",
-  "postStartCommand": "uv sync && bash .devcontainer/install-ocp-cad-viewer.sh install-cli",
+  "postCreateCommand": "uv sync && just setup-hooks && bash .devcontainer/install-ocp-cad-viewer.sh download",
+  "postStartCommand": "uv sync && just setup-hooks && bash .devcontainer/install-ocp-cad-viewer.sh install-cli",
   "customizations": {
     "vscode": {
       "extensions": [

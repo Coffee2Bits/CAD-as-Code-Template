@@ -16,6 +16,11 @@ sync:
 sync-frozen:
     uv sync --group dev --frozen
 
+# Install git hooks (Conventional Commit subject validation on commit-msg).
+[group('setup')]
+setup-hooks:
+    uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
+
 # --- Development ---
 
 [group('dev')]
