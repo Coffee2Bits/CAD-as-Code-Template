@@ -46,10 +46,12 @@ def test_release_export_includes_previews(tmp_path: Path):
     png_paths = [path for path in paths if path.suffix == ".png"]
 
     assert len(stl_paths) >= 1
-    assert len(png_paths) == len(stl_paths)
+    assert len(png_paths) >= len(stl_paths)
 
-    for stl_path, png_path in zip(stl_paths, png_paths):
+    for stl_path in stl_paths:
         assert stl_path.exists() and stl_path.stat().st_size > 0
-        assert png_path.exists() and png_path.stat().st_size > 10_000
-        assert png_path.stem == stl_path.stem
-        assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+        artifact_pngs = [path for path in png_paths if path.name.startswith(f"{stl_path.stem}_")]
+        assert artifact_pngs, f"No preview PNGs found for {stl_path.name}"
+        for png_path in artifact_pngs:
+            assert png_path.exists() and png_path.stat().st_size > 10_000
+            assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"

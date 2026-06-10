@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import importlib.util
 import math
 import os
 import shutil
 import subprocess
+import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from build123d import Compound, Part, import_stl
@@ -26,17 +29,19 @@ from cad_tooling.render_config import (
     RenderConfig,
     add_render_config_arguments,
     render_config_from_namespace,
-    resolve_render_config,
+    render_output_filename,
     resolve_render_config_for_artifact_name,
+    resolve_render_configs,
 )
+from cad_tooling.render_discovery import discover_render_artifact
 
 # Maps friendly preset names to OCCT V3d_TypeOfOrientation values.
 CAMERA_PRESETS: dict[str, V3d_TypeOfOrientation] = {
     "iso": V3d_TypeOfOrientation.V3d_XposYnegZpos,
     "top": V3d_TypeOfOrientation.V3d_Zpos,
     "bottom": V3d_TypeOfOrientation.V3d_Zneg,
-    "front": V3d_TypeOfOrientation.V3d_Ypos,
-    "back": V3d_TypeOfOrientation.V3d_Yneg,
+    "front": V3d_TypeOfOrientation.V3d_Yneg,
+    "back": V3d_TypeOfOrientation.V3d_Ypos,
     "left": V3d_TypeOfOrientation.V3d_Xneg,
     "right": V3d_TypeOfOrientation.V3d_Xpos,
     "axo_left": V3d_TypeOfOrientation.V3d_TypeOfOrientation_Zup_AxoLeft,
@@ -51,15 +56,29 @@ def _display_connection_works() -> bool:
     if not display:
         return False
     try:
-        Aspect_DisplayConnection()
+        display_connection = Aspect_DisplayConnection()
+        driver = OpenGl_GraphicDriver(display_connection)
+        viewer = V3d_Viewer(driver)
+        view = viewer.CreateView()
+        window = Xw_Window(display_connection, "display-test", 0, 0, 64, 64)
+        window.SetVirtual(True)
+        view.SetWindow(window)
+        window.Map()
+        view.MustBeResized()
     except Exception:
         return False
     return True
 
 
+def _reset_display() -> None:
+    _terminate_xvfb()
+    os.environ.pop("DISPLAY", None)
+
+
 def _ensure_display(width: int, height: int) -> None:
     if _display_connection_works():
         return
+    _reset_display()
     if shutil.which("Xvfb") is None:
         raise RuntimeError(
             "Headless OCP rendering requires DISPLAY or Xvfb "
@@ -114,18 +133,11 @@ def _apply_camera(view, camera: CameraConfig) -> None:
         view.Turn(V3d_TypeOfAxe.V3d_X, math.radians(camera.elevation), True)
 
 
-def render_shape(
-    shape: Part | Compound | TopoDS_Shape,
+def _render_shape_once(
+    topo: TopoDS_Shape,
     output: Path,
-    *,
-    config: RenderConfig | None = None,
+    settings: RenderConfig,
 ) -> None:
-    """Render a build123d or OCP shape to a PNG preview using OCCT."""
-    settings = config or RenderConfig()
-    _ensure_display(settings.width, settings.height)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    topo = _shape_wrapped(shape)
-
     display_connection = Aspect_DisplayConnection()
     driver = OpenGl_GraphicDriver(display_connection)
     viewer = V3d_Viewer(driver)
@@ -162,6 +174,28 @@ def render_shape(
         raise RuntimeError(f"Failed to render preview: {output}")
 
 
+def render_shape(
+    shape: Part | Compound | TopoDS_Shape,
+    output: Path,
+    *,
+    config: RenderConfig | None = None,
+) -> None:
+    """Render a build123d or OCP shape to a PNG preview using OCCT."""
+    settings = config or RenderConfig()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    topo = _shape_wrapped(shape)
+
+    for attempt in range(2):
+        _ensure_display(settings.width, settings.height)
+        try:
+            _render_shape_once(topo, output, settings)
+            return
+        except Exception:
+            if attempt == 1:
+                raise
+            _reset_display()
+
+
 def render_stl(
     stl_path: Path,
     output: Path,
@@ -172,27 +206,189 @@ def render_stl(
     render_shape(import_stl(stl_path).wrapped, output, config=config)
 
 
+def _resolve_input_path(path: Path) -> Path:
+    """Resolve an STL or viewer script path, inferring .stl / .py when omitted."""
+    resolved = path.resolve()
+    if resolved.exists():
+        return resolved
+    for suffix in (".py", ".stl"):
+        candidate = resolved.with_suffix(suffix)
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(f"Input not found: {path}")
+
+
+def load_viewer_script(
+    script: Path,
+    *,
+    root: Path | None = None,
+) -> tuple[Part | Compound, str | None, Callable[..., object] | None]:
+    """Load a viewer script and discover its @render artifact from cad/ imports."""
+    script = script.resolve()
+    module_name = f"_cad_render_{script.stem}"
+    spec = importlib.util.spec_from_file_location(module_name, script)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"Cannot load script: {script}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    build_model = getattr(module, "build_model", None)
+    if not callable(build_model):
+        raise ValueError(
+            f"Script {script} must define build_model() -> Part | Compound for rendering"
+        )
+    shape = build_model()
+    artifact = discover_render_artifact(script, root=root)
+    if artifact is None:
+        return shape, None, None
+    return shape, artifact.name, artifact.func
+
+
+def _artifact_func_for_name(
+    name: str,
+    root: Path | None = None,
+) -> Callable[..., object] | None:
+    from cad_tooling.export import list_artifacts
+
+    matches = [item for item in list_artifacts(root) if item.name == name]
+    if not matches:
+        return None
+    if len(matches) > 1:
+        options = ", ".join(f"{item.module}/{item.name}" for item in matches)
+        raise ValueError(f"Ambiguous artifact name '{name}'; use module/name: {options}")
+    return matches[0].func
+
+
+def _resolve_render_configs_for_label(
+    label: str,
+    *,
+    artifact_func: Callable[..., object] | None,
+    overrides: RenderConfig | None,
+) -> list[RenderConfig]:
+    if artifact_func is not None:
+        return resolve_render_configs(artifact_func=artifact_func, overrides=overrides)
+    try:
+        return [
+            resolve_render_config_for_artifact_name(label, overrides=overrides),
+        ]
+    except ValueError:
+        return resolve_render_configs(overrides=overrides)
+
+
+def _output_png_path(
+    output: Path,
+    label: str,
+    config: RenderConfig,
+    *,
+    multi_render: bool,
+) -> Path:
+    if output.suffix.lower() == ".png":
+        return output
+    output.mkdir(parents=True, exist_ok=True)
+    if multi_render:
+        return output / render_output_filename(label, config)
+    return output / f"{label}.png"
+
+
+def render_model(
+    shape: Part | Compound | TopoDS_Shape,
+    output: Path,
+    label: str,
+    *,
+    artifact_func: Callable[..., object] | None = None,
+    overrides: RenderConfig | None = None,
+) -> list[Path]:
+    """Render a model to one or more PNG previews."""
+    configs = _resolve_render_configs_for_label(
+        label,
+        artifact_func=artifact_func,
+        overrides=overrides,
+    )
+    if output.suffix.lower() == ".png":
+        configs = configs[:1]
+    multi_render = len(configs) > 1
+
+    written: list[Path] = []
+    for config in configs:
+        png_path = _output_png_path(output, label, config, multi_render=multi_render)
+        render_shape(shape, png_path, config=config)
+        written.append(png_path.resolve())
+    return written
+
+
+def render_input(
+    input_path: Path,
+    output: Path,
+    *,
+    artifact_name: str | None = None,
+    overrides: RenderConfig | None = None,
+    root: Path | None = None,
+) -> list[Path]:
+    """Render an STL file or viewer script (with build_model()) to PNG preview(s)."""
+    resolved = _resolve_input_path(input_path)
+    if resolved.suffix.lower() == ".py":
+        shape, discovered_name, artifact_func = load_viewer_script(resolved, root=root)
+        label = artifact_name or discovered_name or resolved.stem
+        if artifact_func is None and label != resolved.stem:
+            artifact_func = _artifact_func_for_name(label, root)
+        return render_model(
+            shape,
+            output,
+            label,
+            artifact_func=artifact_func,
+            overrides=overrides,
+        )
+
+    label = artifact_name or resolved.stem
+    artifact_func = _artifact_func_for_name(label, root)
+    configs = _resolve_render_configs_for_label(
+        label,
+        artifact_func=artifact_func,
+        overrides=overrides,
+    )
+    if output.suffix.lower() == ".png":
+        configs = configs[:1]
+    multi_render = len(configs) > 1
+
+    written: list[Path] = []
+    for config in configs:
+        png_path = _output_png_path(output, label, config, multi_render=multi_render)
+        render_stl(resolved, png_path, config=config)
+        written.append(png_path.resolve())
+    return written
+
+
 def _main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m cad_tooling.render",
-        description="Render an STL preview PNG using Open CASCADE (OCP).",
+        description="Render STL or viewer-script previews to PNG using Open CASCADE (OCP).",
     )
-    parser.add_argument("stl", type=Path, help="Input STL file")
-    parser.add_argument("-o", "--output", type=Path, required=True, help="Output PNG path")
+    parser.add_argument(
+        "input",
+        type=Path,
+        help="Input STL file or viewer script with build_model() (e.g. main.py)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        required=True,
+        help="Output PNG path or directory for one or more previews",
+    )
     add_render_config_arguments(parser)
 
     args = parser.parse_args(argv)
     overrides = render_config_from_namespace(args)
-    artifact_name = args.artifact or args.stl.stem
-    try:
-        config = resolve_render_config_for_artifact_name(
-            artifact_name,
-            overrides=overrides,
-        )
-    except ValueError:
-        config = resolve_render_config(overrides=overrides)
-    render_stl(args.stl.resolve(), args.output.resolve(), config=config)
-    print(args.output.resolve())
+    written = render_input(
+        args.input,
+        args.output,
+        artifact_name=args.artifact,
+        overrides=overrides,
+    )
+    for path in written:
+        print(path)
     return 0
 
 

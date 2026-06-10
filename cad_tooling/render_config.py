@@ -46,6 +46,10 @@ class CameraConfig(BaseModel):
 class RenderConfig(BaseModel):
     """PNG preview settings used by release export and cad_tooling.render CLI."""
 
+    name: str | None = Field(
+        default=None,
+        description="Optional filename label when the camera preset does not match the intended view name",
+    )
     width: int = Field(default=800, gt=0)
     height: int = Field(default=600, gt=0)
     background: tuple[float, float, float] = (0.12, 0.12, 0.12)
@@ -89,19 +93,62 @@ def _deep_merge(base: dict, patch: dict) -> dict:
     return merged
 
 
+def _format_angle_token(prefix: str, degrees: float) -> str:
+    """Compact angle suffix for render filenames (e.g. az15, el7.5)."""
+    if degrees == int(degrees):
+        return f"{prefix}{int(degrees)}"
+    return f"{prefix}{degrees:g}"
+
+
+def render_filename_token(config: RenderConfig) -> str:
+    """Build a stable filename token from resolved camera and image size."""
+    parts: list[str] = [config.name or config.camera.preset]
+    if config.camera.azimuth:
+        parts.append(_format_angle_token("az", config.camera.azimuth))
+    if config.camera.elevation:
+        parts.append(_format_angle_token("el", config.camera.elevation))
+    parts.append(f"{config.width}x{config.height}")
+    return "_".join(parts)
+
+
+def render_output_filename(artifact_name: str, config: RenderConfig) -> str:
+    """Return a PNG filename encoding view direction and image dimensions."""
+    return f"{artifact_name}_{render_filename_token(config)}.png"
+
+
+def render_preview_label(config: RenderConfig) -> str:
+    """Human-readable label for a @render spec (used in release notes links)."""
+    view = (config.name or config.camera.preset).replace("_", " ")
+    label = f"{view} ({config.width}×{config.height})"
+    if config.camera.azimuth:
+        label += f", azimuth {config.camera.azimuth:g}°"
+    if config.camera.elevation:
+        label += f", elevation {config.camera.elevation:g}°"
+    return label
+
+
+def resolve_render_configs(
+    *,
+    artifact_func: Callable[..., object] | None = None,
+    overrides: RenderConfig | None = None,
+) -> list[RenderConfig]:
+    """Merge defaults, @render settings on artifact_func, and CLI overrides."""
+    from cad_tooling.render_decorator import get_render_configs_from_func
+
+    partials = get_render_configs_from_func(artifact_func) if artifact_func is not None else []
+    if not partials:
+        partials = [RenderConfig()]
+    return [RenderConfig().merge(partial).merge(overrides) for partial in partials]
+
+
 def resolve_render_config(
     *,
     artifact_func: Callable[..., object] | None = None,
     overrides: RenderConfig | None = None,
 ) -> RenderConfig:
-    """Merge defaults, @render settings on artifact_func, and CLI overrides."""
-    from cad_tooling.render_decorator import get_render_config_from_func
-
-    config = RenderConfig()
-    func_config = get_render_config_from_func(artifact_func) if artifact_func is not None else None
-    if func_config is not None:
-        config = config.merge(func_config)
-    return config.merge(overrides)
+    """Resolve the first (or only) render config for an artifact."""
+    configs = resolve_render_configs(artifact_func=artifact_func, overrides=overrides)
+    return configs[0]
 
 
 def add_render_config_arguments(parser: argparse.ArgumentParser) -> None:

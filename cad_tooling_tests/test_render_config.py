@@ -8,10 +8,18 @@ from cad_tooling.render_config import (
     RenderConfig,
     add_render_config_arguments,
     render_config_from_namespace,
+    render_filename_token,
+    render_output_filename,
+    render_preview_label,
     resolve_render_config,
+    resolve_render_configs,
     resolve_render_config_for_artifact_name,
 )
-from cad_tooling.render_decorator import get_render_config_from_func, render
+from cad_tooling.render_decorator import (
+    get_render_config_from_func,
+    get_render_configs_from_func,
+    render,
+)
 
 
 def test_render_decorator_stores_config():
@@ -137,7 +145,7 @@ def test_camera_preset_choices_complete():
 
 def test_resolve_render_config_for_artifact_name(repo_root):
     config = resolve_render_config_for_artifact_name("sphere", root=repo_root)
-    assert config.camera.preset == "iso"
+    assert config.camera.preset == "front"
     assert config.face_color == (0.31, 0.63, 1.0)
 
 
@@ -150,7 +158,83 @@ def test_sphere_artifact_has_render_config(repo_root):
     from cad_tooling.export import list_artifacts
 
     artifact = next(item for item in list_artifacts(repo_root) if item.name == "sphere")
-    config = get_render_config_from_func(artifact.func)
-    assert config is not None
-    assert config.camera.preset == "iso"
-    assert config.face_color == (0.31, 0.63, 1.0)
+    configs = get_render_configs_from_func(artifact.func)
+    assert len(configs) == 2
+    assert configs[0].camera.preset == "front"
+    assert configs[1].camera.preset == "iso"
+    assert configs[0].width == 800
+    assert configs[0].height == 600
+    assert configs[0].face_color == (0.31, 0.63, 1.0)
+
+
+def test_render_filename_token_includes_camera_and_size():
+    config = RenderConfig.model_validate(
+        {"camera": {"preset": "top"}, "width": 1024, "height": 768}
+    )
+    assert render_filename_token(config) == "top_1024x768"
+
+
+def test_render_filename_token_includes_pose_tweaks():
+    config = RenderConfig.model_validate(
+        {"camera": {"preset": "iso", "azimuth": 15, "elevation": 5}, "width": 800, "height": 600}
+    )
+    assert render_filename_token(config) == "iso_az15_el5_800x600"
+
+
+def test_render_output_filename():
+    config = RenderConfig.model_validate(
+        {"camera": {"preset": "front"}, "width": 640, "height": 480}
+    )
+    assert render_output_filename("bracket", config) == "bracket_front_640x480.png"
+
+
+def test_render_preview_label_uses_name_override():
+    config = RenderConfig.model_validate(
+        {"name": "front", "camera": {"preset": "back"}, "width": 800, "height": 600}
+    )
+    assert render_preview_label(config) == "front (800×600)"
+
+
+def test_render_output_filename_uses_name_override():
+    config = RenderConfig.model_validate(
+        {"name": "front", "camera": {"preset": "back"}, "width": 800, "height": 600}
+    )
+    assert render_output_filename("sphere", config) == "sphere_front_800x600.png"
+
+
+def test_resolve_render_configs_defaults_without_decorator():
+    configs = resolve_render_configs()
+    assert len(configs) == 1
+    assert configs[0].width == 800
+    assert configs[0].camera.preset == "iso"
+
+
+def test_resolve_render_configs_multiple_from_renders_list():
+    @render(
+        renders=[
+            {"camera": "iso", "width": 800},
+            {"camera": "top", "width": 1024, "height": 768},
+        ]
+    )
+    def demo_part():
+        return None
+
+    configs = resolve_render_configs(artifact_func=demo_part)
+    assert len(configs) == 2
+    assert configs[0].camera.preset == "iso"
+    assert configs[0].width == 800
+    assert configs[0].height == 600
+    assert configs[1].camera.preset == "top"
+    assert configs[1].width == 1024
+    assert configs[1].height == 768
+
+
+def test_get_render_configs_from_func_returns_list():
+    @render(renders=[{"camera": "left"}, {"camera": "right"}])
+    def demo_part():
+        return None
+
+    configs = get_render_configs_from_func(demo_part)
+    assert len(configs) == 2
+    assert configs[0].camera.preset == "left"
+    assert configs[1].camera.preset == "right"

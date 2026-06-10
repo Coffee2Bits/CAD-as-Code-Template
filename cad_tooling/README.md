@@ -75,6 +75,9 @@ Headless PNG previews via Open CASCADE (OCP). In CI and the devcontainer, Xvfb p
 ### CLI
 
 ```bash
+# Render the model configured in main.py (discovers @render from cad/ imports in build_model())
+uv run python -m cad_tooling.render main.py -o dist/
+
 # Use @render settings from the matching artifact (STL stem = artifact name)
 uv run python -m cad_tooling.render dist/sphere.stl -o dist/sphere.png
 
@@ -100,7 +103,20 @@ def sphere() -> Part:
     return make_sphere()
 ```
 
+Multiple release previews per artifact (each PNG encodes camera and size in the filename, e.g. `sphere_iso_800x600.png`):
+
+```python
+@render(renders=[
+    {"camera": "iso", "width": 800, "height": 600},
+    {"camera": "top", "width": 1024, "height": 768},
+])
+def bracket() -> Part:
+    return make_bracket()
+```
+
 **Camera presets:** `iso`, `top`, `bottom`, `front`, `back`, `left`, `right`, `axo_left`, `axo_right`
+
+**Image size:** set `width` and `height` (pixels) on each render spec. Defaults: 800×600.
 
 **Resolution order at render time:** defaults in `RenderConfig` → `@render` on the artifact → CLI flags on `cad_tooling.render` or `cad_tooling.export release`.
 
