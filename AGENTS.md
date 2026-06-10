@@ -355,19 +355,140 @@ Any new `@artifact` is picked up automatically by `cad_tooling.export` and `test
 
 ---
 
+## Commit messages (release-please)
+
+[release-please](https://github.com/googleapis/release-please) reads **Conventional Commits** on `main` to decide semver bumps, fill `CHANGELOG.md`, and open Release PRs. Agents should write commit and PR titles in this format so releases stay predictable.
+
+### Format
+
+```text
+<type>[optional scope][optional !]: <short description>
+
+[optional body — blank line after subject]
+
+[optional footers]
+```
+
+- **Subject line** — imperative mood, lowercase after the colon, no trailing period, ~72 chars or less.
+- **Scope** (optional) — area touched, e.g. `sphere`, `export`, `ci`.
+- **`!` before the colon** — breaking change (major semver bump).
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/) and the [release-please commit guide](https://github.com/googleapis/release-please#how-should-i-write-my-commits).
+
+### SemVer mapping
+
+| Prefix / signal | Version bump | Example |
+|-----------------|--------------|---------|
+| `fix:` | patch | `fix(sphere): correct embossed text depth` |
+| `feat:` | minor | `feat(sphere): add optional embossed label` |
+| `feat!:`, `fix!:`, `refactor!:`, … | major | `feat(export)!: drop STL from default release bundle` |
+| `BREAKING-CHANGE:` footer | major | see [breaking changes](#breaking-changes) |
+
+### Releasable commits (Python)
+
+This repo uses `release-type: python` in [`release-please-config.json`](release-please-config.json). Only commits whose **subject** starts with one of these types create changelog entries and can trigger a Release PR:
+
+| Type | Use for |
+|------|---------|
+| `feat` | New user-facing behavior, new `@artifact`, new part/assembly |
+| `fix` | Bug fixes, broken exports, incorrect geometry |
+| `deps` | Dependency version changes (`pyproject.toml`, lockfile) |
+| `docs` | Documentation-only changes (Python strategy treats these as releasable) |
+
+These types **do not** open or extend a Release PR on their own: `chore`, `build`, `ci`, `refactor`, `test`, `style`, `perf` (unless marked breaking). Use them for internal work, CI, refactors, and tests.
+
+### Breaking changes
+
+Prefer `type!:` in the subject:
+
+```text
+feat(export)!: require explicit format for release smoke
+```
+
+Or a footer in the commit body (must appear **after** the main description):
+
+```text
+feat(export): change default release bundle
+
+BREAKING-CHANGE: STL is no longer exported unless --format stl is passed.
+```
+
+### Pull requests and merge strategy
+
+- **Squash-merge PRs to `main`.** The squash commit message (usually the PR title) becomes the entry release-please parses.
+- Write the **PR title** in Conventional Commit form — same rules as commit subjects.
+- Keep PR bodies for context; release notes come from the title unless you use [footers](#multiple-changes-in-one-commit) or [overrides](#fixing-release-notes-after-merge).
+- Prefer a **linear `main` history** so changelog entries match merged work, bisect stays usable, and WIP commits inside a PR do not land on `main`.
+
+### Multiple changes in one commit
+
+When one squash commit covers several releasable items, add **footer lines at the bottom** of the commit body (release-please reads these as separate changelog entries):
+
+```text
+feat(sphere): add embossed text and fix export scale
+
+feat(sphere): add optional surface label
+fix(export): correct STL units on release smoke
+```
+
+Footers must come **after** the main body text.
+
+### Forcing a version
+
+To request a specific semver in the next Release PR, add to the commit body (case insensitive):
+
+```text
+chore: release 1.2.0
+
+Release-As: 1.2.0
+```
+
+Empty commits are fine: `git commit --allow-empty -m "chore: release 1.2.0" -m "Release-As: 1.2.0"`.
+
+### Fixing release notes after merge
+
+If a merged PR title or squash message was wrong, edit the **merged PR description** and add:
+
+```text
+BEGIN_COMMIT_OVERRIDE
+feat(sphere): add embossed label parameter
+fix(export): correct STL scale on release smoke
+END_COMMIT_OVERRIDE
+```
+
+Re-run release-please (or wait for the next push to `main`). Works reliably with **squash merge**; plain merge commits are harder to override.
+
+### Examples for this repo
+
+```text
+feat(sphere): add embossed text on default artifact
+fix(render): fit margin for wide assemblies in release PNGs
+docs: document release-please commit conventions in AGENTS.md
+deps: bump makerrepo-cli to 0.4.0
+chore: reorganize cad_tooling modules          # no Release PR entry
+ci: pin Dagger version in workflow             # no Release PR entry
+test(sphere): assert embossed text bbox        # no Release PR entry
+```
+
+When the user asks for a git commit, use the same Conventional Commit subject line.
+
+---
+
 ## Releases
 
-Releases are automated with [release-please](https://github.com/googleapis/release-please). Configuration lives in [`release-please-config.json`](../release-please-config.json) and [`.release-please-manifest.json`](../.release-please-manifest.json).
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Configuration lives in [`release-please-config.json`](release-please-config.json) and [`.release-please-manifest.json`](.release-please-manifest.json).
 
 **Typical release flow:**
 
-1. Merge PRs to `main` using [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, etc.).
-2. [`.github/workflows/release-please.yml`](../.github/workflows/release-please.yml) opens or updates a **Release PR** that bumps `pyproject.toml`, updates `CHANGELOG.md`, and proposes the next semver.
+1. Merge PRs to `main` with [Conventional Commit](#commit-messages-release-please) titles (squash merge).
+2. [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml) opens or updates a **Release PR** (`chore: release ${version}`) that bumps `pyproject.toml`, updates `CHANGELOG.md`, and proposes the next semver.
 3. Merge the Release PR when ready. The workflow tags `v{version}` and publishes a GitHub Release with STL/PNG assets and generated artifact notes.
 
 Published assets use the same pipeline as manual releases: Dagger `check`, `release-artifact`, then `release-notes` for the GitHub Release body.
 
-**Manual tag fallback:** pushing a semver tag (`v*.*.*`) still triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml) for ad-hoc releases.
+**Manual tag fallback:** pushing a semver tag (`v*.*.*`) still triggers [`.github/workflows/release.yml`](.github/workflows/release.yml) for ad-hoc releases.
+
+**Release PR labels:** `autorelease: pending` (open Release PR), `autorelease: tagged` (merged and tagged). If release-please stops opening Release PRs, check for a stale `autorelease: pending` label on an old Release PR and remove it before re-running the workflow.
 
 Keep `pyproject.toml` `version` aligned with the tag. Local dry-run:
 
@@ -378,7 +499,7 @@ uv run python -m cad_tooling.export release-notes \
 dagger call -m ./ci release-artifact --source=. export --path=./dist
 ```
 
-Release notes format: [`.github/release_template.md`](../.github/release_template.md). New `@artifact` functions are picked up automatically — no workflow edits required.
+Release notes format: [`.github/release_template.md`](.github/release_template.md). New `@artifact` functions are picked up automatically — no workflow edits required.
 
 ### Release preview configuration
 
@@ -388,6 +509,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 
 ## Conventions summary
 
+- **Commits and PRs**: use [Conventional Commits](#commit-messages-release-please) (`feat:`, `fix:`, `deps:`, `docs:` for releasable work; squash-merge to `main`).
 - **Completion gate**: run `just ci` (or `just quality && just export-smoke`) and confirm success before marking any task complete.
 - **Units**: millimeters unless a part docstring says otherwise.
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.
