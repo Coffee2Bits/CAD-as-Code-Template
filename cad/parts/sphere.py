@@ -206,7 +206,8 @@ def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
             "height": 600,
             "face_color": (0.31, 0.63, 1.0),
         },
-        {"camera": "iso", "width": 800, "height": 600, "face_color": (0.31, 0.63, 1.0)},
+        {"camera": "iso", "width": 800, "height": 600,
+            "face_color": (0.31, 0.63, 1.0)},
     ]
 )
 def sphere() -> Part:
