@@ -385,7 +385,7 @@ Launcher scripts pin `build123d-mcp==0.3.36` (Python 3.12 via `uv tool run`) and
 Order may shift based on project needs.
 
 - Additional parts and real assemblies (constraints, patterns)
-- Import [build123d part libraries](https://build123d.readthedocs.io/en/latest/external.html#part-libraries) (e.g. [bd_warehouse](https://bd-warehouse.readthedocs.io/), [bd_beams_and_bars](https://bd-beams-and-bars.3d.experimentslabs.com/), [py_gearworks](https://github.com/GarryBGoode/py_gearworks), [bd_vslot](https://bd-vslot.readthedocs.io))
+- Import [build123d part libraries](https://build123d.readthedocs.io/en/latest/external.html#part-libraries) (see [References — build123d part libraries](#references--build123d-part-libraries))
 - [PartCAD](https://partcad.org/) integration — import and publish packaged CAD models
 - Bill of materials (BOM) generation from assemblies
 - 3MF, SVG, and DXF export helpers where models need them
@@ -499,6 +499,28 @@ See [`.github/release_template.md`](.github/release_template.md) for the release
 ## Additional resources
 
 - [CAD tooling](cad_tooling/README.md) — export helpers, headless OCP rendering, `@render`, release notes, and CI integration
+
+## References — build123d part libraries
+
+Community parametric part libraries that extend [build123d](https://build123d.readthedocs.io/). They are listed in [`pyproject.toml`](pyproject.toml) as **commented-out** optional dependencies — uncomment the line(s) you need and run `uv sync` before importing them in `cad/` code. Agents: use the one-line scopes below as categorizers; see [AGENTS.md — External part libraries](AGENTS.md#external-part-libraries) for when to reach for each.
+
+See also the upstream index: [build123d — External Tools and Libraries (part libraries)](https://build123d.readthedocs.io/en/latest/external.html#part-libraries).
+
+| Library | Description | Source | Docs |
+|---------|-------------|--------|------|
+| [bd_warehouse](https://github.com/gumyr/bd_warehouse) | Catalog mechanical parts: fasteners, bearings, flanges, pipes, threads, and sprockets. | [GitHub](https://github.com/gumyr/bd_warehouse) | [Read the Docs](https://bd-warehouse.readthedocs.io/) |
+| [bd_beams_and_bars](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | Standard structural beams and bars for frames and welded assemblies. Git install only (no PyPI package yet). | [GitLab](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | [Experiments Labs](https://bd-beams-and-bars.3d.experimentslabs.com/) |
+| [py_gearworks](https://github.com/GarryBGoode/py_gearworks) | Parametric gears, gear pairs, and drive trains. | [GitHub](https://github.com/GarryBGoode/py_gearworks) | [README](https://github.com/GarryBGoode/py_gearworks#readme) |
+| [bd-vslot](https://github.com/keeeal/bd-vslot) | V-Slot extrusion profiles and linear-frame components (PyPI: `bd-vslot`). | [GitHub](https://github.com/keeeal/bd-vslot) | [Read the Docs](https://bd-vslot.readthedocs.io/) |
+
+**Enable in this repo** — matching commented lines in `pyproject.toml`:
+
+```toml
+# "bd_warehouse>=0.2.0",
+# "bd-vslot",
+# "bd_beams_and_bars @ git+https://gitlab.com/experimentslabs/3d/bd_beams_and_bars.git",
+# "py_gearworks @ git+https://github.com/GarryBGoode/py_gearworks.git",
+```
 
 ## License
 
