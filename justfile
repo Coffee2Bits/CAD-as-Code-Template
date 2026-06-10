@@ -104,6 +104,35 @@ release-notes repo tag out='dist/RELEASE_BODY.md' assets='dist':
 render stl out *camera:
     uv run python -m cad_tooling.render {{stl}} -o {{out}} {{camera}}
 
+# --- Release versioning ---
+
+# Bump pyproject.toml version. Usage: just version-bump [patch|minor|major|…]
+[group('release')]
+version-bump component='patch':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    component="{{component}}"
+    if [[ "$component" == *"="* ]]; then
+        echo "usage: just version-bump [patch|minor|major|…]" >&2
+        exit 1
+    fi
+    uv version --bump "$component"
+
+# Create and push git tag v{version} from the current package version.
+[group('release')]
+version-tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version="$(uv version --short)"
+    tag="v${version}"
+    if git rev-parse "$tag" >/dev/null 2>&1; then
+        echo "Tag already exists: $tag" >&2
+        exit 1
+    fi
+    git tag "$tag"
+    git push origin "$tag"
+    echo "Created and pushed $tag"
+
 # --- Dagger CI (requires Docker; run inside devcontainer) ---
 
 [group('ci')]

@@ -152,6 +152,9 @@ If commands are still missing after reopening the container:
 | | `just release dist/` | STL + PNG release bundle |
 | | `just release-notes OWNER/REPO v0.0.1` | Generate `dist/RELEASE_BODY.md` |
 | | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
+| **release** | `just version-bump` | Bump `pyproject.toml` patch version via `uv version --bump` |
+| | `just version-bump minor` | Bump minor (also accepts `major`, `alpha`, `beta`, `rc`, …) |
+| | `just version-tag` | Create and push git tag `v{version}` from the current package version |
 | **ci** | `just ci` | Full Dagger pipeline (lint + artifacts + test) |
 | | `just ci-test` | Dagger pytest only |
 | | `just ci-lint` | Dagger ruff + mypy only |
@@ -411,6 +414,30 @@ The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) 
 
 Each artifact's release PNG is configured with [`@render`](cad_tooling/README.md#render-decorator) on the `@artifact` function. See [`cad/parts/sphere.py`](cad/parts/sphere.py) and [CAD tooling — `@render`](cad_tooling/README.md#render-decorator) for CLI commands, camera presets, and override behavior.
 
+### Version management
+
+The package version lives in [`pyproject.toml`](pyproject.toml) (`[project].version`). Release tags use the same semver with a `v` prefix (e.g. `0.0.1` → tag `v0.0.1`). Keep the two in sync — the release workflow expects them to match.
+
+| Command | What it does |
+|---------|--------------|
+| `just version-bump` | Bump the patch version (`0.0.1` → `0.0.2`) via `uv version --bump` |
+| `just version-bump minor` | Bump minor (`0.0.1` → `0.1.0`); also accepts `major`, `alpha`, `beta`, `rc`, and other `uv version --bump` kinds |
+| `just version-tag` | Read the current version with `uv version --short`, create tag `v{version}`, and push it to `origin` |
+
+Pass the bump kind as a positional argument (`just version-bump minor`), not as `name=value` — `just` treats `part=patch` as a literal string.
+
+**Typical release flow** (from `main`, after CI is green):
+
+```bash
+just version-bump              # or: just version-bump minor
+git add pyproject.toml uv.lock # commit if uv re-locked
+git commit -m "Bump version to $(uv version --short)"
+git push origin main
+just version-tag               # creates and pushes v{version}
+```
+
+`just version-tag` fails if the tag already exists locally. To inspect the version without changing it: `uv version --short`.
+
 ### Releases
 
 Pushing a semver tag (e.g. `v0.0.1`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
@@ -419,16 +446,9 @@ Pushing a semver tag (e.g. `v0.0.1`) runs [`.github/workflows/release.yml`](.git
 2. **Export** — all `@artifact` models as STL plus PNG preview renders via `cad_tooling.render` (Open CASCADE offscreen rendering; Xvfb in CI).
 3. **GitHub Release** — attaches `dist/*.stl`, matching `dist/*.png` previews, and a generated release body listing each artifact with embedded preview images.
 
-**Cut a release** (from `main`, after CI is green):
-
-```bash
-git tag v0.0.1
-git push origin v0.0.1
-```
-
 **Download assets:** open the tag on GitHub Releases. The release page lists every `@artifact` with an embedded preview image and download links for each STL and PNG.
 
-Keep `pyproject.toml` `version` in sync with release tags. Local dry-run:
+**Local dry-run** (preview assets and release notes before tagging):
 
 ```bash
 just release dist/
