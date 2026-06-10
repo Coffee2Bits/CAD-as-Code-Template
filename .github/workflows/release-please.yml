@@ -1,0 +1,83 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Create or update release PR
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Release Please
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          skip-github-release: true
+
+  publish-release:
+    name: Publish release assets
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Quality gate
+        uses: dagger/dagger-for-github@v8.4.0
+        with:
+          version: "0.21.4"
+          verb: call
+          module: ./ci
+          args: check --source=.
+          dagger-flags: "--progress plain"
+
+      - name: Export release assets
+        uses: dagger/dagger-for-github@v8.4.0
+        with:
+          version: "0.21.4"
+          verb: call
+          module: ./ci
+          args: release-artifact --source=. export --path=./dist
+          dagger-flags: "--progress plain"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Generate release notes
+        run: |
+          uv sync --group dev --frozen
+          uv run python -m cad_tooling.export release-notes \
+            --assets-dir dist \
+            --repo "${{ github.repository }}" \
+            --tag "${{ needs.release-please.outputs.tag_name }}" \
+            -o dist/RELEASE_BODY.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: |
+            dist/*.stl
+            dist/*.png
+          body_path: dist/RELEASE_BODY.md

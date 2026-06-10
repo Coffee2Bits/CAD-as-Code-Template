@@ -1,6 +1,6 @@
 # Release notes template
 
-This repository generates GitHub Release notes automatically when you push a semver tag (`v*.*.*`). The workflow exports every `@artifact` as an STL, renders a matching PNG preview, and fills in a release body like the example below.
+This repository generates GitHub Release notes automatically when a release is published. The primary path is [release-please](https://github.com/googleapis/release-please): merge the Release PR and [`.github/workflows/release-please.yml`](workflows/release-please.yml) tags the version and attaches assets. Pushing a semver tag (`v*.*.*`) manually still runs [`.github/workflows/release.yml`](workflows/release.yml). Both workflows export every `@artifact` as an STL, render a matching PNG preview, and fill in a release body like the example below.
 
 To preview locally after exporting assets:
 
