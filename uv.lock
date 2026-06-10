@@ -2087,7 +2087,7 @@ wheels = [
 
 [[package]]
 name = "programmatic-cad-workspace"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "bd-warehouse" },
