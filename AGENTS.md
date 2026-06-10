@@ -33,6 +33,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 │   ├── render_config.py
 │   ├── render_decorator.py
 │   └── release_notes.py
+├── justfile                  # Common dev, export, and CI commands — run `just --list`
 ├── tests/                    # CAD model and integration tests
 ├── cad_tooling_tests/        # Unit tests for cad_tooling (mirrors package layout)
 ├── ci/                       # Dagger CI module
@@ -267,7 +268,8 @@ uv run mr cache prune
 2. From the repo root:
 
 ```bash
-uv run python main.py
+just view
+# or: uv run python main.py
 ```
 
 3. Confirm the model appears in the OCP CAD Viewer panel (extension must be open). Use ocp-viewer-mcp `capture_ocp_screenshot` when you need visual confirmation in the agent session.
@@ -281,10 +283,10 @@ When adding or changing a published model:
 1. Implement `make_*` builder in `cad/parts/` or `cad/assemblies/`.
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
 3. Add pytest tests (geometry + export).
-4. **Visual verify:** update `main.py` if needed, then `uv run python main.py` (see [Visual verification](#visual-verification-after-cad-edits)).
-5. Confirm MR discovery: `uv run mr artifacts list` / `generators list`.
-6. Export smoke test: `python -m cad_tooling.export export -o /tmp/out --format step` (or import `export_artifacts` in pytest).
-7. Run full quality gate: `uv run pytest`, `uv run ruff check .`, `uv run mypy cad tests`.
+4. **Visual verify:** update `main.py` if needed, then `just view` (see [Visual verification](#visual-verification-after-cad-edits)).
+5. Confirm MR discovery: `just mr-artifacts` / `just mr-generators`.
+6. Export smoke test: `just export-smoke` (or import `export_artifacts` in pytest).
+7. Run full quality gate: `just quality` (or `just ci` for the Dagger pipeline).
 
 ---
 
@@ -312,8 +314,11 @@ GitHub Actions runs `dagger call -m ./ci check`, which executes:
 Local equivalent:
 
 ```bash
-dagger call -m ./ci check --source=.
+just ci
+# or: dagger call -m ./ci check --source=.
 ```
+
+Common `just` recipes: `just quality` (lint + pytest), `just export-smoke`, `just release dist/`, `just ci-release dist/`. Run `just --list` for the full set — see [README.md](README.md#make-commands-just).
 
 Any new `@artifact` is picked up automatically by `cad_tooling.export` and `tests/test_makerrepo.py`. No CI edits required when adding artifacts.
 
@@ -358,7 +363,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
 - **Exports**: write to `/tmp` or pytest `tmp_path`; never commit generated meshes (except golden fixtures under `tests/fixtures/`).
 - **Prototyping**: use build123d-mcp `execute` for experiments; promote stable code into `cad/parts/` with tests.
-- **Visualization**: after every `cad/parts/` or `cad/assemblies/` edit, run `uv run python main.py` (update imports in `main.py` first if the displayed model changed). Use `mr artifacts view` for MR-driven viewing of `@artifact` entry points.
+- **Visualization**: after every `cad/parts/` or `cad/assemblies/` edit, run `just view` (update imports in `main.py` first if the displayed model changed). Use `just mr-view <name>` for MR-driven viewing of `@artifact` entry points.
 
 ---
 

@@ -25,3 +25,7 @@ RUN pip install --upgrade pip uv
 ARG DAGGER_VERSION=0.21.4
 RUN curl -fsSL https://dl.dagger.io/dagger/install.sh | \
     DAGGER_VERSION=${DAGGER_VERSION} BIN_DIR=/usr/local/bin sh
+
+ARG JUST_VERSION=1.52.0
+RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | \
+    bash -s -- --tag ${JUST_VERSION} --to /usr/local/bin
