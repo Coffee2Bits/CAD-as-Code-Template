@@ -47,7 +47,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 | `cad/parts/` | Single reusable components (brackets, enclosures, fasteners helpers, etc.) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. |
 | `cad/assemblies/` | Products composed from parts (positions, patterns, constraints) | Import from `cad.parts`; do not duplicate part geometry. Assemblies may define their own `@artifact` / `@customizable` entry points. |
 | `cad_tooling/` | MakerRepo-aware export, OCP rendering, release notes | See [cad_tooling/README.md](cad_tooling/README.md). Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. Import `@render` from `cad_tooling.render_decorator`. |
-| `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. |
+| `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. **Always run after editing `cad/parts/` or `cad/assemblies/`** (see [Visual verification](#visual-verification-after-cad-edits)). |
 | `tests/` | pytest coverage for CAD models and MR integration | Mirror `cad/` structure: `test_<part>.py`, `test_makerrepo.py` for discovery smoke tests. |
 | `cad_tooling_tests/` | pytest coverage for workspace tooling | Mirror `cad_tooling/` module layout; keep detached from `tests/`. |
 | `.makerrepo/config.yaml` | MR repo config | Set export defaults and optional `pythonpaths`; do not put model logic here. |
@@ -259,6 +259,21 @@ uv run mr cache list
 uv run mr cache prune
 ```
 
+### Visual verification after CAD edits
+
+**Required:** after any edit to a file under `cad/parts/` or `cad/assemblies/`, always run `main.py` so the change is displayed in OCP CAD Viewer.
+
+1. Point `main.py` at the part or assembly you changed — import its `make_*` builder (or assembly builder) and call `show_object`. Keep one focused demo per run.
+2. From the repo root:
+
+```bash
+uv run python main.py
+```
+
+3. Confirm the model appears in the OCP CAD Viewer panel (extension must be open). Use ocp-viewer-mcp `capture_ocp_screenshot` when you need visual confirmation in the agent session.
+
+Skip this only for edits that do not touch model geometry or display behavior (e.g. docstring-only changes).
+
 ### Agent workflow checklist
 
 When adding or changing a published model:
@@ -266,9 +281,10 @@ When adding or changing a published model:
 1. Implement `make_*` builder in `cad/parts/` or `cad/assemblies/`.
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
 3. Add pytest tests (geometry + export).
-4. Confirm MR discovery: `uv run mr artifacts list` / `generators list`.
-5. Export smoke test: `python -m cad_tooling.export export -o /tmp/out --format step` (or import `export_artifacts` in pytest).
-6. Run full quality gate: `uv run pytest`, `uv run ruff check .`, `uv run mypy cad tests`.
+4. **Visual verify:** update `main.py` if needed, then `uv run python main.py` (see [Visual verification](#visual-verification-after-cad-edits)).
+5. Confirm MR discovery: `uv run mr artifacts list` / `generators list`.
+6. Export smoke test: `python -m cad_tooling.export export -o /tmp/out --format step` (or import `export_artifacts` in pytest).
+7. Run full quality gate: `uv run pytest`, `uv run ruff check .`, `uv run mypy cad tests`.
 
 ---
 
@@ -342,7 +358,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
 - **Exports**: write to `/tmp` or pytest `tmp_path`; never commit generated meshes (except golden fixtures under `tests/fixtures/`).
 - **Prototyping**: use build123d-mcp `execute` for experiments; promote stable code into `cad/parts/` with tests.
-- **Visualization**: `main.py` or `show_object()` for OCP CAD Viewer; `mr artifacts view` for MR-driven viewing.
+- **Visualization**: after every `cad/parts/` or `cad/assemblies/` edit, run `uv run python main.py` (update imports in `main.py` first if the displayed model changed). Use `mr artifacts view` for MR-driven viewing of `@artifact` entry points.
 
 ---
 
