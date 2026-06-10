@@ -4,6 +4,8 @@ This file is the repo-level guide for AI agents working in this codebase. Read i
 
 Human-oriented setup and stack overview live in [README.md](README.md).
 
+**Before marking any task or plan complete**, run the [task completion gate](#task-completion-gate) and fix failures introduced by your changes.
+
 ---
 
 ## What this repo is
@@ -285,8 +287,37 @@ When adding or changing a published model:
 3. Add pytest tests (geometry + export).
 4. **Visual verify:** update `main.py` if needed, then `just view` (see [Visual verification](#visual-verification-after-cad-edits)).
 5. Confirm MR discovery: `just mr-artifacts` / `just mr-generators`.
-6. Export smoke test: `just export-smoke` (or import `export_artifacts` in pytest).
-7. Run full quality gate: `just quality` (or `just ci` for the Dagger pipeline).
+6. **Completion gate:** run `just ci` (or the [local equivalent](#task-completion-gate)) and do not finish until it passes.
+
+For any other code change (tooling, tests, CI, config), skip steps 1–5 as applicable but **always** run the completion gate before reporting done.
+
+---
+
+## Task completion gate
+
+**Required:** do not consider a task or plan complete until the CI gate passes locally. Run it yourself — do not assume prior green runs still apply after your edits.
+
+Preferred command (matches GitHub Actions):
+
+```bash
+just ci
+```
+
+Local equivalent when Dagger is unavailable or for a faster loop:
+
+```bash
+just quality && just export-smoke
+```
+
+This runs the same three stages as CI:
+
+1. **lint** — ruff check, ruff format check, mypy
+2. **artifacts** — export smoke for all `@artifact` functions
+3. **test** — pytest (including `tests/test_makerrepo.py`)
+
+If the gate fails, fix the failures and re-run until it passes. Report the command you ran and that it succeeded in your final summary.
+
+Skip only when the change cannot affect CI (e.g. typo in a comment with no tooling impact). When in doubt, run the gate.
 
 ---
 
@@ -326,18 +357,17 @@ Any new `@artifact` is picked up automatically by `cad_tooling.export` and `test
 
 ## Releases
 
-Pushing a semver tag (`v*.*.*`) triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml):
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Configuration lives in [`release-please-config.json`](../release-please-config.json) and [`.release-please-manifest.json`](../.release-please-manifest.json).
 
-1. Dagger `check` (same gates as CI)
-2. `release-artifact` — `python -m cad_tooling.export release` (all artifacts as STL + OCP PNG previews)
-3. GitHub Release — attaches `dist/*.stl`, `dist/*.png`, and generated release notes (`dist/RELEASE_BODY.md`) with embedded previews
+**Typical release flow:**
 
-**Cut a release:**
+1. Merge PRs to `main` using [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, etc.).
+2. [`.github/workflows/release-please.yml`](../.github/workflows/release-please.yml) opens or updates a **Release PR** that bumps `pyproject.toml`, updates `CHANGELOG.md`, and proposes the next semver.
+3. Merge the Release PR when ready. The workflow tags `v{version}` and publishes a GitHub Release with STL/PNG assets and generated artifact notes.
 
-```bash
-git tag v0.0.1
-git push origin v0.0.1
-```
+Published assets use the same pipeline as manual releases: Dagger `check`, `release-artifact`, then `release-notes` for the GitHub Release body.
+
+**Manual tag fallback:** pushing a semver tag (`v*.*.*`) still triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml) for ad-hoc releases.
 
 Keep `pyproject.toml` `version` aligned with the tag. Local dry-run:
 
@@ -358,6 +388,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 
 ## Conventions summary
 
+- **Completion gate**: run `just ci` (or `just quality && just export-smoke`) and confirm success before marking any task complete.
 - **Units**: millimeters unless a part docstring says otherwise.
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.

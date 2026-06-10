@@ -393,7 +393,6 @@ Order may shift based on project needs.
 - Export regression tests with golden STEP/STL fixtures under `tests/fixtures/`
 - Printer-specific export profiles (e.g. Bambu) if `3dp-mcp-server` or similar is adopted
 - Pre-commit hooks (optional ruff format/check on commit; pytest left to CI)
-- [release-please](https://github.com/googleapis/release-please) for automated semver bumps, changelogs, and release PRs
 - `pytest-cov` coverage threshold on `cad/` once the library grows
 - CI demonstration of topology optimization (e.g. [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/))
 
@@ -417,31 +416,34 @@ Each artifact's release PNG is configured with [`@render`](cad_tooling/README.md
 
 ### Version management
 
-The package version lives in [`pyproject.toml`](pyproject.toml) (`[project].version`). Release tags use the same semver with a `v` prefix (e.g. `0.0.1` → tag `v0.0.1`). Keep the two in sync — the release workflow expects them to match.
+The package version lives in [`pyproject.toml`](pyproject.toml) (`[project].version`). Release tags use the same semver with a `v` prefix (e.g. `0.0.1` → tag `v0.0.1`). [release-please](https://github.com/googleapis/release-please) keeps `pyproject.toml`, [`CHANGELOG.md`](CHANGELOG.md), and tags in sync via Release PRs.
 
 | Command | What it does |
 |---------|--------------|
-| `just version-bump` | Bump the patch version (`0.0.1` → `0.0.2`) via `uv version --bump` |
-| `just version-bump minor` | Bump minor (`0.0.1` → `0.1.0`); also accepts `major`, `alpha`, `beta`, `rc`, and other `uv version --bump` kinds |
-| `just version-tag` | Read the current version with `uv version --short`, create tag `v{version}`, and push it to `origin` |
+| `just version-bump` | Bump the patch version locally via `uv version --bump` (manual fallback) |
+| `just version-bump minor` | Bump minor; also accepts `major`, `alpha`, `beta`, `rc`, and other `uv version --bump` kinds |
+| `just version-tag` | Create and push tag `v{version}` from the current package version (manual fallback) |
 
 Pass the bump kind as a positional argument (`just version-bump minor`), not as `name=value` — `just` treats `part=patch` as a literal string.
 
+**Repository setup (one-time):** in GitHub, open **Settings → Actions → General → Workflow permissions** and:
+
+1. Select **Read and write permissions** (not read-only).
+2. Enable **Allow GitHub Actions to create and approve pull requests**.
+
+release-please needs both so it can open and update Release PRs. Without them, [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml) fails when creating the release branch/PR.
+
 **Typical release flow** (from `main`, after CI is green):
 
-```bash
-just version-bump              # or: just version-bump minor
-git add pyproject.toml uv.lock # commit if uv re-locked
-git commit -m "Bump version to $(uv version --short)"
-git push origin main
-just version-tag               # creates and pushes v{version}
-```
+1. Merge feature/fix PRs with [Conventional Commit](https://www.conventionalcommits.org/) titles (`feat:`, `fix:`, etc.).
+2. Wait for [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml) to open or update a **Release PR** (version bump + changelog).
+3. Review and merge the Release PR. The workflow tags `v{version}` and publishes STL/PNG assets to GitHub Releases.
 
-`just version-tag` fails if the tag already exists locally. To inspect the version without changing it: `uv version --short`.
+To force a specific version in the next Release PR, push an empty commit with `Release-As: x.y.z` in the body (see [release-please docs](https://github.com/googleapis/release-please#how-do-i-change-the-version-number)).
 
 ### Releases
 
-Pushing a semver tag (e.g. `v0.0.1`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
+Merging a Release PR runs [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml), which tags the release and publishes assets. Pushing a semver tag manually (e.g. `just version-tag`) still runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
 
 1. **Quality gate** — same Dagger `check` as CI (lint, artifact smoke, pytest).
 2. **Export** — all `@artifact` models as STL plus PNG preview renders via `cad_tooling.render` (Open CASCADE offscreen rendering; Xvfb in CI).
