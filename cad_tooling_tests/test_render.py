@@ -93,6 +93,15 @@ def test_collect_release_assets(tmp_path: Path, repo_root: Path):
     assert any(asset.artifact.name == "sphere" for asset in assets)
 
 
+def test_collect_release_assets_can_scope_to_one_artifact(tmp_path: Path, repo_root: Path):
+    from cad_tooling.export import export_artifacts
+
+    export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
+    (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    assets = collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
+    assert [asset.artifact.name for asset in assets] == ["sphere"]
+
+
 def test_collect_release_assets_missing_stl(tmp_path: Path, repo_root: Path):
     from cad_tooling.export import export_artifacts
 
@@ -100,7 +109,7 @@ def test_collect_release_assets_missing_stl(tmp_path: Path, repo_root: Path):
     (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
     (tmp_path / "sphere.stl").unlink()
     with pytest.raises(FileNotFoundError, match="Missing release STL"):
-        collect_release_assets(tmp_path, root=repo_root)
+        collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
 
 
 def test_collect_release_assets_missing_png(tmp_path: Path, repo_root: Path):
@@ -108,7 +117,7 @@ def test_collect_release_assets_missing_png(tmp_path: Path, repo_root: Path):
 
     export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
     with pytest.raises(FileNotFoundError, match="Missing release preview"):
-        collect_release_assets(tmp_path, root=repo_root)
+        collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
 
 
 def test_collect_release_assets_accepts_legacy_png_name(tmp_path: Path, repo_root: Path):
@@ -116,8 +125,9 @@ def test_collect_release_assets_accepts_legacy_png_name(tmp_path: Path, repo_roo
 
     export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
     (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-    assets = collect_release_assets(tmp_path, root=repo_root)
-    assert assets[0].png_path.name == "sphere.png"
+    assets = collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
+    sphere_asset = next(asset for asset in assets if asset.artifact.name == "sphere")
+    assert sphere_asset.png_path.name == "sphere.png"
 
 
 def test_camera_presets_cover_all_config_choices():

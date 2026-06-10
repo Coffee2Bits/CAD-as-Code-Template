@@ -169,12 +169,33 @@ def render_release_body(repo: str, tag: str, assets: list[ReleaseAsset]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def collect_release_assets(assets_dir: Path, root: Path | None = None) -> list[ReleaseAsset]:
-    """Pair discovered artifacts with exported STL and PNG files."""
+def collect_release_assets(
+    assets_dir: Path,
+    root: Path | None = None,
+    *,
+    names: tuple[str, ...] | None = None,
+) -> list[ReleaseAsset]:
+    """Pair discovered artifacts with exported STL and PNG files.
+
+    When ``names`` is omitted, every discovered artifact must have release files
+    in ``assets_dir``. Pass ``names`` to validate only specific artifacts — use
+    this in tests that export a subset so other published parts do not break
+    unrelated assertions.
+    """
     from cad_tooling.export import list_artifacts
 
+    discovered = list_artifacts(root)
+    if names is not None:
+        by_name = {artifact.name: artifact for artifact in discovered}
+        missing = [name for name in names if name not in by_name]
+        if missing:
+            raise ValueError(f"Artifact(s) not discovered: {', '.join(missing)}")
+        targets = [by_name[name] for name in names]
+    else:
+        targets = discovered
+
     assets: list[ReleaseAsset] = []
-    for artifact in sorted(list_artifacts(root), key=lambda item: item.name):
+    for artifact in sorted(targets, key=lambda item: item.name):
         stl_path = assets_dir / f"{artifact.name}.stl"
         if not stl_path.is_file():
             raise FileNotFoundError(

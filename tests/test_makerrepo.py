@@ -13,6 +13,7 @@ def test_artifacts_discovered():
     names = {artifact.name for artifact in list_artifacts(REPO_ROOT)}
 
     assert "sphere" in names
+    assert "m3_hex_nut" in names
 
 
 def test_generators_discovered():

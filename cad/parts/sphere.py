@@ -17,6 +17,10 @@ from build123d import (
     Vector,
     add,
 )
+from cad.parts.m3_hex_nut import (
+    make_m3_hex_nut_pocket_cutter,
+    positioned_m3_hex_nut_at_seat,
+)
 from cad_tooling.render_decorator import render
 from mr import artifact, customizable
 from pydantic import BaseModel, Field
@@ -111,7 +115,59 @@ def _subtract_northeast_quadrant(
     return cut.part
 
 
-def make_sphere(radius: float = 10) -> Part:
+def largest_x_cut_face(part: Part) -> Face:
+    """Return the planar NE-quadrant face whose outward normal is +X."""
+    candidates = [
+        face
+        for face in part.faces()
+        if face.normal_at().X > 0.99
+        and abs(face.normal_at().Y) < 0.01
+        and abs(face.normal_at().Z) < 0.01
+    ]
+    if not candidates:
+        raise ValueError("expected a +X planar cut face on the sphere")
+    return max(candidates, key=lambda face: face.area)
+
+
+def positioned_m3_hex_nut_reference(part: Part, *, radius: float = 10) -> Part:
+    """Return an M3 nut positioned flush in the sphere hex pocket."""
+    cut_offset = northeast_quadrant_cut_offset(radius=radius)
+    return positioned_m3_hex_nut_at_seat(cut_offset=cut_offset, radius=radius)
+
+
+def northeast_quadrant_cut_offset(*, radius: float) -> float:
+    """Return the +X / +Z corner offset used by the NE quadrant cut."""
+    path = _equator_circle_edge(radius)
+    embossed_solids = _embossed_letter_solids(
+        radius=radius,
+        path=path,
+        path_length=path.length,
+    )
+    return _northeast_cut_offset(embossed_solids)
+
+
+def _subtract_hex_nut_pocket(
+    part: Part,
+    *,
+    cut_offset: float,
+    radius: float,
+    hex_nut_margin: float,
+) -> Part:
+    """Cut an M3 hex nut pocket into the exposed +X quadrant face."""
+    cutter = make_m3_hex_nut_pocket_cutter(
+        cut_offset=cut_offset,
+        radius=radius,
+        hex_nut_margin=hex_nut_margin,
+    )
+
+    with BuildPart() as cut:
+        add(part)
+        add(cutter, mode=Mode.SUBTRACT)
+
+    return cut.part
+
+
+def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
     """Build a centered sphere with embossed text and the NE quadrant removed."""
     path = _equator_circle_edge(radius)
     path_length = path.length
@@ -128,10 +184,16 @@ def make_sphere(radius: float = 10) -> Part:
         for embossed_solid in embossed_solids:
             add(embossed_solid, mode=Mode.ADD)
 
-    return _subtract_northeast_quadrant(
+    cut_part = _subtract_northeast_quadrant(
         part.part,
         radius=radius,
         offset=cut_offset,
+    )
+    return _subtract_hex_nut_pocket(
+        cut_part,
+        cut_offset=cut_offset,
+        radius=radius,
+        hex_nut_margin=hex_nut_margin,
     )
 
 
@@ -144,11 +206,7 @@ def make_sphere(radius: float = 10) -> Part:
             "height": 600,
             "face_color": (0.31, 0.63, 1.0),
         },
-        {
-            "camera": "iso",
-            "width": 800,
-            "height": 600,
-            "face_color": (0.31, 0.63, 1.0)},
+        {"camera": "iso", "width": 800, "height": 600, "face_color": (0.31, 0.63, 1.0)},
     ]
 )
 def sphere() -> Part:
@@ -158,9 +216,17 @@ def sphere() -> Part:
 
 class SphereParameters(BaseModel):
     radius: float = Field(default=10, gt=0, description="Sphere radius in mm")
+    hex_nut_margin: float = Field(
+        default=0.2,
+        ge=0,
+        description="Extra clearance added around the M3 hex nut pocket (mm)",
+    )
 
 
 @customizable(sample_parameters=SphereParameters())
 def sphere_generator(parameters: SphereParameters) -> Part:
     """Parametric sphere — customize radius via MakerRepo generators or CLI."""
-    return make_sphere(radius=parameters.radius)
+    return make_sphere(
+        radius=parameters.radius,
+        hex_nut_margin=parameters.hex_nut_margin,
+    )
