@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "programmatic-cad-workspace"
-version = "0.0.1"
+version = "0.0.2"
 description = "Programmatic CAD modeling workspace using build123d"
 requires-python = ">=3.11"
 dependencies = [
