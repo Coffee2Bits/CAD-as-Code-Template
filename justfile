@@ -101,8 +101,8 @@ release-notes repo tag out='dist/RELEASE_BODY.md' assets='dist':
         -o {{out}}
 
 [group('export')]
-render stl out *camera:
-    uv run python -m cad_tooling.render {{stl}} -o {{out}} {{camera}}
+render script='main.py' out='dist' *camera:
+    uv run python -m cad_tooling.render {{script}} -o {{out}} {{camera}}
 
 # --- Release versioning ---
 
