@@ -86,11 +86,14 @@ uv run python -m cad_tooling.export release-notes \
 
 ## Manual tag fallback
 
-`just version-tag` or push `v*.*.*` triggers [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml).
+`just version-tag` or push a strict semver tag (`vX.Y.Z` only) triggers [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml). Tags with suffixes (for example `v0.1.0-test`) are ignored by the publish job.
 
-## GitHub CLI
+## Publish flow
 
-The dev container includes `gh` — [authentication](/getting-started/dev-container#github-cli) and [release examples](/getting-started/releases#github-cli).
+1. `release-please.yml` — Release PRs + git tag on merge (`skip-github-release: true`)
+2. `release.yml` — export and GitHub Release on tag push
+
+Do not use `gh release create` for normal publishes. See [Cleaning up mistaken releases](/getting-started/releases#cleaning-up-mistaken-releases).
 
 ## Release note URLs
 

@@ -78,10 +78,10 @@ Common tasks (replace `OWNER/REPO` with your fork after [template apply](/gettin
 gh pr create --fill
 gh pr list
 gh release list --repo OWNER/REPO
-gh release create v0.1.0 --repo OWNER/REPO --target main --title "v0.1.0" --notes "Release 0.1.0"
+gh release view v0.1.0 --repo OWNER/REPO
 ```
 
-Prefer the automated [release-please flow](/getting-started/releases) for day-to-day versioning. Use `gh release create` for ad-hoc or recovery releases when you need a tag on a specific commit. See [Manual tag fallback](/getting-started/releases#manual-tag-fallback) and [GitHub CLI releases](/getting-started/releases#github-cli).
+Prefer the automated [release-please flow](/getting-started/releases) for publishing. Use `gh` to **inspect** releases only — do not `gh release create` for normal releases (that bypasses export and can duplicate tags). See [Single publish path](/getting-started/releases#single-publish-path).
 
 ## Troubleshooting
 

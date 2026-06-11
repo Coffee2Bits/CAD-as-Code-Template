@@ -13,78 +13,12 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-      # Required when the released commit changes files under .github/workflows/
-      # (GitHub REST create-release needs workflows:write in that case).
-      workflows: write
-      actions: read
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
-        id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          # Tag only — STL/PNG upload and release notes run in steps below.
+          # Tag only. Asset export + GitHub Release run in release.yml on tag push.
           skip-github-release: true
-
-      - name: Checkout release commit
-        if: ${{ steps.release.outputs.release_created == 'true' }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.release.outputs.tag_name }}
-
-      - name: Export release assets
-        if: ${{ steps.release.outputs.release_created == 'true' }}
-        uses: dagger/dagger-for-github@v8.4.0
-        with:
-          version: "0.21.4"
-          verb: call
-          module: ./ci
-          args: release-artifact --source=. export --path=./dist
-          dagger-flags: "--progress plain"
-
-      - name: Set up Python
-        if: ${{ steps.release.outputs.release_created == 'true' }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Set up uv
-        if: ${{ steps.release.outputs.release_created == 'true' }}
-        uses: astral-sh/setup-uv@v5
-
-      - name: Generate release notes
-        if: ${{ steps.release.outputs.release_created == 'true' }}
-        run: |
-          uv sync --group dev --frozen
-          uv run python -m cad_tooling.export release-notes \
-            --assets-dir dist \
-            --repo "${{ github.repository }}" \
-            --tag "${{ steps.release.outputs.tag_name }}" \
-            -o dist/RELEASE_BODY.md
-
-      - name: Create or update GitHub Release
-        if: ${{ steps.release.outputs.release_created == 'true' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          tag="${{ steps.release.outputs.tag_name }}"
-          assets=(dist/*.stl dist/*.png)
-          if [ ${#assets[@]} -eq 0 ]; then
-            echo "No release assets found in dist/" >&2
-            ls -la dist || true
-            exit 1
-          fi
-          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release upload "$tag" --repo "${{ github.repository }}" "${assets[@]}" --clobber
-            gh release edit "$tag" --repo "${{ github.repository }}" --notes-file dist/RELEASE_BODY.md
-          else
-            gh release create "$tag" \
-              --repo "${{ github.repository }}" \
-              --target "${{ github.sha }}" \
-              --notes-file dist/RELEASE_BODY.md \
-              "${assets[@]}"
-          fi

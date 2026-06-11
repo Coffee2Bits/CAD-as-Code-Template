@@ -86,28 +86,37 @@ just version-bump        # optional — bumps pyproject.toml locally
 just version-tag         # creates and pushes v{version}
 ```
 
-Pushing `v*.*.*` runs [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) — same quality gate and asset upload. Prefer the release-please path for changelog discipline.
+Pushing a **strict semver** tag (`v1.2.3` only — no suffixes) runs [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml). Prefer the release-please path for changelog discipline.
+
+### Single publish path
+
+| Step | Workflow | What it does |
+|------|----------|--------------|
+| Day-to-day merges | `release-please.yml` | Opens/updates Release PRs |
+| Merge Release PR | `release-please.yml` | Creates git tag (`skip-github-release: true`) |
+| Tag push `vX.Y.Z` | `release.yml` | Quality gate → export STL/PNG → GitHub Release |
+
+Do **not** run `gh release create` for normal releases — that bypasses export and can duplicate tags. Use `gh release list` / `gh release view` to inspect only.
 
 ## GitHub CLI
 
-The dev container ships [`gh`](https://cli.github.com/) — see [Dev container → GitHub CLI](/getting-started/dev-container#github-cli) for authentication. After `gh auth login`, you can inspect or create releases without leaving the container:
+The dev container ships [`gh`](https://cli.github.com/) — see [Dev container → GitHub CLI](/getting-started/dev-container#github-cli) for authentication:
 
 ```bash
 gh release list --repo OWNER/REPO
 gh release view v0.1.0 --repo OWNER/REPO
 ```
 
-**Ad-hoc release on a commit** (creates the tag and release; does not run the export workflow unless you also push a tag that matches `v*.*.*`):
+## Cleaning up mistaken releases
+
+If debugging created extra tags (for example `v0.1.0-dup-test`), delete the release and tag:
 
 ```bash
-gh release create v0.1.0 \
-  --repo OWNER/REPO \
-  --target COMMIT_SHA \
-  --title "v0.1.0" \
-  --notes "Release 0.1.0"
+gh release delete v0.1.0-dup-test --repo OWNER/REPO --yes
+git push origin :refs/tags/v0.1.0-dup-test
 ```
 
-For STL/PNG assets and generated notes, use the automated path: merge the release-please Release PR, or push a semver tag so [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) runs. You can attach local dry-run assets with `gh release upload` after `just release dist/`.
+Keep one canonical release per version (for this repo: **`v0.1.0`** with STL/PNG assets). Optional: delete early CI test releases (`v0.0.1`, `v0.0.2`) the same way if you do not need them.
 
 ## Fork vs your own repo
 
@@ -124,7 +133,8 @@ For STL/PNG assets and generated notes, use the automated path: merge the releas
 | No Release PR after merging `feat:` / `fix:` | [Workflow permissions](/getting-started/github-setup#actions-workflow-permissions); check Actions tab for failed `Release Please` run |
 | Release PR exists but will not update | Stale `autorelease: pending` label on an old Release PR — remove label and re-run workflow ([release-please docs](https://github.com/googleapis/release-please#why-are-there-multiple-release-prs)) |
 | Merge Release PR but no GitHub Release | Squash subject must match `chore: release X.Y.Z` exactly |
-| `Resource not accessible by integration` on create-a-release | Release commit includes `.github/workflows/` changes — job needs `workflows: write` (committed in `release-please.yml` / `release.yml`); re-run the failed workflow after merging the fix |
+| Extra duplicate releases | Manual `gh release create` or non-semver test tags (`v0.1.0-dup-test`) — delete extras; only push strict `vX.Y.Z` tags; see [Cleaning up mistaken releases](#cleaning-up-mistaken-releases) |
+| `Resource not accessible by integration` on create-a-release | Usually duplicate publish paths or pushing workflow changes without `workflow` OAuth scope locally — use release-please + `release.yml` only; refresh `gh auth` with `-s workflow` when editing workflows |
 | Release workflow fails on assets | Ensure at least one `@artifact` exports; run `just export-smoke` locally |
 | Wrong asset URLs in notes | Published notes need absolute `releases/download/{tag}/` URLs — see [release notes](/tools/cad-tooling/release-notes) |
 
