@@ -19,7 +19,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | **Make** | [just](https://github.com/casey/just) command runner (`justfile`) for dev, export, and CI |
 | **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions to any other pipeline tool; same checks everywhere |
 | **Agents** | AI coding assistants — Cursor, VS Code, Claude, GitHub Copilot |
-| **MCP** | Optional agent interface surface (build123d-mcp, ocp-viewer-mcp) — access to code and viewer artifacts alongside direct editing; see [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers) |
+| **MCP** | Agent tools in the dev container (build123d-mcp, ocp-viewer-mcp) — `uv sync` + `.cursor/mcp.json` launchers; see [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers) |
 | **Publish** | MakerRepo decorators and `mr` CLI for artifact discovery and export |
 
 **AI agents:** see [AGENTS.md](AGENTS.md) for repo structure, parts/assemblies conventions, and MakerRepo usage.
@@ -76,13 +76,13 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
    For ad-hoc exports in tests or scripts, use `cad_tooling.export.export_part(make_sphere(), "sphere", tmp_path)` — see [`tests/test_exports.py`](tests/test_exports.py).
 
-6. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed. See [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers).
+6. **MCP servers** run in the dev container (no host install). **Cursor:** reload MCP in **Settings → MCP** after a container rebuild. **VS Code / Copilot:** import entries from [`.cursor/mcp.json`](.cursor/mcp.json). See [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers).
 
 ### Set up GitHub and releases (template / new repo)
 
 If you used **[Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)**, configure one-time settings on GitHub.com, then run your first automated release:
 
-1. [Set up GitHub for your repository](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge, repo rename / docs URL
+1. [Set up GitHub for your repository](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge; edit `template.repo.toml` then `just template-apply`
 2. [Releases](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases) — release-please flow and published STL/PNG assets
 
 In-repo summary: [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
@@ -95,6 +95,7 @@ The VSIX is downloaded and patched automatically in the dev container (not commi
 
 ```text
 .
+├── template.repo.toml            # Org/repo identity — edit after "Use this template", then just template-apply
 ├── AGENTS.md                     # Agent conventions (parts, assemblies, MakerRepo)
 ├── LICENSE
 ├── .cursor/
@@ -150,7 +151,7 @@ Common local gates: `just quality` (lint + test) before pushing; `just ci` for t
 
 ## MCP servers
 
-MCP servers are an **optional agent interface surface** — they help Cursor, VS Code, Claude, and GitHub Copilot interact with geometry and the viewer alongside direct code editing. They do not replace the **CAD/** tree (`cad/`) as source of truth. Full architecture, config, and troubleshooting: [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers).
+MCP servers run **inside the dev container** (`uv sync` installs `ocp-viewer-mcp`; `build123d-mcp` via pinned launchers in `.cursor/`). Your IDE connects through [`.cursor/mcp.json`](.cursor/mcp.json) — they help agents interact with geometry and the viewer alongside direct editing. They do not replace the **CAD/** tree (`cad/`) as source of truth. Full architecture and troubleshooting: [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers).
 
 ## Future work Roadmap
 

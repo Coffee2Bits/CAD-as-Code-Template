@@ -337,7 +337,7 @@ When adding or changing a published model:
 5. Confirm MR discovery: `just mr-artifacts` / `just mr-generators`.
 6. **Completion gate:** run `just ci` (or the [local equivalent](#task-completion-gate)) and do not finish until it passes.
 
-For any other code change (tooling, tests, CI, config), skip steps 1–5 as applicable but **always** run the completion gate before reporting done.
+For any other code change (tooling, tests, CI, config), skip steps 1–5 as applicable but **always** [sync documentation](#keep-docs-in-sync-mandatory) when behavior, commands, paths, or names change, then run the completion gate before reporting done.
 
 ---
 
@@ -594,6 +594,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Commits and PRs**: use [Conventional Commits](#commit-messages-release-please) (`feat:`, `fix:`, `deps:`, `docs:` for releasable work; squash-merge to `main`).
 - **Formatter and linter**: keep [Ruff aligned](#formatter-and-linter-alignment) across editor, pre-commit, and CI — mismatches cause endless format regressions.
 - **Completion gate**: run `just ci` (or `just quality && just export-smoke`) and confirm success before marking any task complete.
+- **Doc sync**: when changing behavior, names, or commands, search docs for stale references and update them in the same change — see [Keep docs in sync (mandatory)](#keep-docs-in-sync-mandatory).
 - **Units**: millimeters unless a part docstring says otherwise.
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
@@ -643,6 +644,34 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | [`AGENTS.md`](AGENTS.md) | Agent contract only. Do **not** duplicate agent rules on the docs site; [`website/docs/contributing/for-agents.md`](website/docs/contributing/for-agents.md) summarizes and links here. |
 | [`cad_tooling/README.md`](cad_tooling/README.md) | Short pointer to `website/docs/tools/cad-tooling/` once that section exists. |
 | [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md) | Short checklist; canonical guide at `website/docs/getting-started/github-setup.md`. |
+| [`template.repo.toml`](template.repo.toml) | Single source for org/repo identity, Pages URL, docs branding, and Python package name after “Use this template”. Run `just template-apply` to propagate — documented in [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md#replace-template-identity-in-your-repo). |
+
+### Keep docs in sync (mandatory)
+
+**Doc drift is a serious defect.** The docs site (`website/docs/`), README, and in-repo pointers must describe **current** behavior. When you change any file whose name, path, command, API, workflow, or default appears in documentation, you **must** update every doc reference in the same change — do not leave follow-up “doc TODOs.”
+
+**Before marking work complete:**
+
+1. **Read the canonical doc** for the area you touched (Getting started, Tools, Workflows, Troubleshooting, or Reference under `website/docs/`). If no page exists, add or extend one per [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) before claiming the behavior is documented.
+2. **Search for stale references** to anything you renamed, removed, or changed. At minimum search:
+   - `website/docs/` (all `.md` files)
+   - [`README.md`](README.md)
+   - [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md)
+   - [`cad_tooling/README.md`](cad_tooling/README.md)
+   - [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) if the change affects rollout status
+   Use ripgrep for the **old** command string, recipe name, file path, env var, workflow name, status check name, config key, and any prose you replaced in code comments or docstrings.
+3. **Update every hit** — links, tables, mermaid labels, code blocks, and “jump to line” examples. Prefer relative links between Docusaurus pages; keep GitHub blob links pointed at the correct path on `main`.
+4. **Verify behavior matches prose** — commands in docs must match `justfile` / CLI flags; checklist items must match real GitHub settings; diagrams must match architecture you implemented.
+5. **Template identity** — if the change involves org/repo URLs, Pages `baseUrl`, or package naming, update [`template.repo.toml`](template.repo.toml) and run `just template-apply` (or document that users must), rather than hand-editing `website/docusaurus.config.ts` or scattering owner/repo strings.
+6. **Build check** — run `just docs-build` when `website/**`, `README.md`, or doc-linked config changes; fix broken links (`onBrokenLinks: throw`).
+
+| You change… | Also update… |
+|-------------|--------------|
+| `justfile` recipe | `website/docs/tools/just.md`, `website/docs/reference/justfile-recipes.md`, any page that cites the command |
+| Export / release / render | `website/docs/tools/cad-tooling/`, `website/docs/workflows/export-and-formats.md`, `website/docs/workflows/releases.md` |
+| CI / Dagger / workflows | `website/docs/workflows/ci-and-dagger.md`, `website/docs/reference/ci-functions.md`, `website/docs/getting-started/github-setup.md`, `.github/GITHUB_SETUP.md` |
+| Dev container / viewer / MCP | Matching page under `website/docs/getting-started/` or `website/docs/tools/` |
+| New template-user setup step | `website/docs/getting-started/` (usually `quick-start.md`, `github-setup.md`, or `releases.md`) and `.github/GITHUB_SETUP.md` |
 
 ### Agent rules when editing docs
 
@@ -651,7 +680,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 3. **Diagrams** — stack and architecture diagrams live under `website/static/img/` (SVG/PNG) or as Mermaid fenced blocks in markdown (enabled in `docusaurus.config.ts`). Regenerate static SVGs when the stack changes.
 4. **Code examples** — copy from working repo sources (`justfile`, `cad/parts/sphere.py`, workflows); verify commands against the current tree before publishing.
 5. **README sync** — when moving a README section to the site, replace it with a short paragraph + link to the new doc page. Do not delete template stack/quick-start content from README.
-6. **Tooling changes** — if you change `justfile`, CI workflows, MCP launchers, or export behavior, update the matching `website/docs/` page in the same PR. If a change affects required GitHub.com settings (branch protection checks, workflow permissions, Pages), update [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md) and [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
+6. **Tooling changes** — follow [Keep docs in sync (mandatory)](#keep-docs-in-sync-mandatory): same PR, same search-and-update pass for every doc reference. GitHub.com settings changes must update [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md) and [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
 7. **Local preview** — from `website/`: `npm ci && npm run start` (dev) or `npm run build` (production check). Fix broken links before merging.
 8. **Completion gate for doc-only work** — `npm run build` in `website/` must pass. For doc + code changes, still run `just ci` (or `just quality && just export-smoke`) per the [task completion gate](#task-completion-gate).
 9. **Deploy** — merging to `main` triggers the docs workflow when `website/**` or `.github/workflows/docs.yml` changes. No manual `gh-pages` branch commits.

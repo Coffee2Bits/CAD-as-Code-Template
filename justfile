@@ -21,6 +21,15 @@ sync-frozen:
 setup-hooks:
     uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 
+# Apply template.repo.toml to docs config, README links, and related files.
+[group('setup')]
+template-apply:
+    uv run python scripts/apply_template_identity.py
+
+[group('setup')]
+template-apply-dry-run:
+    uv run python scripts/apply_template_identity.py --dry-run
+
 # --- Development ---
 
 [group('dev')]
@@ -98,12 +107,18 @@ release out='dist':
     uv run python -m cad_tooling.export release -o {{out}}
 
 [group('export')]
-release-notes repo tag out='dist/RELEASE_BODY.md' assets='dist':
+release-notes tag out='dist/RELEASE_BODY.md' assets='dist' repo='':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repo="{{repo}}"
+    if [[ -z "$repo" ]]; then
+      repo="$(uv run python -c 'from scripts.template_identity import load_identity; print(load_identity().github_repo_slug)')"
+    fi
     uv run python -m cad_tooling.export release-notes \
-        --assets-dir {{assets}} \
-        --repo {{repo}} \
-        --tag {{tag}} \
-        -o {{out}}
+        --assets-dir "{{assets}}" \
+        --repo "$repo" \
+        --tag "{{tag}}" \
+        -o "{{out}}"
 
 [group('export')]
 render script='main.py' out='dist' *camera:
@@ -154,6 +169,7 @@ docs-start: docs-serve
 
 [group('docs')]
 docs-build:
+    just template-apply
     cd website && npm run build
 
 # --- Dagger CI (requires Docker; run inside devcontainer) ---
