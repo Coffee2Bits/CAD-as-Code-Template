@@ -23,8 +23,7 @@ Replace `YOUR_GITHUB_ORG/YOUR_REPO` and the tag with your values. Open `dist/REL
 
 # Release artifacts
 
-Parametric CAD models exported as STL from `@artifact` functions in this repository.
-Each entry includes an OCCT preview render and a downloadable mesh file.
+Parametric CAD models exported as STL from `@artifact` functions with `@render` previews.
 
 ## {{ARTIFACT_NAME}}
 

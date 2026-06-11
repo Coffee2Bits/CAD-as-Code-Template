@@ -6,6 +6,7 @@ from bd_warehouse.fastener import HexNut, read_fastener_parameters_from_csv
 from build123d import (
     BuildPart,
     BuildSketch,
+    Color,
     Part,
     Plane,
     RegularPolygon,
@@ -22,12 +23,14 @@ NUT_THICKNESS_MM = float(_NUT_DATA["iso4032:m"])
 POCKET_AXIS_ROTATION = (0, 90, 0)
 # RegularPolygon rotation that matches bd_warehouse HexNut in the pocket plane.
 POCKET_HEX_ROTATION_DEG = 30.0
-VISUAL_REFERENCE_COLOR = (0, 0, 0)
+PART_COLOR = Color(0.1, 0.1, 0.1)
 
 
 def make_m3_hex_nut(*, rotation: tuple[float, float, float] = (0, 0, 0)) -> Part:
     """Build an ISO 4032 M3 hex nut from bd_warehouse."""
-    return Part(Rot(*rotation) * HexNut(M3_HEX_NUT_SIZE))
+    nut = Part(Rot(*rotation) * HexNut(M3_HEX_NUT_SIZE))
+    nut.color = PART_COLOR
+    return nut
 
 
 def make_m3_hex_nut_for_pocket() -> Part:

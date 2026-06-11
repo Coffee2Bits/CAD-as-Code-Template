@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import Callable, Literal, Self
 
@@ -35,12 +37,114 @@ CAMERA_PRESET_CHOICES: tuple[str, ...] = (
 )
 
 
+class LightingPreset(StrEnum):
+    DEFAULT = "default"
+    STUDIO = "studio"
+    BRIGHT = "bright"
+    FLAT = "flat"
+
+
+LIGHTING_PRESETS: dict[
+    LightingPreset,
+    tuple[float, float, float, float, float],
+] = {
+    # (light_scale, ambient_factor, diffuse_factor, specular, shininess)
+    LightingPreset.DEFAULT: (1.0, 0.4, 0.75, 0.35, 0.3),
+    LightingPreset.STUDIO: (1.6, 0.8, 0.95, 0.4, 0.3),
+    LightingPreset.BRIGHT: (2.2, 0.75, 1.0, 0.5, 0.25),
+    LightingPreset.FLAT: (1.2, 0.9, 0.7, 0.15, 0.1),
+}
+
+
+@dataclass(frozen=True)
+class ResolvedLighting:
+    """Resolved lighting applied during headless OCCT shaded renders."""
+
+    use_stock: bool
+    light_scale: float
+    ambient_factor: float
+    diffuse_factor: float
+    specular: float
+    shininess: float
+
+
 class CameraConfig(BaseModel):
     """View orientation for OCCT offscreen renders."""
 
     preset: CameraPreset = "iso"
     azimuth: float = Field(default=0, description="Extra rotation around Z in degrees")
     elevation: float = Field(default=0, description="Extra rotation around X in degrees")
+
+
+class LightingConfig(BaseModel):
+    """OCCT scene lighting for shaded PNG previews."""
+
+    preset: LightingPreset = Field(
+        default=LightingPreset.STUDIO,
+        description=(
+            "Named lighting setup: default (OCCT stock), studio (balanced), "
+            "bright (higher key + ambient), flat (soft ambient-heavy product lighting)"
+        ),
+    )
+    intensity: float = Field(
+        default=1.0,
+        gt=0,
+        le=3.0,
+        description="Global multiplier for directional lights and material reflectance",
+    )
+    ambient: float | None = Field(
+        default=None,
+        ge=0,
+        le=2.0,
+        description="Material ambient reflectance override (overrides preset when set)",
+    )
+    headlight: float | None = Field(
+        default=None,
+        ge=0,
+        le=2.0,
+        description="OCCT directional light scale override (overrides preset when set)",
+    )
+    fill: float | None = Field(
+        default=None,
+        ge=0,
+        le=2.0,
+        description="Material diffuse reflectance override (overrides preset when set)",
+    )
+
+    def resolved_profile(self) -> ResolvedLighting:
+        """Return lighting coefficients applied during headless shaded renders."""
+        use_stock = (
+            self.preset == LightingPreset.DEFAULT
+            and self.intensity == 1.0
+            and self.ambient is None
+            and self.headlight is None
+            and self.fill is None
+        )
+        if use_stock:
+            return ResolvedLighting(
+                use_stock=True,
+                light_scale=1.0,
+                ambient_factor=0.2,
+                diffuse_factor=0.6,
+                specular=0.35,
+                shininess=0.1,
+            )
+
+        light_scale, ambient_factor, diffuse_factor, specular, shininess = LIGHTING_PRESETS[
+            self.preset
+        ]
+        ambient = self.ambient if self.ambient is not None else ambient_factor
+        headlight = self.headlight if self.headlight is not None else light_scale
+        diffuse = self.fill if self.fill is not None else diffuse_factor
+        scale = self.intensity
+        return ResolvedLighting(
+            use_stock=False,
+            light_scale=headlight * scale,
+            ambient_factor=min(1.0, ambient * scale),
+            diffuse_factor=min(1.0, diffuse * scale),
+            specular=specular,
+            shininess=shininess,
+        )
 
 
 class RenderConfig(BaseModel):
@@ -56,6 +160,7 @@ class RenderConfig(BaseModel):
     face_color: tuple[float, float, float] = (0.31, 0.63, 1.0)
     fit_margin: float = Field(default=0.01, ge=0)
     camera: CameraConfig = Field(default_factory=CameraConfig)
+    lighting: LightingConfig = Field(default_factory=LightingConfig)
 
     @field_validator("background", "face_color", mode="before")
     @classmethod
@@ -186,6 +291,36 @@ def add_render_config_arguments(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="Extra X rotation in degrees",
     )
+    parser.add_argument(
+        "--lighting-preset",
+        choices=list(LightingPreset),
+        default=None,
+        help="Lighting preset: default, studio, bright, or flat",
+    )
+    parser.add_argument(
+        "--light-intensity",
+        type=float,
+        default=None,
+        help="Global multiplier for directional lights and material reflectance",
+    )
+    parser.add_argument(
+        "--ambient-intensity",
+        type=float,
+        default=None,
+        help="Material ambient reflectance override (0.0–2.0)",
+    )
+    parser.add_argument(
+        "--headlight-intensity",
+        type=float,
+        default=None,
+        help="OCCT directional light scale override (0.0–2.0)",
+    )
+    parser.add_argument(
+        "--fill-intensity",
+        type=float,
+        default=None,
+        help="Material diffuse reflectance override (0.0–2.0)",
+    )
 
 
 def render_config_from_namespace(args: argparse.Namespace) -> RenderConfig | None:
@@ -211,6 +346,20 @@ def render_config_from_namespace(args: argparse.Namespace) -> RenderConfig | Non
         fields["fit_margin"] = args.fit_margin
     if camera_fields:
         fields["camera"] = camera_fields
+
+    lighting_fields: dict[str, object] = {}
+    if getattr(args, "lighting_preset", None) is not None:
+        lighting_fields["preset"] = args.lighting_preset
+    if getattr(args, "light_intensity", None) is not None:
+        lighting_fields["intensity"] = args.light_intensity
+    if getattr(args, "ambient_intensity", None) is not None:
+        lighting_fields["ambient"] = args.ambient_intensity
+    if getattr(args, "headlight_intensity", None) is not None:
+        lighting_fields["headlight"] = args.headlight_intensity
+    if getattr(args, "fill_intensity", None) is not None:
+        lighting_fields["fill"] = args.fill_intensity
+    if lighting_fields:
+        fields["lighting"] = lighting_fields
 
     if not fields:
         return None

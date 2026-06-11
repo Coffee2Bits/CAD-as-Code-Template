@@ -58,8 +58,8 @@ The **PR title** becomes the squash commit subject on `main` — that is what re
 
 On each release (Release PR merge or manual tag):
 
-1. **Quality gate** — Dagger `check` (ruff, mypy, artifact smoke, pytest)
-2. **Export** — all `@artifact` models as STL + PNG (via `@render` where configured)
+1. **Quality gate** — Dagger `check` (ruff, mypy, vulture, artifact smoke, pytest)
+2. **Export** — `@artifact` models that declare `@render` as STL + PNG
 3. **GitHub Release** — assets attached; body from [`cad_tooling.export release-notes`](/tools/cad-tooling/release-notes)
 
 Release notes template: [`.github/release_template.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/release_template.md).

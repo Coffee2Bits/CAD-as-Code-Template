@@ -49,13 +49,14 @@ class Ci:
         self,
         source: Annotated[dagger.Directory, DefaultPath("."), SOURCE_IGNORE],
     ) -> str:
-        """Run ruff and mypy."""
+        """Run ruff, mypy, and vulture."""
         base = self._project(source)
         await base.with_exec(["uv", "run", "ruff", "check", "."]).stdout()
         await base.with_exec(["uv", "run", "ruff", "format", "--check", "."]).stdout()
-        return await base.with_exec(
+        await base.with_exec(
             ["uv", "run", "mypy", "cad", "cad_tooling", "tests", "cad_tooling_tests"]
         ).stdout()
+        return await base.with_exec(["uv", "run", "vulture"]).stdout()
 
     @function
     async def artifacts(

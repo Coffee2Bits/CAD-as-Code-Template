@@ -5,6 +5,7 @@ import pytest
 from cad_tooling.render_config import (
     CAMERA_PRESET_CHOICES,
     CameraConfig,
+    LightingConfig,
     RenderConfig,
     add_render_config_arguments,
     render_config_from_namespace,
@@ -63,6 +64,41 @@ def test_merge_deep_merges_nested_camera():
     merged = base.merge(overrides)
     assert merged.camera.preset == "iso"
     assert merged.camera.azimuth == 15
+
+
+def test_merge_deep_merges_nested_lighting():
+    base = RenderConfig.model_validate({"lighting": {"preset": "studio", "intensity": 1.0}})
+    overrides = RenderConfig.model_validate({"lighting": {"preset": "bright"}})
+    merged = base.merge(overrides)
+    assert merged.lighting.preset == "bright"
+    assert merged.lighting.intensity == 1.0
+
+
+def test_lighting_config_resolved_profile():
+    lighting = LightingConfig.model_validate({"preset": "studio", "intensity": 2.0})
+    profile = lighting.resolved_profile()
+    assert profile.use_stock is False
+    assert profile.light_scale == pytest.approx(3.2)
+    assert profile.ambient_factor == pytest.approx(1.0)
+    assert profile.diffuse_factor == pytest.approx(1.0)
+
+
+def test_lighting_config_default_preset_uses_occt_stock():
+    lighting = LightingConfig.model_validate({"preset": "default"})
+    profile = lighting.resolved_profile()
+    assert profile.use_stock is True
+    assert profile.light_scale == pytest.approx(1.0)
+
+
+def test_render_decorator_stores_lighting():
+    @render(lighting={"preset": "flat", "ambient": 0.9})
+    def demo_part():
+        return None
+
+    config = get_render_config_from_func(demo_part)
+    assert config is not None
+    assert config.lighting.preset == "flat"
+    assert config.lighting.ambient == pytest.approx(0.9)
 
 
 def test_camera_config_defaults():
@@ -207,6 +243,7 @@ def test_resolve_render_configs_defaults_without_decorator():
     assert len(configs) == 1
     assert configs[0].width == 800
     assert configs[0].camera.preset == "iso"
+    assert configs[0].lighting.preset == "studio"
 
 
 def test_resolve_render_configs_multiple_from_renders_list():

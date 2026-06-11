@@ -52,6 +52,7 @@ lint:
     uv run ruff check .
     uv run ruff format --check .
     uv run mypy cad cad_tooling tests cad_tooling_tests
+    uv run vulture
 
 [group('quality')]
 format:
@@ -116,14 +117,105 @@ release-notes tag out='dist/RELEASE_BODY.md' assets='dist' repo='':
         -o "{{out}}"
 
 [group('export')]
-render script='main.py' out='dist' *camera:
-    uv run python -m cad_tooling.render {{script}} -o {{out}} {{camera}}
+render *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    script="main.py"
+    out="dist"
+    positionals=()
+    flags=()
+    value_flags=(
+        --artifact --width --height --background --face-color --fit-margin
+        --camera --azimuth --elevation --lighting-preset --light-intensity
+        --ambient-intensity --headlight-intensity --fill-intensity
+    )
+    takes_value() {
+        local flag="$1"
+        for candidate in "${value_flags[@]}"; do
+            [[ "$flag" == "$candidate" ]] && return 0
+        done
+        return 1
+    }
+    is_input_file() {
+        [[ "$1" =~ \.(py|stl)$ ]] || [[ -f "$1" ]]
+    }
+    for arg in {{args}}; do
+        if [[ "$arg" == --* ]]; then
+            flags+=("$arg")
+            if takes_value "$arg"; then
+                shift_flag_value=1
+            fi
+        elif [[ -n "${shift_flag_value:-}" ]]; then
+            flags+=("$arg")
+            unset shift_flag_value
+        else
+            positionals+=("$arg")
+        fi
+    done
+    if [[ -n "${shift_flag_value:-}" ]]; then
+        echo "error: missing value for ${flags[-1]}" >&2
+        exit 1
+    fi
+    if ((${#positionals[@]} > 0)); then
+        if is_input_file "${positionals[0]}"; then
+            script="${positionals[0]}"
+            if ((${#positionals[@]} > 1)); then out="${positionals[1]}"; fi
+        else
+            out="${positionals[0]}"
+            if ((${#positionals[@]} > 1)); then
+                echo "usage: just render [script] [outdir] [--render-flags...]" >&2
+                exit 1
+            fi
+        fi
+    fi
+    uv run python -m cad_tooling.render "$script" -o "$out" "${flags[@]}"
 
 [group('export')]
-render-artifact name out='/tmp/out':
-    mkdir -p {{out}}
-    uv run python -m cad_tooling.export export -o {{out}} --format stl {{name}}
-    uv run python -m cad_tooling.render {{out}}/{{name}}.stl -o {{out}}
+render-artifact *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    name=""
+    out="/tmp/out"
+    positionals=()
+    flags=()
+    value_flags=(
+        --artifact --width --height --background --face-color --fit-margin
+        --camera --azimuth --elevation --lighting-preset --light-intensity
+        --ambient-intensity --headlight-intensity --fill-intensity
+    )
+    takes_value() {
+        local flag="$1"
+        for candidate in "${value_flags[@]}"; do
+            [[ "$flag" == "$candidate" ]] && return 0
+        done
+        return 1
+    }
+    for arg in {{args}}; do
+        if [[ "$arg" == --* ]]; then
+            flags+=("$arg")
+            if takes_value "$arg"; then
+                shift_flag_value=1
+            fi
+        elif [[ -n "${shift_flag_value:-}" ]]; then
+            flags+=("$arg")
+            unset shift_flag_value
+        else
+            positionals+=("$arg")
+        fi
+    done
+    if [[ -n "${shift_flag_value:-}" ]]; then
+        echo "error: missing value for ${flags[-1]}" >&2
+        exit 1
+    fi
+    if ((${#positionals[@]} == 0)); then
+        echo "usage: just render-artifact <name> [outdir] [--render-flags...]" >&2
+        exit 1
+    fi
+    name="${positionals[0]}"
+    if ((${#positionals[@]} > 1)); then out="${positionals[1]}"; fi
+    mkdir -p "$out"
+    uv run python -m cad_tooling.export export -o "$out" --format stl "$name"
+    uv run python -m cad_tooling.render "$out/$name.stl" -o "$out" --artifact "$name" "${flags[@]}"
 
 # --- Release versioning ---
 

@@ -59,7 +59,7 @@ Version lives in `pyproject.toml`; tags use `v` prefix (`0.1.1` → `v0.1.1`).
 On release (Release PR merge or manual tag):
 
 1. **Quality gate** — Dagger `check` (lint, artifact smoke, pytest)
-2. **Export** — all `@artifact` models as STL + PNG via `@render`
+2. **Export** — `@artifact` models that declare `@render` as STL + PNG
 3. **GitHub Release** — `dist/*.stl`, `dist/*.png`, generated body with embedded preview images
 
 Release notes format: [`.github/release_template.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/release_template.md)

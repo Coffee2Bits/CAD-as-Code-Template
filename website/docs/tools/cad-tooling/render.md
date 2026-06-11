@@ -9,7 +9,7 @@ Headless PNG previews via [Open CASCADE](/reference/open-cascade) (OCP). In CI a
 ## CLI
 
 ```bash
-# Render model from main.py (uses @render from cad/ imports in build_model())
+# Render the main project scene (build_model()) plus @render sub-parts from its composition chain
 uv run python -m cad_tooling.render main.py -o dist/
 
 # Use @render settings from matching artifact (STL stem = artifact name)
@@ -23,8 +23,11 @@ Or via `just`:
 
 ```bash
 just render                                    # main.py → dist/
+just render --lighting-preset default          # flags before positionals OK
 just render dist/sphere.stl dist/sphere.png --camera top
+just render main.py dist --lighting-preset bright
 just render-artifact sphere /tmp/out           # export STL + PNG for one @artifact
+just render-artifact sphere_with_nut dist --lighting-preset bright
 ```
 
 ### Headless PNG for a named artifact
@@ -40,6 +43,15 @@ just render-artifact sphere /tmp/out
 
 `@render` settings on the artifact apply automatically when the STL stem matches the artifact name.
 
+### Viewer scripts (`main.py`)
+
+Rendering a viewer script writes PNGs for:
+
+1. The primary `@render` artifact discovered from `build_model()` imports (e.g. `sphere_with_nut_*.png`)
+2. Any other `@render` artifacts from `cad/` modules in that composition chain (e.g. `sphere_*.png` from `cad.parts.sphere`)
+
+Sub-parts without `@render` (such as `m3_hex_nut`) are omitted. Release export still uses `list_release_artifacts()` — only explicit `@render` artifacts — not this viewer expansion.
+
 ## CLI flags
 
 | Flag | Purpose |
@@ -50,6 +62,11 @@ just render-artifact sphere /tmp/out
 | `--camera` | Preset (see below) |
 | `--azimuth` / `--elevation` | Extra pose in degrees |
 | `--fit-margin` | Passed to `V3d_View.FitAll` |
+| `--lighting-preset` | `default`, `studio` (default), `bright`, or `flat` |
+| `--light-intensity` | Global multiplier for directional lights and material reflectance |
+| `--ambient-intensity` | Material ambient reflectance override (0.0–2.0) |
+| `--headlight-intensity` | OCCT directional light scale override |
+| `--fill-intensity` | Material diffuse reflectance override |
 
 ## `@render` decorator
 
@@ -60,10 +77,24 @@ from cad_tooling.render_decorator import render
 from mr import artifact
 
 @artifact(short_desc="Demo sphere")
-@render(camera="iso", face_color=(0.31, 0.63, 1.0))
+@render(camera="iso", lighting={"preset": "bright"})
 def sphere() -> Part:
     return make_sphere()
 ```
+
+**Lighting** — pass a `lighting` mapping on `@render` or per entry in `renders=[...]`:
+
+| Field | Purpose |
+|-------|---------|
+| `preset` | `default` (OCCT stock), `studio` (balanced, default), `bright`, `flat` |
+| `intensity` | Global multiplier for directional lights and material reflectance (default `1.0`) |
+| `ambient` | Material ambient reflectance override (0.0–2.0) |
+| `headlight` | OCCT directional light scale override |
+| `fill` | Material diffuse reflectance override |
+
+Headless renders scale OCCT's stock directional lights and tune per-shape plastic
+material ambient/diffuse coefficients. Custom `AddLight` sources are not used because
+they have little effect in the CI shaded PNG path.
 
 Multiple release previews per artifact (filename encodes camera and size, e.g. `sphere_iso_800x600.png`):
 
@@ -89,6 +120,14 @@ Set `width` and `height` (pixels) on each render spec. Default: 800×600.
 At render time: defaults in `RenderConfig` → `@render` on the artifact → CLI flags on `cad_tooling.render` or `cad_tooling.export release`.
 
 Example: [`cad/parts/sphere.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/parts/sphere.py)
+
+## Assembly colors
+
+Set `part.color` in each part's `make_*` builder using a module-level `PART_COLOR` constant. Assemblies use `Compound(children=[...])` only — composite PNGs pick up each child's color automatically (see [AGENTS.md — Part preview colors](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#part-preview-colors)).
+
+## Release export scope
+
+`export release` and GitHub Release notes include only `@artifact` entry points that also declare `@render`. Artifacts without `@render` stay discoverable via `mr artifacts list` but are omitted from release PNG/STL bundles.
 
 ## Alternative: `mr artifacts snapshot`
 

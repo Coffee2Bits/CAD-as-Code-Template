@@ -6,7 +6,7 @@ import functools
 from collections.abc import Callable, Mapping
 from typing import TypeVar, cast, overload
 
-from cad_tooling.render_config import CameraPreset, RenderConfig, RgbTriplet
+from cad_tooling.render_config import CameraPreset, LightingConfig, RenderConfig, RgbTriplet
 
 RenderSpec = RenderConfig | Mapping[str, object]
 
@@ -28,6 +28,7 @@ def _settings_to_partial_config(
     background: RgbTriplet | None = None,
     face_color: RgbTriplet | None = None,
     fit_margin: float | None = None,
+    lighting: LightingConfig | Mapping[str, object] | None = None,
 ) -> RenderConfig:
     """Normalize @render keyword arguments into a partial RenderConfig."""
     payload: dict[str, object] = {}
@@ -41,6 +42,16 @@ def _settings_to_partial_config(
     ):
         if value is not None:
             payload[key] = value
+
+    if lighting is not None:
+        if isinstance(lighting, LightingConfig):
+            payload["lighting"] = lighting
+        elif isinstance(lighting, Mapping):
+            payload["lighting"] = dict(lighting)
+        else:
+            raise TypeError(
+                f"Expected LightingConfig or mapping for lighting, got {type(lighting)}"
+            )
 
     camera_fields: dict[str, object] = {}
     if isinstance(camera, str):
@@ -77,6 +88,7 @@ def _spec_to_partial_config(spec: RenderSpec) -> RenderConfig:
             background=spec.get("background"),  # type: ignore[arg-type]
             face_color=spec.get("face_color"),  # type: ignore[arg-type]
             fit_margin=spec.get("fit_margin"),  # type: ignore[arg-type]
+            lighting=spec.get("lighting"),  # type: ignore[arg-type]
         )
     raise TypeError(f"Expected RenderConfig or mapping in @render list, got {type(spec)}")
 
@@ -109,6 +121,11 @@ def get_render_config_from_func(func: Callable[..., object] | None) -> RenderCon
     return configs[0] if configs else None
 
 
+def artifact_has_render(func: Callable[..., object] | None) -> bool:
+    """Return True when an @artifact entry point declares @render settings."""
+    return bool(get_render_configs_from_func(func))
+
+
 @overload
 def render(func: _F, /) -> _F: ...
 
@@ -127,6 +144,7 @@ def render(
     background: RgbTriplet | None = None,
     face_color: RgbTriplet | None = None,
     fit_margin: float | None = None,
+    lighting: LightingConfig | Mapping[str, object] | None = None,
 ) -> Callable[[_F], _F]: ...
 
 
@@ -143,13 +161,14 @@ def render(
     background: RgbTriplet | None = None,
     face_color: RgbTriplet | None = None,
     fit_margin: float | None = None,
+    lighting: LightingConfig | Mapping[str, object] | None = None,
 ) -> _F | Callable[[_F], _F]:
     """Attach release preview settings to an @artifact entry point.
 
     Place directly above the artifact function, below ``@artifact``:
 
-        @artifact(short_desc="...")
-        @render(camera="top", azimuth=15, face_color=(0.4, 0.7, 1.0), width=1024)
+        @artifact(short_desc="Mounting bracket")
+        @render(camera="top", lighting={"preset": "bright"}, width=1024)
         def bracket() -> Part:
             ...
 
@@ -157,8 +176,22 @@ def render(
 
         @render(renders=[
             {"camera": "iso", "width": 800, "height": 600},
-            {"camera": "top", "width": 1024, "height": 768},
+            {"camera": "top", "width": 1024, "height": 768, "lighting": {"preset": "flat"}},
         ])
+
+    **Camera** — ``camera`` preset (`iso`, `top`, `front`, …), plus optional ``azimuth`` /
+    ``elevation`` in degrees.
+
+    **Image** — ``width``, ``height``, ``background`` and ``face_color`` RGB triplets (0.0–1.0),
+    ``fit_margin`` for ``V3d_View.FitAll``.
+
+    **Lighting** — ``lighting`` mapping or :class:`~cad_tooling.render_config.LightingConfig`:
+
+    - ``preset``: ``default`` (OCCT stock), ``studio`` (balanced, default), ``bright``, ``flat``
+    - ``intensity``: global multiplier for directional lights and material reflectance
+    - ``ambient``: material ambient reflectance override (0.0–2.0)
+    - ``headlight``: OCCT directional light scale override (0.0–2.0)
+    - ``fill``: material diffuse reflectance override (0.0–2.0)
 
     At render time, unset fields inherit from :class:`~cad_tooling.render_config.RenderConfig`
     defaults. CLI flags on ``cad_tooling.render`` and ``cad_tooling.export release`` override
@@ -177,6 +210,7 @@ def render(
                 background,
                 face_color,
                 fit_margin,
+                lighting,
             )
         ):
             raise ValueError(
@@ -198,6 +232,7 @@ def render(
             background=background,
             face_color=face_color,
             fit_margin=fit_margin,
+            lighting=lighting,
         )
 
     def decorator(wrapped: _F) -> _F:

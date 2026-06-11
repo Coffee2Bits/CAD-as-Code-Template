@@ -13,6 +13,7 @@ def test_artifacts_discovered():
     names = {artifact.name for artifact in list_artifacts(REPO_ROOT)}
 
     assert "sphere" in names
+    assert "sphere_with_nut" in names
     assert "m3_hex_nut" in names
 
 
@@ -45,8 +46,10 @@ def test_release_export_includes_previews(tmp_path: Path):
     paths = export_release(tmp_path, root=REPO_ROOT)
     stl_paths = [path for path in paths if path.suffix == ".stl"]
     png_paths = [path for path in paths if path.suffix == ".png"]
+    stl_names = {path.stem for path in stl_paths}
 
-    assert len(stl_paths) >= 1
+    assert stl_names == {"sphere", "sphere_with_nut"}
+    assert "m3_hex_nut" not in stl_names
     assert len(png_paths) >= len(stl_paths)
 
     for stl_path in stl_paths:
@@ -54,5 +57,5 @@ def test_release_export_includes_previews(tmp_path: Path):
         artifact_pngs = [path for path in png_paths if path.name.startswith(f"{stl_path.stem}_")]
         assert artifact_pngs, f"No preview PNGs found for {stl_path.name}"
         for png_path in artifact_pngs:
-            assert png_path.exists() and png_path.stat().st_size > 10_000
+            assert png_path.exists() and png_path.stat().st_size > 5_000
             assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"

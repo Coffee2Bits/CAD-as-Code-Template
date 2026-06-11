@@ -132,17 +132,22 @@ def _render_preview_links(
     return lines
 
 
+def _release_asset_sort_key(asset: ReleaseAsset) -> tuple[int, str]:
+    cover = bool(getattr(asset.artifact, "cover", False))
+    return (0 if cover else 1, asset.artifact.name)
+
+
 def render_release_body(repo: str, tag: str, assets: list[ReleaseAsset]) -> str:
     """Render markdown for a GitHub Release listing each artifact with previews."""
     lines = [
         "# Release artifacts",
         "",
-        "Parametric CAD models exported as STL from `@artifact` functions in this repository.",
+        "Parametric CAD models exported as STL from `@artifact` functions with `@render` previews.",
         "Each entry includes OCCT preview renders and a downloadable mesh file.",
         "",
     ]
 
-    for asset in sorted(assets, key=lambda item: item.artifact.name):
+    for asset in sorted(assets, key=_release_asset_sort_key):
         name = asset.artifact.name
         stl_name = asset.stl_path.name
         stl_url = release_download_url(repo, tag, stl_name)
@@ -182,9 +187,9 @@ def collect_release_assets(
     this in tests that export a subset so other published parts do not break
     unrelated assertions.
     """
-    from cad_tooling.export import list_artifacts
+    from cad_tooling.export import list_release_artifacts
 
-    discovered = list_artifacts(root)
+    discovered = list_release_artifacts(root)
     if names is not None:
         by_name = {artifact.name: artifact for artifact in discovered}
         missing = [name for name in names if name not in by_name]
@@ -214,5 +219,5 @@ def collect_release_assets(
             )
         assets.append(ReleaseAsset.from_png_paths(artifact, stl_path, tuple(png_paths)))
     if not assets:
-        raise RuntimeError("No artifacts discovered for release notes")
+        raise RuntimeError("No @render-decorated artifacts discovered for release notes")
     return assets

@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Release notes
 
-Generate GitHub Release markdown from exported assets.
+Generate GitHub Release markdown from exported `@render` release assets.
 
 ```bash
 just release-notes v0.1.0

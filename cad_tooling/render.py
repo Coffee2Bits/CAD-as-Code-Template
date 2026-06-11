@@ -23,17 +23,17 @@ from OCP.Quantity import Quantity_Color, Quantity_TOC_RGB
 from OCP.TopoDS import TopoDS_Shape
 from OCP.V3d import V3d_TypeOfAxe, V3d_TypeOfOrientation, V3d_Viewer
 from OCP.Xw import Xw_Window
-
 from cad_tooling.render_config import (
     CameraConfig,
     RenderConfig,
+    ResolvedLighting,
     add_render_config_arguments,
     render_config_from_namespace,
     render_output_filename,
     resolve_render_config_for_artifact_name,
     resolve_render_configs,
 )
-from cad_tooling.render_discovery import discover_render_artifact
+from cad_tooling.render_discovery import discover_render_artifact, discover_viewer_render_targets
 
 # Maps friendly preset names to OCCT V3d_TypeOfOrientation values.
 CAMERA_PRESETS: dict[str, V3d_TypeOfOrientation] = {
@@ -124,6 +124,33 @@ def _shape_wrapped(shape: Part | Compound | TopoDS_Shape) -> TopoDS_Shape:
     return shape.wrapped
 
 
+def _face_color_from_shape(
+    shape: Part | Compound,
+    default_face_color: tuple[float, float, float],
+) -> tuple[float, float, float]:
+    """Read build123d ``Part.color`` / ``Shape.color`` when set on the solid."""
+    color = getattr(shape, "color", None)
+    if color is None:
+        return default_face_color
+    red, green, blue, *_alpha = tuple(color)
+    return (float(red), float(green), float(blue))
+
+
+def _colored_solids(
+    shape: Part | Compound | TopoDS_Shape,
+    default_face_color: tuple[float, float, float],
+) -> list[tuple[TopoDS_Shape, tuple[float, float, float]]]:
+    """Split build123d assemblies into per-child solids with native colors."""
+    if isinstance(shape, TopoDS_Shape):
+        return [(shape, default_face_color)]
+    if isinstance(shape, Compound) and shape.children:
+        return [
+            (_shape_wrapped(child), _face_color_from_shape(child, default_face_color))
+            for child in shape.children
+        ]
+    return [(_shape_wrapped(shape), _face_color_from_shape(shape, default_face_color))]
+
+
 def _apply_camera(view, camera: CameraConfig) -> None:
     """Set view orientation from preset plus optional azimuth/elevation pose tweaks."""
     view.SetProj(CAMERA_PRESETS[camera.preset])
@@ -133,16 +160,55 @@ def _apply_camera(view, camera: CameraConfig) -> None:
         view.Turn(V3d_TypeOfAxe.V3d_X, math.radians(camera.elevation), True)
 
 
+def _scale_default_lights(viewer: V3d_Viewer, scale: float) -> None:
+    """Scale OCCT stock directional lights; required for visible preset differences."""
+    if scale == 1.0:
+        return
+    viewer.InitActiveLights()
+    while viewer.MoreActiveLights():
+        light = viewer.ActiveLight()
+        light.SetIntensity(light.Intensity() * scale)
+        viewer.NextActiveLights()
+    viewer.UpdateLights()
+
+
+def _apply_lighting(viewer: V3d_Viewer, profile: ResolvedLighting) -> None:
+    """Configure OCCT stock lights and optional intensity scaling."""
+    viewer.SetDefaultLights()
+    viewer.SetLightOn()
+    if not profile.use_stock:
+        _scale_default_lights(viewer, profile.light_scale)
+
+
+def _material_for_shape(
+    face_color: tuple[float, float, float],
+    profile: ResolvedLighting,
+) -> Graphic3d_MaterialAspect:
+    """Build a shaded material tuned for headless PNG brightness."""
+    if profile.use_stock:
+        return Graphic3d_MaterialAspect(Graphic3d_NOM_PLASTIC)
+    material = Graphic3d_MaterialAspect(Graphic3d_NOM_PLASTIC)
+    ambient = tuple(min(1.0, channel * profile.ambient_factor) for channel in face_color)
+    diffuse = tuple(min(1.0, channel * profile.diffuse_factor) for channel in face_color)
+    material.SetAmbientColor(Quantity_Color(*ambient, Quantity_TOC_RGB))
+    material.SetDiffuseColor(Quantity_Color(*diffuse, Quantity_TOC_RGB))
+    material.SetSpecularColor(
+        Quantity_Color(profile.specular, profile.specular, profile.specular, Quantity_TOC_RGB)
+    )
+    material.SetShininess(profile.shininess)
+    return material
+
+
 def _render_shape_once(
-    topo: TopoDS_Shape,
+    shape: Part | Compound | TopoDS_Shape,
     output: Path,
     settings: RenderConfig,
 ) -> None:
     display_connection = Aspect_DisplayConnection()
     driver = OpenGl_GraphicDriver(display_connection)
     viewer = V3d_Viewer(driver)
-    viewer.SetDefaultLights()
-    viewer.SetLightOn()
+    lighting_profile = settings.lighting.resolved_profile()
+    _apply_lighting(viewer, lighting_profile)
 
     context = AIS_InteractiveContext(viewer)
     view = viewer.CreateView()
@@ -160,10 +226,11 @@ def _render_shape_once(
     view.MustBeResized()
     view.SetBackgroundColor(Quantity_Color(*settings.background, Quantity_TOC_RGB))
 
-    ais = AIS_Shape(topo)
-    ais.SetMaterial(Graphic3d_MaterialAspect(Graphic3d_NOM_PLASTIC))
-    ais.SetColor(Quantity_Color(*settings.face_color, Quantity_TOC_RGB))
-    context.Display(ais, AIS_Shaded, 0, True)
+    for topo, face_color in _colored_solids(shape, settings.face_color):
+        ais = AIS_Shape(topo)
+        ais.SetMaterial(_material_for_shape(face_color, lighting_profile))
+        ais.SetColor(Quantity_Color(*face_color, Quantity_TOC_RGB))
+        context.Display(ais, AIS_Shaded, 0, True)
 
     view.FitAll(settings.fit_margin, False)
     view.ZFitAll(settings.fit_margin)
@@ -183,12 +250,11 @@ def render_shape(
     """Render a build123d or OCP shape to a PNG preview using OCCT."""
     settings = config or RenderConfig()
     output.parent.mkdir(parents=True, exist_ok=True)
-    topo = _shape_wrapped(shape)
 
     for attempt in range(2):
         _ensure_display(settings.width, settings.height)
         try:
-            _render_shape_once(topo, output, settings)
+            _render_shape_once(shape, output, settings)
             return
         except Exception:
             if attempt == 1:
@@ -216,6 +282,63 @@ def _resolve_input_path(path: Path) -> Path:
         if candidate.exists():
             return candidate
     raise FileNotFoundError(f"Input not found: {path}")
+
+
+def render_viewer_script(
+    script: Path,
+    output: Path,
+    *,
+    artifact_name: str | None = None,
+    overrides: RenderConfig | None = None,
+    root: Path | None = None,
+) -> list[Path]:
+    """Render a viewer script's assembly and @render sub-parts from its composition chain."""
+    script = script.resolve()
+    module_name = f"_cad_render_{script.stem}"
+    spec = importlib.util.spec_from_file_location(module_name, script)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"Cannot load script: {script}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    build_model = getattr(module, "build_model", None)
+    if not callable(build_model):
+        raise ValueError(
+            f"Script {script} must define build_model() -> Part | Compound for rendering"
+        )
+
+    targets = discover_viewer_render_targets(script, root=root)
+    if not targets:
+        shape = build_model()
+        label = artifact_name or script.stem
+        artifact_func = _artifact_func_for_name(label, root) if label != script.stem else None
+        return render_model(
+            shape,
+            output,
+            label,
+            artifact_func=artifact_func,
+            overrides=overrides,
+        )
+
+    written: list[Path] = []
+    primary_shape = build_model()
+    for index, artifact in enumerate(targets):
+        shape = primary_shape if index == 0 else artifact.func()
+        label = artifact.name
+        if index == 0 and artifact_name is not None:
+            label = artifact_name
+        written.extend(
+            render_model(
+                shape,
+                output,
+                label,
+                artifact_func=artifact.func,
+                overrides=overrides,
+            )
+        )
+    return written
 
 
 def load_viewer_script(
@@ -329,16 +452,12 @@ def render_input(
     """Render an STL file or viewer script (with build_model()) to PNG preview(s)."""
     resolved = _resolve_input_path(input_path)
     if resolved.suffix.lower() == ".py":
-        shape, discovered_name, artifact_func = load_viewer_script(resolved, root=root)
-        label = artifact_name or discovered_name or resolved.stem
-        if artifact_func is None and label != resolved.stem:
-            artifact_func = _artifact_func_for_name(label, root)
-        return render_model(
-            shape,
+        return render_viewer_script(
+            resolved,
             output,
-            label,
-            artifact_func=artifact_func,
+            artifact_name=artifact_name,
             overrides=overrides,
+            root=root,
         )
 
     label = artifact_name or resolved.stem

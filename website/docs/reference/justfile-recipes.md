@@ -26,7 +26,7 @@ Canonical reference. Run `just --list` in the repo for the live list.
 
 | Command | What it runs |
 |---------|--------------|
-| `just lint` | ruff check + format check + mypy |
+| `just lint` | ruff check + format check + mypy + vulture |
 | `just format` | `uv run ruff format .` |
 | `just quality` | lint + test |
 
@@ -50,8 +50,11 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | `just template-apply` | Apply `template.repo.toml` to docs site, README links, `pyproject.toml` |
 | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | `just render` | Headless PNG from `main.py` to `dist/` |
+| `just render --lighting-preset default` | Same with CLI render overrides (flags may precede positionals) |
 | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
+| `just render main.py dist --lighting-preset bright` | Viewer script with CLI render overrides |
 | `just render-artifact sphere /tmp/out` | Export STL + headless PNG for one artifact |
+| `just render-artifact sphere_with_nut dist --lighting-preset bright` | Artifact render with lighting override |
 
 ## Release versioning
 
@@ -82,7 +85,7 @@ Use `just version-bump minor` — not `just version-bump part=patch` (`just` tre
 |---------|--------------|
 | `just ci` | Full Dagger pipeline (lint + artifacts + test) |
 | `just ci-test` | Dagger pytest only |
-| `just ci-lint` | Dagger ruff + mypy only |
+| `just ci-lint` | Dagger ruff + mypy + vulture only |
 | `just ci-artifacts` | Dagger artifact smoke export |
 | `just ci-release dist/` | Dagger release STL + PNG export |
 

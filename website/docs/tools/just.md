@@ -15,7 +15,7 @@ sidebar_position: 1
 | | `just setup-hooks` | pre-commit install |
 | **dev** | `just view` | Display `main.py` in OCP CAD Viewer |
 | | `just test` | `uv run pytest` (extra args: `just test -v tests/test_sphere.py`) |
-| **quality** | `just lint` | ruff check + format check + mypy |
+| **quality** | `just lint` | ruff check + format check + mypy + vulture |
 | | `just format` | `uv run ruff format .` |
 | | `just quality` | lint + test |
 | **makerrepo** | `just mr-artifacts` | List `@artifact` functions |
@@ -35,7 +35,7 @@ sidebar_position: 1
 | | `just version-tag` | Create and push `v{version}` tag |
 | **ci** | `just ci` | Full Dagger pipeline |
 | | `just ci-test` | Dagger pytest only |
-| | `just ci-lint` | Dagger ruff + mypy only |
+| | `just ci-lint` | Dagger ruff + mypy + vulture only |
 | | `just ci-artifacts` | Dagger artifact smoke |
 | | `just ci-release dist/` | Dagger release STL + PNG |
 | **docs** | `just docs-install` | `npm ci` in `website/` |

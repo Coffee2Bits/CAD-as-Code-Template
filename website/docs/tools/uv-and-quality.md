@@ -11,12 +11,12 @@ just sync          # uv sync — all groups
 just sync-frozen   # uv sync --group dev --frozen (matches CI/Dagger)
 ```
 
-Dev dependencies include pytest, ruff, mypy, pre-commit, makerrepo-cli, MCP packages, and Dagger.
+Dev dependencies include pytest, ruff, mypy, vulture, pre-commit, makerrepo-cli, MCP packages, and Dagger.
 
 ## Lint and format
 
 ```bash
-just lint          # ruff check + format check + mypy
+just lint          # ruff check + format check + mypy + vulture
 just format        # apply ruff formatting
 just quality       # lint + pytest — local gate before pushing
 ```
@@ -27,8 +27,19 @@ Individual commands:
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy cad cad_tooling tests cad_tooling_tests
+uv run vulture
 uv run pytest
 ```
+
+### Dead code (vulture)
+
+[`vulture`](https://github.com/jendrikseipp/vulture) scans for unused functions, classes, and variables. Configuration lives in [`pyproject.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/pyproject.toml) under `[tool.vulture]`:
+
+- **paths** — `cad`, `cad_tooling`, `tests`, `cad_tooling_tests`, `main.py`, `scripts`, `ci/src`
+- **ignore_decorators** — MakerRepo (`@artifact`, `@customizable`, `@cached`, `@render`), Dagger (`@function`), pytest (`@pytest.fixture`)
+- **min_confidence** — `80` (default threshold; lowers false positives from framework entry points)
+
+If vulture reports a false positive, add the name to `ignore_names` or create a `whitelist.py` entry — do not delete real dead code to silence the check.
 
 ### mypy scope
 
@@ -50,7 +61,7 @@ Do not use Black, autopep8, or the built-in Python formatter — they drift from
 just setup-hooks
 ```
 
-Installs pre-commit (ruff check/format) and commit-msg (Conventional Commit subject validation).
+Installs pre-commit (ruff check/format, vulture) and commit-msg (Conventional Commit subject validation).
 
 Agents: full formatter rules in [AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#formatter-and-linter-alignment).
 

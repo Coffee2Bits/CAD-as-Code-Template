@@ -159,7 +159,7 @@ def <part>_generator(parameters: <Part>Parameters) -> Part:
 | Decorator | Add when | Skip when |
 |-----------|----------|-----------|
 | `@artifact` | A fixed default build should be listed, exported, or published (demo, product SKU, cover image) | Internal helper geometry, intermediate construction steps, `sample=True` test cuts |
-| `@render` | Release PNG preview needs a custom camera, colors, or size for this artifact | Omit to use built-in defaults in `cad_tooling/render_config.py` |
+| `@render` | Release PNG previews and inclusion in `export release` / GitHub Release notes | Omit when the artifact should not appear in release bundles (MR discovery and ad-hoc export still work) |
 | `@customizable` | Users should vary dimensions/material choices via parameters | Fixed one-off geometry with no parametric intent |
 | `@cached` | A sub-build is expensive and called repeatedly with the same args | Simple/fast builders |
 
@@ -190,8 +190,48 @@ def bracket() -> Part:
 | `width` / `height` | PNG size |
 | `background` / `face_color` | RGB triplets in 0.0–1.0 |
 | `fit_margin` | Passed to `V3d_View.FitAll` |
+| `lighting` | Lighting preset and intensities — see below |
+
+**Lighting** (`lighting={...}` or nested :class:`~cad_tooling.render_config.LightingConfig`):
+
+| Field | Purpose |
+|-------|---------|
+| `preset` | `default` (OCCT stock), `studio` (balanced, default), `bright`, `flat` |
+| `intensity` | Global multiplier for directional lights and material reflectance (default `1.0`) |
+| `ambient` | Material ambient reflectance override (0.0–2.0) |
+| `headlight` | OCCT directional light scale override (0.0–2.0) |
+| `fill` | Material diffuse reflectance override (0.0–2.0) |
+
+```python
+@render(camera="iso", lighting={"preset": "bright", "intensity": 1.2})
+def bracket() -> Part:
+    return make_bracket()
+```
+
+CLI overrides: `--lighting-preset`, `--light-intensity`, `--ambient-intensity`,
+`--headlight-intensity`, `--fill-intensity`.
 
 Resolution order at render time: **defaults** → **`@render` on the artifact** → **CLI flags** (`cad_tooling.render` / `cad_tooling.export release`).
+
+**Release export:** `export release`, release notes, and GitHub Release uploads include only `@artifact` functions that also declare `@render`. Artifacts without `@render` remain discoverable via `mr artifacts list` and `cad_tooling.export export`, but are omitted from release PNG/STL bundles.
+
+### Part preview colors
+
+Assign build123d's native **`Part.color`** (inherited from `Shape`) in each part's `make_*` builder — not in assemblies:
+
+```python
+# cad/parts/sphere.py
+PART_COLOR = Color(0.31, 0.63, 1.0)
+
+def make_sphere(...) -> Part:
+    part = ...  # geometry
+    part.color = PART_COLOR
+    return part
+```
+
+- **`Compound` assemblies** compose already-colored parts with `Compound(children=[...])`. Do not set colors in `cad/assemblies/` — release and OCP renders read each child's `shape.color`.
+- **`@render`** on an artifact controls cameras and PNG size for release export. Omit `face_color` when the builder sets `part.color`; keep `face_color` only as a fallback for artifacts whose geometry has no color.
+- Assemblies that need a sub-part's color constant may import `PART_COLOR` from `cad.parts.<name>` for tests or docs, not for re-assigning on assembly children.
 
 ### `@customizable` requirements
 
@@ -355,9 +395,9 @@ For any other code change (tooling, tests, CI, config), skip steps 1–5 as appl
 
 | Layer | Must use |
 |-------|----------|
-| CI / `just lint` | `uv run ruff check .` + `uv run ruff format --check .` |
+| CI / `just lint` | `uv run ruff check .` + `uv run ruff format --check .` + `uv run mypy …` + `uv run vulture` |
 | Editor format-on-save | Ruff extension (`charliermarsh.ruff`), `importStrategy: fromEnvironment` |
-| Pre-commit | `uv run ruff check --fix` + `uv run ruff format` (see [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) |
+| Pre-commit | `uv run ruff check --fix` + `uv run ruff format` + `uv run vulture` (see [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) |
 | Agents after Python edits | `just format` (or `uv run ruff format .`) before the completion gate |
 
 Workspace settings live in [`.vscode/settings.json`](.vscode/settings.json); the dev container mirrors them in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json).
@@ -398,7 +438,7 @@ just quality && just export-smoke
 
 This runs the same three stages as CI:
 
-1. **lint** — ruff check, ruff format check, mypy
+1. **lint** — ruff check, ruff format check, mypy, vulture
 2. **artifacts** — export smoke for all `@artifact` functions
 3. **test** — pytest (including `tests/test_makerrepo.py`)
 
@@ -426,7 +466,7 @@ Keep files under **300–400 lines**. Split large parts into submodules if neede
 
 GitHub Actions runs `dagger call -m ./ci check`, which executes:
 
-1. **lint** — ruff + mypy
+1. **lint** — ruff, mypy, vulture
 2. **artifacts** — `python -m cad_tooling.export smoke` (discover all `@artifact` functions, export STEP + STL)
 3. **test** — pytest (includes `test_makerrepo.py`)
 

@@ -22,6 +22,20 @@ def _import_map(tree: ast.Module) -> dict[str, tuple[str, str]]:
     return mapping
 
 
+def _cad_imports_in_tree(tree: ast.Module) -> set[str]:
+    """Return cad.* module paths imported by a Python module AST."""
+    modules: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if node.module is not None and node.module.startswith("cad."):
+                modules.add(node.module)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith("cad."):
+                    modules.add(alias.name)
+    return modules
+
+
 def _build_model_call_names(tree: ast.Module) -> list[str]:
     for node in tree.body:
         if isinstance(node, ast.FunctionDef) and node.name == "build_model":
@@ -31,6 +45,34 @@ def _build_model_call_names(tree: ast.Module) -> list[str]:
                 if isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
             ]
     return []
+
+
+def _cad_module_file(module: str, root: Path) -> Path | None:
+    """Resolve a cad.* module path to a source file under the repo root."""
+    path = root / f"{module.replace('.', '/')}.py"
+    return path if path.is_file() else None
+
+
+def cad_modules_imported_by_module(module: str, *, root: Path) -> set[str]:
+    """Return cad.* modules imported by a cad package module."""
+    path = _cad_module_file(module, root)
+    if path is None:
+        return set()
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    return _cad_imports_in_tree(tree)
+
+
+def expand_composition_modules(modules: set[str], *, root: Path) -> set[str]:
+    """Expand viewer imports to include cad parts/assemblies in the composition chain."""
+    expanded = set(modules)
+    queue = list(modules)
+    while queue:
+        module = queue.pop()
+        for imported in cad_modules_imported_by_module(module, root=root):
+            if imported not in expanded:
+                expanded.add(imported)
+                queue.append(imported)
+    return expanded
 
 
 def cad_modules_referenced_by_build_model(script: Path) -> set[str]:
@@ -47,8 +89,9 @@ def discover_render_artifact(
 ) -> Artifact | None:
     """Find the @render-decorated artifact for a viewer script's build_model() imports."""
     from cad_tooling.export import list_artifacts
-    from cad_tooling.render_decorator import get_render_configs_from_func
+    from cad_tooling.render_decorator import artifact_has_render
 
+    repo_root = (root or Path.cwd()).resolve()
     modules = cad_modules_referenced_by_build_model(script)
     if not modules:
         return None
@@ -59,8 +102,8 @@ def discover_render_artifact(
 
     candidates = [
         artifact
-        for artifact in list_artifacts(root)
-        if artifact.module in modules and get_render_configs_from_func(artifact.func)
+        for artifact in list_artifacts(repo_root)
+        if artifact.module in modules and artifact_has_render(artifact.func)
     ]
     if not candidates:
         return None
@@ -84,3 +127,34 @@ def discover_render_artifact(
         f"Ambiguous @render artifact for {script.name}; "
         f"import one part module in build_model() or pass --artifact. Options: {options}"
     )
+
+
+def discover_viewer_render_targets(
+    script: Path,
+    *,
+    root: Path | None = None,
+) -> list[Artifact]:
+    """Return the primary viewer artifact plus @render sub-parts from its composition chain."""
+    repo_root = (root or Path.cwd()).resolve()
+    primary = discover_render_artifact(script, root=repo_root)
+    if primary is None:
+        return []
+
+    from cad_tooling.export import list_artifacts
+    from cad_tooling.render_decorator import artifact_has_render
+
+    modules = expand_composition_modules(
+        cad_modules_referenced_by_build_model(script),
+        root=repo_root,
+    )
+    sub_parts = sorted(
+        (
+            artifact
+            for artifact in list_artifacts(repo_root)
+            if artifact.module in modules
+            and artifact_has_render(artifact.func)
+            and artifact.name != primary.name
+        ),
+        key=lambda item: item.name,
+    )
+    return [primary, *sub_parts]

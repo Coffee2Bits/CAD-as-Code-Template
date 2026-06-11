@@ -10,12 +10,13 @@ from typing import Literal
 
 from build123d import Compound, Mesher, Part, export_brep, export_gltf, export_step, export_stl
 from cad_tooling.release_notes import ReleaseAsset, RenderPreview
-from cad_tooling.render_config import render_output_filename, render_preview_label
-from cad_tooling.render import render_stl
+from cad_tooling.render import render_shape
 from cad_tooling.render_config import (
     RenderConfig,
     add_render_config_arguments,
     render_config_from_namespace,
+    render_output_filename,
+    render_preview_label,
     resolve_render_configs,
 )
 from mr import Result
@@ -79,6 +80,13 @@ def _items_flat(registry: Registry, attr: str) -> list[tuple[str, str, Artifact 
 def list_artifacts(root: Path | None = None) -> list[Artifact]:
     registry = load_registry(root)
     return [item for _, _, item in _items_flat(registry, "artifacts")]
+
+
+def list_release_artifacts(root: Path | None = None) -> list[Artifact]:
+    """Return @artifact entry points that declare @render (release STL + PNG export)."""
+    from cad_tooling.render_decorator import artifact_has_render
+
+    return [artifact for artifact in list_artifacts(root) if artifact_has_render(artifact.func)]
 
 
 def list_generators(root: Path | None = None) -> list[Customizable]:
@@ -237,10 +245,11 @@ def export_release_assets(
     *,
     render_overrides: RenderConfig | None = None,
 ) -> list[ReleaseAsset]:
-    """Export all artifacts as STL with matching PNG previews."""
+    """Export @render-decorated artifacts as STL with matching PNG previews."""
     out = out_dir or Path("/tmp/release-artifacts")
-    registry = load_registry(root)
-    targets = _resolve_items(registry, None, "artifacts", "artifact")
+    targets = list_release_artifacts(root)
+    if not targets:
+        raise RuntimeError("No @render-decorated artifacts discovered for release export")
 
     assets: list[ReleaseAsset] = []
     for artifact in targets:
@@ -254,7 +263,7 @@ def export_release_assets(
         render_previews: list[RenderPreview] = []
         for preview_config in preview_configs:
             png_path = out / render_output_filename(artifact.name, preview_config)
-            render_stl(stl_path, png_path, config=preview_config)
+            render_shape(shape, png_path, config=preview_config)
             render_previews.append(
                 RenderPreview(label=render_preview_label(preview_config), png_path=png_path)
             )

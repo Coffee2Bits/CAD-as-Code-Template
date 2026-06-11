@@ -62,12 +62,19 @@ def test_render_release_body_lists_artifacts_with_previews(repo_root: Path):
     )
 
 
-def test_render_release_body_sorts_artifacts():
+def test_render_release_body_sorts_cover_artifact_first():
     artifact_a = next(item for item in list_artifacts() if item.name == "sphere")
 
     class FakeArtifact:
         name = "alpha"
+        cover = False
         short_desc = None
+        desc = None
+
+    class CoverArtifact:
+        name = "cover"
+        cover = True
+        short_desc = "Cover assembly"
         desc = None
 
     assets = [
@@ -81,9 +88,15 @@ def test_render_release_body_sorts_artifacts():
             Path("sphere.stl"),
             (Path("sphere_front_800x600.png"), Path("sphere_iso_800x600.png")),
         ),
+        ReleaseAsset(
+            CoverArtifact(),
+            Path("cover.stl"),
+            (RenderPreview("front (800×600)", Path("cover_front_800x600.png")),),
+        ),
     ]
     body = render_release_body("acme/repo", "v1.0.0", assets)
-    assert body.index("## alpha") < body.index("## sphere")
+    assert body.index("## cover") < body.index("## alpha")
+    assert body.index("## cover") < body.index("## sphere")
 
 
 def test_collect_release_assets(tmp_path: Path, repo_root: Path):
@@ -145,6 +158,42 @@ def test_render_stl_writes_png(tmp_path: Path, repo_root: Path):
     assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
 
 
+def test_lighting_presets_change_render_brightness(tmp_path: Path, repo_root: Path):
+    import numpy as np
+    from PIL import Image
+
+    from cad_tooling.render_config import LightingConfig, RenderConfig
+
+    export_release(tmp_path, root=repo_root)
+    stl_path = tmp_path / "sphere.stl"
+
+    def _face_mean_luma(png_path: Path) -> float:
+        pixels = np.array(Image.open(png_path).convert("RGB"), dtype=float)
+        mask = pixels.mean(axis=2) > 35
+        return float(pixels[mask].mean())
+
+    dark_config = RenderConfig(
+        lighting=LightingConfig(
+            preset="default",
+            intensity=0.35,
+            ambient=0.08,
+            headlight=0.35,
+            fill=0.15,
+        )
+    )
+    bright_config = RenderConfig(lighting=LightingConfig(preset="bright", intensity=1.5))
+
+    dark_png = tmp_path / "dark.png"
+    bright_png = tmp_path / "bright.png"
+    render_stl(stl_path, dark_png, config=dark_config)
+    render_stl(stl_path, bright_png, config=bright_config)
+
+    dark_luma = _face_mean_luma(dark_png)
+    bright_luma = _face_mean_luma(bright_png)
+    assert bright_luma > dark_luma
+    assert bright_luma - dark_luma > 12
+
+
 def test_render_cli(tmp_path: Path, repo_root: Path):
     export_release(tmp_path, root=repo_root)
     stl_path = tmp_path / "sphere.stl"
@@ -165,27 +214,37 @@ def test_export_release_writes_descriptive_png_names(tmp_path: Path, repo_root: 
     export_release(tmp_path, root=repo_root)
     assert (tmp_path / "sphere_front_800x600.png").exists()
     assert (tmp_path / "sphere_iso_800x600.png").exists()
+    assert (tmp_path / "sphere_with_nut_front_800x600.png").exists()
+    assert (tmp_path / "sphere_with_nut_iso_800x600.png").exists()
     assert not (tmp_path / "sphere.png").exists()
 
 
 def test_load_viewer_script_reads_main_py(repo_root: Path):
     shape, artifact_name, artifact_func = load_viewer_script(repo_root / "main.py", root=repo_root)
-    assert artifact_name == "sphere"
+    assert artifact_name == "sphere_with_nut"
     assert artifact_func is not None
-    assert artifact_func.__name__ == "sphere"
+    assert artifact_func.__name__ == "sphere_with_nut"
+    assert len(shape.children) == 2
     assert shape.volume > 0
 
 
 def test_render_main_py_to_directory(tmp_path: Path, repo_root: Path):
     written = render_input(repo_root / "main.py", tmp_path)
-    assert len(written) == 2
+    assert len(written) == 4
+    names = {path.name for path in written}
+    assert names == {
+        "sphere_with_nut_front_800x600.png",
+        "sphere_with_nut_iso_800x600.png",
+        "sphere_front_800x600.png",
+        "sphere_iso_800x600.png",
+    }
     assert all(path.exists() for path in written)
     assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in written)
 
 
 def test_render_main_shorthand_without_extension(tmp_path: Path, repo_root: Path):
     written = render_input(repo_root / "main", tmp_path)
-    assert len(written) == 2
+    assert len(written) == 4
     assert all(path.exists() for path in written)
 
 

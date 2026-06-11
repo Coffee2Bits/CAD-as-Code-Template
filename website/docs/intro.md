@@ -19,7 +19,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | **IDE** | Dev container (`.devcontainer/`) — portable across [VS Code, Cursor, Codespaces, Copilot, and more](/getting-started/ide-and-workspaces); dependencies and docs site (port 3000) start on container start |
 | **Modeling** | build123d parts and assemblies under `cad/` |
 | **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
-| **Quality** | pytest geometry tests, ruff, mypy |
+| **Quality** | pytest geometry tests, ruff, mypy, vulture |
 | **Make** | [just](https://github.com/casey/just) command runner (`justfile`) for dev, export, and CI |
 | **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions |
 | **Agents** | AI coding assistants — Cursor, VS Code, Claude, GitHub Copilot |
@@ -60,7 +60,7 @@ flowchart TB
 
   subgraph quality["Quality"]
     PYTEST["pytest"]
-    RUFF["ruff + mypy"]
+    RUFF["ruff + mypy + vulture"]
   end
 
   subgraph make["Make"]
@@ -104,7 +104,7 @@ flowchart TB
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
 | [just](https://github.com/casey/just) | Command runner for dev, export, and CI |
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
-| [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) | Linting and type checking |
+| [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) / [vulture](https://github.com/jendrikseipp/vulture) | Linting, type checking, and dead-code detection |
 | [Dagger](https://dagger.io/) | Portable CI pipeline |
 | [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP interface — sandboxed geometry execution for agents |
 | [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP interface — viewer screenshots for agent visual feedback |

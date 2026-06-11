@@ -5,6 +5,7 @@ from build123d import (
     BuildPart,
     BuildSketch,
     Circle,
+    Color,
     Compound,
     Edge,
     Face,
@@ -28,6 +29,7 @@ from cad_tooling.render_decorator import render
 
 EMBOSSED_TEXT = "Example Text"
 EMBOSS_DEPTH = 0.5
+PART_COLOR = Color(0.82, 0.62, 0.18)
 # -Y equator point on the XY great circle (OCCT back view)
 TEXT_POSITION_ON_PATH = 0.75
 
@@ -190,24 +192,21 @@ def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
         radius=radius,
         offset=cut_offset,
     )
-    return _subtract_hex_nut_pocket(
+    part = _subtract_hex_nut_pocket(
         cut_part,
         cut_offset=cut_offset,
         radius=radius,
         hex_nut_margin=hex_nut_margin,
     )
+    part.color = PART_COLOR
+    return part
 
 
-@artifact(cover=True, short_desc="Demo sphere for workspace smoke tests")
+@artifact(short_desc="Demo sphere for workspace smoke tests")
 @render(
     renders=[
-        {
-            "camera": "front",
-            "width": 800,
-            "height": 600,
-            "face_color": (0.31, 0.63, 1.0),
-        },
-        {"camera": "iso", "width": 800, "height": 600, "face_color": (0.31, 0.63, 1.0)},
+        {"camera": "front", "width": 800, "height": 600},
+        {"camera": "iso", "width": 800, "height": 600},
     ]
 )
 def sphere() -> Part:

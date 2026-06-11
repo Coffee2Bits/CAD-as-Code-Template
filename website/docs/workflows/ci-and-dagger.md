@@ -28,7 +28,7 @@ Job name for branch protection: **Dagger CI**.
 | Function | What it runs |
 |----------|--------------|
 | `check` | lint + artifacts + test |
-| `lint` | ruff check, ruff format --check, mypy |
+| `lint` | ruff check, ruff format --check, mypy, vulture |
 | `test` | `uv run pytest` |
 | `artifacts` | `python -m cad_tooling.export smoke` |
 | `release-artifact` | `python -m cad_tooling.export release` |
