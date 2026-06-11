@@ -1,5 +1,9 @@
 # CAD-as-Code, in a box
 
+<!-- template:pages-badge:start -->
+[![Documentation](https://img.shields.io/github/deployments/Coffee2Bits/CAD-as-Code-Template/github-pages?label=docs)](https://coffee2bits.github.io/CAD-as-Code-Template/)
+<!-- template:pages-badge:end -->
+
 📖 **[Full documentation](https://coffee2bits.github.io/CAD-as-Code-Template/)** — tools, workflows, troubleshooting, and reference.
 
 A turnkey workspace for **parametric CAD in Python**. Reopen this repo in any **Dev Containers–capable editor or cloud workspace** — VS Code, Cursor, GitHub Codespaces, GitHub Copilot in VS Code, and [other compatible clients](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ide-and-workspaces) — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and CI, already wired together.

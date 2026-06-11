@@ -13,6 +13,9 @@ CONFIG_PATH = REPO_ROOT / "template.repo.toml"
 APPLIED_PATH = REPO_ROOT / ".template.repo.applied.json"
 REPO_IDENTITY_TS = REPO_ROOT / "website" / "repo-identity.ts"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
+README_PATH = REPO_ROOT / "README.md"
+PAGES_BADGE_START = "<!-- template:pages-badge:start -->"
+PAGES_BADGE_END = "<!-- template:pages-badge:end -->"
 
 SYNC_GLOBS = (
     "README.md",
@@ -167,6 +170,26 @@ def apply_text_replacements(content: str, pairs: list[tuple[str, str]]) -> str:
     return updated
 
 
+def render_pages_badge_md(identity: RepoIdentity) -> str:
+    """Markdown badge linking to the docs site; uses GitHub Pages deployment status."""
+    badge_url = (
+        f"https://img.shields.io/github/deployments/"
+        f"{identity.github_repo_slug}/github-pages?label=docs"
+    )
+    return f"[![Documentation]({badge_url})]({identity.docs_site_url})"
+
+
+def update_pages_badge_block(content: str, identity: RepoIdentity) -> str:
+    block = f"{PAGES_BADGE_START}\n{render_pages_badge_md(identity)}\n{PAGES_BADGE_END}"
+    pattern = re.compile(
+        rf"{re.escape(PAGES_BADGE_START)}.*?{re.escape(PAGES_BADGE_END)}",
+        re.DOTALL,
+    )
+    if pattern.search(content):
+        return pattern.sub(block, content)
+    return content
+
+
 def render_repo_identity_ts(identity: RepoIdentity) -> str:
     return f"""// Auto-generated from ../template.repo.toml by `just template-apply`. Do not edit manually.
 
@@ -235,6 +258,16 @@ def apply_template_identity(*, dry_run: bool = False) -> list[str]:
                 changed.append(rel)
                 if not dry_run:
                     path.write_text(updated, encoding="utf-8")
+
+    if README_PATH.is_file():
+        readme = README_PATH.read_text(encoding="utf-8")
+        updated_readme = update_pages_badge_block(readme, new_identity)
+        if updated_readme != readme:
+            rel = str(README_PATH.relative_to(REPO_ROOT))
+            if rel not in changed:
+                changed.append(rel)
+            if not dry_run:
+                README_PATH.write_text(updated_readme, encoding="utf-8")
 
     if not dry_run:
         APPLIED_PATH.write_text(

@@ -92,6 +92,7 @@ holder = "acme"
 | `website/repo-identity.ts` | Generated — imported by `website/docusaurus.config.ts` |
 | `pyproject.toml` | `[project] name` from `[python] package_name` |
 | README, docs pages, `AGENTS.md`, etc. | Replaces previous identity strings with values from `template.repo.toml` |
+| README GitHub Pages badge | Regenerated between `<!-- template:pages-badge:* -->` markers — deployment shield + link to docs site |
 
 You can re-run `just template-apply` after changing `template.repo.toml` (for example if you rename the repository again). Local state in `.template.repo.applied.json` (gitignored) keeps replacements idempotent.
 

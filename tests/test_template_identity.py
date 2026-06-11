@@ -8,8 +8,10 @@ from scripts.template_identity import (
     RepoIdentity,
     apply_text_replacements,
     load_identity,
+    render_pages_badge_md,
     render_repo_identity_ts,
     replacement_pairs,
+    update_pages_badge_block,
     update_pyproject_name,
 )
 
@@ -73,6 +75,27 @@ def test_update_pyproject_name() -> None:
     assert update_pyproject_name(content, "new-name") == (
         '[project]\nname = "new-name"\nversion = "0.1.0"\n'
     )
+
+
+def test_render_pages_badge_md_uses_repo_slug_and_docs_url() -> None:
+    identity = load_identity(REPO_ROOT / "template.repo.toml")
+    badge = render_pages_badge_md(identity)
+    assert "Coffee2Bits/CAD-as-Code-Template/github-pages" in badge
+    assert "https://coffee2bits.github.io/CAD-as-Code-Template/" in badge
+
+
+def test_update_pages_badge_block_replaces_marker_region() -> None:
+    identity = load_identity(REPO_ROOT / "template.repo.toml")
+    sample = (
+        "# Title\n\n"
+        "<!-- template:pages-badge:start -->\n"
+        "old badge\n"
+        "<!-- template:pages-badge:end -->\n\n"
+        "body\n"
+    )
+    updated = update_pages_badge_block(sample, identity)
+    assert "old badge" not in updated
+    assert "Coffee2Bits/CAD-as-Code-Template/github-pages" in updated
 
 
 def test_render_repo_identity_ts_contains_slug() -> None:
