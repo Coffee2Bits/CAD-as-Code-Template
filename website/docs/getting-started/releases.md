@@ -118,6 +118,29 @@ git push origin :refs/tags/v0.1.0-dup-test
 
 Keep one canonical release per version (for this repo: **`v0.1.0`** with STL/PNG assets). Optional: delete early CI test releases (`v0.0.1`, `v0.0.2`) the same way if you do not need them.
 
+## Recover stuck release-please
+
+If release-please logs **`There are untagged, merged release PRs outstanding - aborting`**, the merged Release PR was never tagged correctly (often after a failed Actions run or manual `gh release create` on the wrong commit).
+
+1. Find the merged Release PR (title `chore: release X.Y.Z`) and its **merge commit** SHA (`gh pr view N --json mergeCommit`).
+2. Ensure git tag `vX.Y.Z` points at that merge commit (not a later commit):
+
+   ```bash
+   gh api --method PATCH repos/OWNER/REPO/git/refs/tags/vX.Y.Z \
+     -f sha='MERGE_COMMIT_SHA' -F force=true
+   ```
+
+3. Fix labels on that PR:
+
+   ```bash
+   gh api --method DELETE repos/OWNER/REPO/issues/N/labels/autorelease%3A%20pending
+   gh api --method POST repos/OWNER/REPO/issues/N/labels -f 'labels[]=autorelease: tagged'
+   ```
+
+4. Re-run **Release Please** (Actions → workflow → **Run workflow**, or re-run the latest failed job).
+
+After recovery, release-please should open the **next** Release PR for unreleased commits. Do not manually retag or `gh release create` for normal releases.
+
 ## Fork vs your own repo
 
 | Scenario | Release automation |
@@ -132,6 +155,8 @@ Keep one canonical release per version (for this repo: **`v0.1.0`** with STL/PNG
 |---------|-----|
 | No Release PR after merging `feat:` / `fix:` | [Workflow permissions](/getting-started/github-setup#actions-workflow-permissions); check Actions tab for failed `Release Please` run |
 | Release PR exists but will not update | Stale `autorelease: pending` label on an old Release PR — remove label and re-run workflow ([release-please docs](https://github.com/googleapis/release-please#why-are-there-multiple-release-prs)) |
+| `There are untagged, merged release PRs outstanding - aborting` | A merged Release PR still has `autorelease: pending` and/or its `vX.Y.Z` tag is not on the **Release PR merge commit** — see [Recover stuck release-please](#recover-stuck-release-please) |
+| `commit could not be parsed: Merge remote-tracking branch` | Non–Conventional Commit merge commit on `main` (harmless warning); prefer squash-merge or rebase, avoid merge commits on `main` |
 | Merge Release PR but no GitHub Release | Squash subject must match `chore: release X.Y.Z` exactly |
 | Extra duplicate releases | Manual `gh release create` or non-semver test tags (`v0.1.0-dup-test`) — delete extras; only push strict `vX.Y.Z` tags; see [Cleaning up mistaken releases](#cleaning-up-mistaken-releases) |
 | `Resource not accessible by integration` on create-a-release | Usually duplicate publish paths or pushing workflow changes without `workflow` OAuth scope locally — use release-please + `release.yml` only; refresh `gh auth` with `-s workflow` when editing workflows |
