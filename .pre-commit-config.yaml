@@ -15,6 +15,12 @@ repos:
         entry: uv run ruff format
         language: system
         types_or: [python, pyi]
+      - id: vulture
+        name: vulture
+        entry: uv run vulture
+        language: system
+        pass_filenames: false
+        types: [python]
       - id: conventional-commit-msg
         name: Conventional Commit subject
         entry: uv run python scripts/validate_commit_msg.py

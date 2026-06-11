@@ -19,7 +19,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | **IDE** | Dev container (`.devcontainer/`) — portable across VS Code, Cursor, Codespaces, Copilot, and [more](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ide-and-workspaces); dependencies sync on start |
 | **Modeling** | build123d parts and assemblies under `cad/` |
 | **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
-| **Quality** | pytest geometry tests, ruff, mypy |
+| **Quality** | pytest geometry tests, ruff, mypy, vulture |
 | **Make** | [just](https://github.com/casey/just) command runner (`justfile`) for dev, export, and CI |
 | **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions to any other pipeline tool; same checks everywhere |
 | **Agents** | AI coding assistants — Cursor, VS Code, Claude, GitHub Copilot |
@@ -38,7 +38,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
 | [just](https://github.com/casey/just) | Command runner for common dev, export, and CI tasks (`justfile`) |
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
-| [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) | Linting and type checking |
+| [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) / [vulture](https://github.com/jendrikseipp/vulture) | Linting, type checking, and dead-code detection |
 | [Dagger](https://dagger.io/) | Portable CI pipeline (local + GitHub Actions) |
 | [GitHub CLI (`gh`)](https://cli.github.com/) | Releases, PRs, and repo ops from the dev container |
 | [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP interface — sandboxed geometry execution for AI agents |

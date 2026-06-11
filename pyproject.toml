@@ -34,6 +34,7 @@ dev = [
   "pre-commit>=4.0.0",
   "ocp-viewer-mcp>=0.1.0",
   "makerrepo-cli>=0.3.6",
+  "vulture>=2.16",
 ]
 
 [tool.ruff]
@@ -51,3 +52,23 @@ addopts = "-q"
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true
+
+[tool.vulture]
+paths = ["cad", "cad_tooling", "tests", "cad_tooling_tests", "main.py", "scripts", "ci/src"]
+exclude = [
+  ".venv",
+  "ci/.venv",
+  "ci/sdk",
+  "website",
+  "dist",
+  "**/__pycache__",
+]
+ignore_decorators = [
+  "@artifact",
+  "@customizable",
+  "@cached",
+  "@render",
+  "@function",
+  "@pytest.fixture",
+]
+min_confidence = 80
