@@ -25,10 +25,12 @@ Open [CAD-as-Code-Template](https://github.com/Coffee2Bits/CAD-as-Code-Template)
 
 ### 2. Sync dependencies
 
-Dependencies sync automatically on container start. Run manually if needed:
+Dependencies sync and the [documentation site](/) start automatically on container start (`postStartCommand` runs `post-start.sh` — [http://localhost:3000](http://localhost:3000)). Run manually if needed:
 
 ```bash
 just sync
+just docs-serve-bg                 # background (idempotent)
+bash .devcontainer/start-docs.sh   # same script
 ```
 
 ### 3. Run tests

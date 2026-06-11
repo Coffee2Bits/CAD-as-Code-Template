@@ -15,8 +15,8 @@ From [`devcontainer.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/b
 | Hook | Command |
 |------|---------|
 | `onCreateCommand` | `bash .devcontainer/install-ocp-cad-viewer.sh download` |
-| `postCreateCommand` | `uv sync && just setup-hooks &&` VSIX download |
-| `postStartCommand` | `uv sync && just setup-hooks &&` VSIX `install-cli` |
+| `postCreateCommand` | `uv sync && just setup-hooks && just docs-install &&` VSIX download |
+| `postStartCommand` | `post-start.sh` — `uv sync`, hooks, VSIX `install-cli` (non-fatal), then `start-docs.sh` |
 
 `uv sync` installs dev dependencies including **ocp-viewer-mcp**. **build123d-mcp** runs via pinned [`.cursor/run-*.sh`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.cursor) launchers (Python 3.12 in the container image). Both MCP servers execute **inside** this container — see [MCP servers](/tools/mcp-servers).
 
@@ -40,7 +40,15 @@ just setup-hooks   # pre-commit + Conventional Commit subject on commit-msg
 
 ## Node.js (docs)
 
-Node 20 is installed via the devcontainer `node` feature for `just docs-serve` / `just docs-build`. `postCreateCommand` runs `just docs-install`.
+Node 20 is installed via the devcontainer `node` feature for `just docs-serve` / `just docs-build`. `postCreateCommand` runs `just docs-install`; `postStartCommand` runs `post-start.sh`, which always starts the Docusaurus dev server in the background via `start-docs.sh` (even if the OCP viewer CLI install step fails).
+
+Port **3000** is forwarded automatically and the browser opens when the server is ready (`forwardPorts` + `onAutoForward: openBrowser` in `devcontainer.json`). To restart manually:
+
+```bash
+just docs-serve-bg                 # background (idempotent)
+bash .devcontainer/start-docs.sh # same script
+just docs-serve                    # foreground with hot reload
+```
 
 ## Editor setup
 

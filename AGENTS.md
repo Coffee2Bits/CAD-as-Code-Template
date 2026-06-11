@@ -208,7 +208,7 @@ Resolution order at render time: **defaults** → **`@render` on the artifact** 
 | Package | Role | Install |
 |---------|------|---------|
 | `makerrepo` (`import mr`) | Decorators: `artifact`, `customizable`, `cached`, `BuildEnv`, `Result` | Runtime dep |
-| `makerrepo-cli` (`mr`) | Discovery, export, view, snapshot | Dev dep |
+| `makerrepo-cli` (`mr`) | Discovery, export, view (headless PNG via `cad_tooling.render`, not `mr snapshot`) | Dev dep |
 
 Decorators are **non-intrusive**: they do not change builder behavior. They register metadata so `mr` (or MakerRepo.com) can find and run functions.
 
@@ -253,9 +253,15 @@ uv run mr artifacts export sphere -o /tmp/out/sphere.stl
 
 # View in OCP CAD Viewer (extension must be running)
 uv run mr artifacts view sphere
+```
 
-# Headless snapshot
-uv run mr artifacts snapshot sphere -o /tmp/out/sphere.png
+Headless PNG previews use `cad_tooling.render` (OCP + Xvfb), not `mr artifacts snapshot` (Playwright). See `website/docs/tools/cad-tooling/render.md`.
+
+```bash
+just render-artifact sphere /tmp/out
+# or: export STL then render
+just export /tmp/out stl sphere
+just render /tmp/out/sphere.stl /tmp/out/
 ```
 
 Refer to artifacts by **name** (`sphere`) or **module/name** (`cad.parts.sphere/sphere`) when names collide.
@@ -272,7 +278,7 @@ uv run mr generators list
 uv run mr generators export sphere_generator -p '{"radius": 15}' -o /tmp/out/
 uv run mr generators export sphere_generator -p @params.json -o /tmp/out/sphere.step
 
-# View / snapshot (same pattern as artifacts)
+# View in OCP CAD Viewer (extension must be running)
 uv run mr generators view sphere_generator -p '{"radius": 20}'
 ```
 

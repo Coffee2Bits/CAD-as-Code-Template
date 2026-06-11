@@ -21,7 +21,7 @@ cad_tooling/
 |------|------|
 | Day-to-day artifact export | [`mr` CLI](/tools/makerrepo) |
 | CI smoke, release STL+PNG | [Export](/tools/cad-tooling/export) |
-| Headless preview PNG | [Render](/tools/cad-tooling/render) |
+| Headless preview PNG (OCP; not `mr snapshot`) | [Render](/tools/cad-tooling/render) |
 | Release body markdown | [Release notes](/tools/cad-tooling/release-notes) |
 
 Tests mirror this package in `cad_tooling_tests/`.

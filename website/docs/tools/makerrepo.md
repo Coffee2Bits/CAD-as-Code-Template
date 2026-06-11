@@ -66,10 +66,11 @@ uv run mr artifacts list
 uv run mr artifacts export sphere -o /tmp/out
 uv run mr artifacts export sphere -o /tmp/out --format step
 uv run mr artifacts view sphere
-uv run mr artifacts snapshot sphere -o /tmp/out/sphere.png
 uv run mr generators list
 uv run mr generators export sphere_generator -o /tmp/out -p '{"radius": 15}'
 ```
+
+Headless PNG previews use [`cad_tooling.render`](/tools/cad-tooling/render) in this workspace (`just render-artifact sphere /tmp/out`), not `mr artifacts snapshot`. The `mr` snapshot command is documented there as an optional browser-based alternative that requires Playwright.
 
 Or via `just`:
 
@@ -121,5 +122,6 @@ Create a repository on [MakerRepo.com](https://makerrepo.com), push this code, a
 | List / export / view artifacts locally | `mr` CLI |
 | Parametric generator export | `mr generators …` |
 | CI smoke, release STL+PNG, pytest helpers | `cad_tooling.export` |
-| Headless PNG from STL | `cad_tooling.render` |
+| Headless PNG from STL or artifact name | `cad_tooling.render` (`just render`, `just render-artifact`) |
 | Per-artifact release camera/color | `@render` decorator |
+| Browser-based headless PNG (optional) | `mr artifacts snapshot` — requires Playwright; see [render](/tools/cad-tooling/render#alternative-mr-artifacts-snapshot) |

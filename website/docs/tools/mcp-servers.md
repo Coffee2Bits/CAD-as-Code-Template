@@ -68,7 +68,7 @@ Both MCP servers are **part of the dev container stack** — no host-side instal
 | **ocp-viewer-mcp** | Dev dependency in [`pyproject.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/pyproject.toml); installed by `uv sync` on container create/start | [`.cursor/run-ocp-viewer-mcp.sh`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.cursor/run-ocp-viewer-mcp.sh) |
 | **build123d-mcp** | Pinned `uv tool` environment (Python 3.12 in the container image) | [`.cursor/run-build123d-mcp.sh`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.cursor/run-build123d-mcp.sh) |
 
-`postCreateCommand` / `postStartCommand` in [`devcontainer.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.devcontainer/devcontainer.json) run `uv sync`, which brings in `ocp-viewer-mcp`. The launchers live under `.cursor/` and resolve paths relative to the workspace.
+`postCreateCommand` / `postStartCommand` in [`devcontainer.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.devcontainer/devcontainer.json) run `uv sync` (which brings in `ocp-viewer-mcp`) and, on start, `post-start.sh` (which always runs `start-docs.sh` for the Docusaurus dev server). The launchers live under `.cursor/` and resolve paths relative to the workspace.
 
 ## Connecting your IDE
 

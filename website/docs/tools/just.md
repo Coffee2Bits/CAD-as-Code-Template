@@ -22,7 +22,6 @@ sidebar_position: 1
 | | `just mr-generators` | List `@customizable` functions |
 | | `just mr-export sphere /tmp/out step` | Export one artifact |
 | | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
-| | `just mr-snapshot sphere` | Headless artifact PNG via `mr` |
 | | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
 | **export** | `just export-smoke` | Discover and export all artifacts (CI smoke) |
 | | `just export dist/export step sphere` | Export via `cad_tooling.export` |
@@ -30,6 +29,7 @@ sidebar_position: 1
 | **setup** | `just template-apply` | Apply `template.repo.toml` after "Use this template" |
 | | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | | `just render` | Headless PNG from `main.py` to `dist/` |
+| | `just render-artifact sphere /tmp/out` | Export STL + headless PNG via `cad_tooling` |
 | **release** | `just version-bump` | Bump patch via `uv version --bump` |
 | | `just version-bump minor` | Bump minor (also `major`, `alpha`, `beta`, `rc`, …) |
 | | `just version-tag` | Create and push `v{version}` tag |
@@ -39,7 +39,8 @@ sidebar_position: 1
 | | `just ci-artifacts` | Dagger artifact smoke |
 | | `just ci-release dist/` | Dagger release STL + PNG |
 | **docs** | `just docs-install` | `npm ci` in `website/` |
-| | `just docs-serve` | Docusaurus dev server (alias: `just docs-start`) |
+| | `just docs-serve` | Docusaurus dev server (alias: `just docs-start`; auto-started in devcontainer on port 3000) |
+| | `just docs-serve-bg` | Background dev server via `.devcontainer/start-docs.sh` (idempotent) |
 | | `just docs-build` | Production docs build |
 
 ## Common workflows

@@ -22,7 +22,7 @@ v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes in Cursor's e
 |------|--------|
 | `onCreateCommand` | `install-ocp-cad-viewer.sh download` |
 | `postCreateCommand` | download (again after `uv sync`) |
-| `postStartCommand` | `install-ocp-cad-viewer.sh install-cli` via `code` or `cursor` remote CLI |
+| `postStartCommand` | `post-start.sh` — OCP viewer CLI install (non-fatal) and `start-docs.sh` for Docusaurus |
 
 ## Manual recovery
 

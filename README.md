@@ -44,10 +44,12 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 ## Quick start
 
 1. Open this repo in **VS Code**, **Cursor**, **GitHub Codespaces**, or another [Dev Containers–compatible IDE or workspace](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ide-and-workspaces), then choose **Reopen in Container** (uses `.devcontainer/`).
-2. Dependencies sync automatically on container start (`postStartCommand`). Run manually if needed:
+2. Dependencies sync and the documentation site start automatically on container start (`postStartCommand` runs `post-start.sh` — docs at http://localhost:3000). Run manually if needed:
 
    ```bash
    just sync
+   just docs-serve-bg                 # background (idempotent)
+   bash .devcontainer/start-docs.sh   # same script
    ```
 
 3. Run tests:

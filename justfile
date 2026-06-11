@@ -81,11 +81,6 @@ mr-view name:
     uv run mr artifacts view {{name}}
 
 [group('makerrepo')]
-mr-snapshot name out='/tmp/out/{{name}}.png':
-    mkdir -p "$(dirname '{{out}}')"
-    uv run mr artifacts snapshot {{name}} -o {{out}}
-
-[group('makerrepo')]
 mr-export-generator name out='/tmp/out' params='{}':
     mkdir -p {{out}}
     uv run mr generators export {{name}} -p '{{params}}' -o {{out}}
@@ -123,6 +118,12 @@ release-notes tag out='dist/RELEASE_BODY.md' assets='dist' repo='':
 [group('export')]
 render script='main.py' out='dist' *camera:
     uv run python -m cad_tooling.render {{script}} -o {{out}} {{camera}}
+
+[group('export')]
+render-artifact name out='/tmp/out':
+    mkdir -p {{out}}
+    uv run python -m cad_tooling.export export -o {{out}} --format stl {{name}}
+    uv run python -m cad_tooling.render {{out}}/{{name}}.stl -o {{out}}
 
 # --- Release versioning ---
 
@@ -163,6 +164,11 @@ docs-install:
 docs-serve:
     # Docusaurus dev server with hot reload — http://localhost:3000
     cd website && npm run start
+
+[group('docs')]
+docs-serve-bg:
+    # Background dev server (idempotent) — same script as devcontainer postStart
+    bash .devcontainer/start-docs.sh
 
 [group('docs')]
 docs-start: docs-serve

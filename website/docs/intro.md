@@ -16,7 +16,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
 | Layer | What you get |
 |-------|--------------|
-| **IDE** | Dev container (`.devcontainer/`) — portable across [VS Code, Cursor, Codespaces, Copilot, and more](/getting-started/ide-and-workspaces); dependencies sync on start |
+| **IDE** | Dev container (`.devcontainer/`) — portable across [VS Code, Cursor, Codespaces, Copilot, and more](/getting-started/ide-and-workspaces); dependencies and docs site (port 3000) start on container start |
 | **Modeling** | build123d parts and assemblies under `cad/` |
 | **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
 | **Quality** | pytest geometry tests, ruff, mypy |

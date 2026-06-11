@@ -25,7 +25,14 @@
   ],
   "onCreateCommand": "bash .devcontainer/install-ocp-cad-viewer.sh download",
   "postCreateCommand": "uv sync && just setup-hooks && just docs-install && bash .devcontainer/install-ocp-cad-viewer.sh download",
-  "postStartCommand": "uv sync && just setup-hooks && bash .devcontainer/install-ocp-cad-viewer.sh install-cli",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Documentation",
+      "onAutoForward": "openBrowser"
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": [

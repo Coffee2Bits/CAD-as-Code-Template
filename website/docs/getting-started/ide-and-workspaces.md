@@ -27,7 +27,8 @@ Regardless of which client attaches, the container provides:
 | Capability | Source |
 |------------|--------|
 | Open CASCADE / Mesa parity with CI | `.devcontainer/Dockerfile` |
-| Python deps + dev tools | `postStartCommand` → `uv sync` |
+| Python deps + dev tools | `postStartCommand` → `post-start.sh` → `uv sync` |
+| Documentation site | `postStartCommand` → `post-start.sh` → `start-docs.sh` (port 3000, auto-forwarded) |
 | OCP CAD Viewer VSIX download/install | `.devcontainer/install-ocp-cad-viewer.sh` |
 | Ruff format-on-save settings | `customizations.vscode` in `devcontainer.json` |
 | Local Dagger CI (`just ci`) | Docker socket mount + `docker-outside-of-docker` feature |

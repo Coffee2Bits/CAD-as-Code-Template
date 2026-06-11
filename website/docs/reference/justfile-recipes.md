@@ -38,7 +38,6 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | `just mr-generators` | List `@customizable` functions |
 | `just mr-export sphere /tmp/out step` | Export one artifact |
 | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
-| `just mr-snapshot sphere` | Headless artifact PNG via `mr` |
 | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
 
 ## Export & render
@@ -52,6 +51,7 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | `just render` | Headless PNG from `main.py` to `dist/` |
 | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
+| `just render-artifact sphere /tmp/out` | Export STL + headless PNG for one artifact |
 
 ## Release versioning
 
@@ -72,7 +72,8 @@ Use `just version-bump minor` — not `just version-bump part=patch` (`just` tre
 | Command | What it runs |
 |---------|--------------|
 | `just docs-install` | `npm ci` in `website/` |
-| `just docs-serve` | Docusaurus dev server (alias: `just docs-start`) |
+| `just docs-serve` | Docusaurus dev server (alias: `just docs-start`; auto-started in devcontainer on port 3000) |
+| `just docs-serve-bg` | Background dev server via `.devcontainer/start-docs.sh` (idempotent) |
 | `just docs-build` | Production docs build |
 
 ## CI (Dagger)

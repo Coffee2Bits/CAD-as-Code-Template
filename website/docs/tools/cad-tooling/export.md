@@ -36,7 +36,10 @@ just export-smoke
 just export dist/export step sphere
 just release dist/
 just release-notes v0.1.0
+just render-artifact sphere /tmp/out   # STL + PNG — see render doc
 ```
+
+Headless PNG previews use [Render](/tools/cad-tooling/render) (`cad_tooling.render`), not `mr artifacts snapshot`.
 
 ## Supported formats
 
