@@ -88,6 +88,27 @@ just version-tag         # creates and pushes v{version}
 
 Pushing `v*.*.*` runs [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) — same quality gate and asset upload. Prefer the release-please path for changelog discipline.
 
+## GitHub CLI
+
+The dev container ships [`gh`](https://cli.github.com/) — see [Dev container → GitHub CLI](/getting-started/dev-container#github-cli) for authentication. After `gh auth login`, you can inspect or create releases without leaving the container:
+
+```bash
+gh release list --repo OWNER/REPO
+gh release view v0.1.0 --repo OWNER/REPO
+```
+
+**Ad-hoc release on a commit** (creates the tag and release; does not run the export workflow unless you also push a tag that matches `v*.*.*`):
+
+```bash
+gh release create v0.1.0 \
+  --repo OWNER/REPO \
+  --target COMMIT_SHA \
+  --title "v0.1.0" \
+  --notes "Release 0.1.0"
+```
+
+For STL/PNG assets and generated notes, use the automated path: merge the release-please Release PR, or push a semver tag so [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) runs. You can attach local dry-run assets with `gh release upload` after `just release dist/`.
+
 ## Fork vs your own repo
 
 | Scenario | Release automation |

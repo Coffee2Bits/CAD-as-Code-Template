@@ -40,6 +40,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
 | [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) | Linting and type checking |
 | [Dagger](https://dagger.io/) | Portable CI pipeline (local + GitHub Actions) |
+| [GitHub CLI (`gh`)](https://cli.github.com/) | Releases, PRs, and repo ops from the dev container |
 | [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP interface — sandboxed geometry execution for AI agents |
 | [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP interface — viewer screenshots for agent visual feedback |
 | [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) | Manufacturing-as-code decorators (`@artifact`, `@customizable`, `@cached`) |

@@ -88,6 +88,10 @@ uv run python -m cad_tooling.export release-notes \
 
 `just version-tag` or push `v*.*.*` triggers [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml).
 
+## GitHub CLI
+
+The dev container includes `gh` — [authentication](/getting-started/dev-container#github-cli) and [release examples](/getting-started/releases#github-cli).
+
 ## Release note URLs
 
 Use absolute `releases/download/{tag}/` URLs — see [Release notes](/tools/cad-tooling/release-notes).

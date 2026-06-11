@@ -61,6 +61,27 @@ Format-on-save uses Ruff from the project venv (`importStrategy: fromEnvironment
 - `common-utils` — zsh, automatic UID/GID alignment with host
 - `docker-outside-of-docker` — Dagger CI from inside the container
 - `node:20` — Docusaurus documentation site
+- `github-cli` — [GitHub CLI (`gh`)](https://cli.github.com/) for releases, PRs, and repo operations
+
+## GitHub CLI
+
+The dev container includes **`gh`**. In **GitHub Codespaces**, authentication is automatic. In a local Dev Container, log in once:
+
+```bash
+gh auth login
+gh auth status
+```
+
+Common tasks (replace `OWNER/REPO` with your fork after [template apply](/getting-started/github-setup#replace-template-identity-in-your-repo)):
+
+```bash
+gh pr create --fill
+gh pr list
+gh release list --repo OWNER/REPO
+gh release create v0.1.0 --repo OWNER/REPO --target main --title "v0.1.0" --notes "Release 0.1.0"
+```
+
+Prefer the automated [release-please flow](/getting-started/releases) for day-to-day versioning. Use `gh release create` for ad-hoc or recovery releases when you need a tag on a specific commit. See [Manual tag fallback](/getting-started/releases#manual-tag-fallback) and [GitHub CLI releases](/getting-started/releases#github-cli).
 
 ## Troubleshooting
 

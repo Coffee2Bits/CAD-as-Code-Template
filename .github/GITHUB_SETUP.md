@@ -28,3 +28,7 @@ https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases
 - `docs-pr.yml` — Docs build on PRs
 
 See the [full GitHub setup guide](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) for links, status check names, and verification steps.
+
+## GitHub CLI in the dev container
+
+The dev container includes **`gh`**. In Codespaces it is pre-authenticated; locally run `gh auth login` once. See [Dev container → GitHub CLI](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/dev-container#github-cli) and [Releases → GitHub CLI](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases#github-cli).
