@@ -15,13 +15,16 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "version": "latest",
       "moby": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
     }
   },
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
   "onCreateCommand": "bash .devcontainer/install-ocp-cad-viewer.sh download",
-  "postCreateCommand": "uv sync && just setup-hooks && bash .devcontainer/install-ocp-cad-viewer.sh download",
+  "postCreateCommand": "uv sync && just setup-hooks && just docs-install && bash .devcontainer/install-ocp-cad-viewer.sh download",
   "postStartCommand": "uv sync && just setup-hooks && bash .devcontainer/install-ocp-cad-viewer.sh install-cli",
   "customizations": {
     "vscode": {

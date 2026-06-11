@@ -623,3 +623,36 @@ See [External part libraries](#external-part-libraries) for when to use each. In
 | [bd_beams_and_bars](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | Standard structural beams and bars for frames and welded assemblies. |
 | [py_gearworks](https://github.com/GarryBGoode/py_gearworks) | Parametric gears, gear pairs, and drive trains. |
 | [bd-vslot](https://github.com/keeeal/bd-vslot) | V-Slot extrusion profiles and linear-frame components. |
+
+---
+
+## Documentation (Docusaurus / GitHub Pages)
+
+Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The published site is built from `main` and deployed via [`.github/workflows/docs.yml`](.github/workflows/docs.yml).
+
+**Published URL:** `https://coffee2bits.github.io/CAD-as-Code-Template/`  
+**Source repo:** `Coffee2Bits/CAD-as-Code-Template` — never hardcode the old `cad_as_code_project` slug in docs or config.
+
+### What goes where
+
+| Location | Role |
+|----------|------|
+| [`README.md`](README.md) | Turnkey template landing: pitch, what's-in-the-box, stack table, quick start, project layout summary, link to full docs. Keep template-facing content here; do not strip the stack. |
+| [`website/docs/`](website/docs/) | Deep guides: tools, workflows, troubleshooting, reference. Migrate prose from README when it becomes unwieldy, not before the matching page exists. |
+| [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) | Master checklist — work through phases in order; mark steps complete as you go. |
+| [`AGENTS.md`](AGENTS.md) | Agent contract only. Do **not** duplicate agent rules on the docs site; [`website/docs/contributing/for-agents.md`](website/docs/contributing/for-agents.md) summarizes and links here. |
+| [`cad_tooling/README.md`](cad_tooling/README.md) | Short pointer to `website/docs/tools/cad-tooling/` once that section exists. |
+| [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md) | Short checklist; canonical guide at `website/docs/getting-started/github-setup.md`. |
+
+### Agent rules when editing docs
+
+1. **Follow the rollout plan** — open [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) and complete the next unchecked phase/file before starting unrelated pages.
+2. **Linking** — prefer Docusaurus doc IDs (`/docs/tools/just`) or relative paths between pages. For the GitHub repo, use `https://github.com/Coffee2Bits/CAD-as-Code-Template` (or a path suffix like `/tree/main/cad/parts/sphere.py`). Never link to `cad_as_code_project`.
+3. **Diagrams** — stack and architecture diagrams live under `website/static/img/` (SVG/PNG) or as Mermaid fenced blocks in markdown (enabled in `docusaurus.config.ts`). Regenerate static SVGs when the stack changes.
+4. **Code examples** — copy from working repo sources (`justfile`, `cad/parts/sphere.py`, workflows); verify commands against the current tree before publishing.
+5. **README sync** — when moving a README section to the site, replace it with a short paragraph + link to the new doc page. Do not delete template stack/quick-start content from README.
+6. **Tooling changes** — if you change `justfile`, CI workflows, MCP launchers, or export behavior, update the matching `website/docs/` page in the same PR. If a change affects required GitHub.com settings (branch protection checks, workflow permissions, Pages), update [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md) and [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
+7. **Local preview** — from `website/`: `npm ci && npm run start` (dev) or `npm run build` (production check). Fix broken links before merging.
+8. **Completion gate for doc-only work** — `npm run build` in `website/` must pass. For doc + code changes, still run `just ci` (or `just quality && just export-smoke`) per the [task completion gate](#task-completion-gate).
+9. **Deploy** — merging to `main` triggers the docs workflow when `website/**` or `.github/workflows/docs.yml` changes. No manual `gh-pages` branch commits.
+10. **File size** — keep each doc page under ~300–400 lines; split into sub-pages if a topic grows.

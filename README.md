@@ -1,6 +1,8 @@
 # CAD-as-Code, in a box
 
-A turnkey workspace for **parametric CAD in Python**. Reopen this repo in any **VS Code-based IDE** with [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers) support — VS Code, Cursor, and compatible forks — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and CI, already wired together.
+📖 **[Full documentation](https://coffee2bits.github.io/CAD-as-Code-Template/)** — tools, workflows, troubleshooting, and reference.
+
+A turnkey workspace for **parametric CAD in Python**. Reopen this repo in any **Dev Containers–capable editor or cloud workspace** — VS Code, Cursor, GitHub Codespaces, GitHub Copilot in VS Code, and [other compatible clients](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ide-and-workspaces) — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and CI, already wired together.
 
 Define geometry with [build123d](https://build123d.readthedocs.io/), preview it in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), validate with pytest, and export to STEP, STL, and GLB. Publish artifacts through [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) (`mr`). Python is the source of truth; mesh files are generated, not hand-edited.
 
@@ -10,13 +12,14 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
 | Layer | What you get |
 |-------|--------------|
-| **IDE** | Dev container (`.devcontainer/`) — VS Code, Cursor, or any compatible fork; dependencies sync on start |
+| **IDE** | Dev container (`.devcontainer/`) — portable across VS Code, Cursor, Codespaces, Copilot, and [more](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ide-and-workspaces); dependencies sync on start |
 | **Modeling** | build123d parts and assemblies under `cad/` |
 | **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
 | **Quality** | pytest geometry tests, ruff, mypy |
 | **Make** | [just](https://github.com/casey/just) command runner (`justfile`) for dev, export, and CI |
 | **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions to any other pipeline tool; same checks everywhere |
-| **Agents** | MCP servers for build123d execution and OCP Viewer screenshots |
+| **Agents** | AI coding assistants — Cursor, VS Code, Claude, GitHub Copilot |
+| **MCP** | Optional agent interface surface (build123d-mcp, ocp-viewer-mcp) — access to code and viewer artifacts alongside direct editing; see [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers) |
 | **Publish** | MakerRepo decorators and `mr` CLI for artifact discovery and export |
 
 **AI agents:** see [AGENTS.md](AGENTS.md) for repo structure, parts/assemblies conventions, and MakerRepo usage.
@@ -25,7 +28,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
 | Tool | Role |
 |------|------|
-| [build123d](https://github.com/gumyr/build123d) | Parametric CAD-as-code (Open CASCADE) |
+| [build123d](https://github.com/gumyr/build123d) | Parametric CAD-as-code on [Open CASCADE](https://coffee2bits.github.io/CAD-as-Code-Template/reference/open-cascade) |
 | [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer) | Live 3D visualization in VS Code-based IDEs |
 | [ocp-vscode](https://github.com/bernhard-42/ocp_vscode) | Python bridge for `show_object` |
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
@@ -33,14 +36,14 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
 | [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) | Linting and type checking |
 | [Dagger](https://dagger.io/) | Portable CI pipeline (local + GitHub Actions) |
-| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP tools for interactive CAD generation and inspection |
-| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP screenshots from OCP CAD Viewer for agent vision |
+| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP interface — sandboxed geometry execution for AI agents |
+| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP interface — viewer screenshots for agent visual feedback |
 | [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) | Manufacturing-as-code decorators (`@artifact`, `@customizable`, `@cached`) |
 | [makerrepo-cli](https://docs.makerrepo.com/makerrepo-cli/) | Local artifact discovery, export, and viewer integration (`mr`) |
 
 ## Quick start
 
-1. Open this repo in **VS Code**, **Cursor**, or another VS Code-based IDE with Dev Containers support, then choose **Reopen in Container** (uses `.devcontainer/`).
+1. Open this repo in **VS Code**, **Cursor**, **GitHub Codespaces**, or another [Dev Containers–compatible IDE or workspace](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ide-and-workspaces), then choose **Reopen in Container** (uses `.devcontainer/`).
 2. Dependencies sync automatically on container start (`postStartCommand`). Run manually if needed:
 
    ```bash
@@ -73,24 +76,20 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
    For ad-hoc exports in tests or scripts, use `cad_tooling.export.export_part(make_sphere(), "sphere", tmp_path)` — see [`tests/test_exports.py`](tests/test_exports.py).
 
-6. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed and ready to use. See [MCP servers](#mcp-servers).
+6. *(Cursor)* Reload MCP servers (**Settings → MCP**) — [`.cursor/mcp.json`](.cursor/mcp.json) is committed. See [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers).
+
+### Set up GitHub and releases (template / new repo)
+
+If you used **[Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)**, configure one-time settings on GitHub.com, then run your first automated release:
+
+1. [Set up GitHub for your repository](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge, repo rename / docs URL
+2. [Releases](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases) — release-please flow and published STL/PNG assets
+
+In-repo summary: [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
 
 ### OCP CAD Viewer extension
 
-The VSIX is **not committed** — it is downloaded to the workspace root as `ocp-cad-viewer-3.4.0.vsix` (gitignored).
-
-**Cursor-specific note:** v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes on activation in Cursor's extension host (`ERR_REQUIRE_ESM`). The devcontainer scripts patch the VSIX before install. VS Code is unaffected.
-
-Setup:
-
-1. **Download + patch (container lifecycle):** `onCreateCommand` / `postCreateCommand` run `.devcontainer/install-ocp-cad-viewer.sh download`.
-2. **Install patched VSIX (after attach):** `postStartCommand` runs `.devcontainer/install-ocp-cad-viewer.sh install-cli` via the editor remote CLI (`code` or `cursor`).
-
-If commands are still missing after reopening the container:
-
-1. Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli` from a connected terminal.
-2. **Developer: Reload Window** in your editor (required after reinstall).
-3. Open the OCP CAD Viewer panel (activity bar icon), then run `uv run python main.py`.
+The VSIX is downloaded and patched automatically in the dev container (not committed). Setup, Cursor ESM patch notes, and recovery steps: [OCP CAD Viewer](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ocp-viewer).
 
 ## Project layout
 
@@ -105,8 +104,12 @@ If commands are still missing after reopening the container:
 ├── .makerrepo/
 │   └── config.yaml               # MakerRepo repo config (export defaults, pythonpaths)
 ├── .github/
+│   ├── GITHUB_SETUP.md           # One-time GitHub.com settings checklist
 │   └── workflows/
-│       └── ci.yml                # Dagger CI on push/PR
+│       ├── ci.yml                # Dagger CI on push/PR
+│       ├── docs.yml              # Deploy Docusaurus to Pages
+│       ├── release-please.yml    # Release PRs + publish
+│       └── release.yml           # Manual tag fallback
 ├── ci/
 │   ├── dagger.json               # Dagger module config
 │   ├── pyproject.toml
@@ -128,264 +131,33 @@ If commands are still missing after reopening the container:
 
 ## Development workflow
 
-### Make commands (`just`)
+Common local gates: `just quality` (lint + test) before pushing; `just ci` for the full Dagger pipeline (Docker required).
 
-[just](https://github.com/casey/just) wraps the most common repo tasks. It is preinstalled in the devcontainer; run `just` or `just --list` from the repo root to see all recipes.
-
-| Group | Command | What it runs |
-|-------|---------|--------------|
-| **setup** | `just sync` | `uv sync` |
-| | `just sync-frozen` | `uv sync --group dev --frozen` (matches CI) |
-| **dev** | `just view` | Display `main.py` in OCP CAD Viewer |
-| | `just test` | `uv run pytest` (pass extra args: `just test -v tests/test_sphere.py`) |
-| **quality** | `just lint` | ruff check + format check + mypy |
-| | `just format` | `uv run ruff format .` |
-| | `just quality` | lint + test (local gate before pushing) |
-| **makerrepo** | `just mr-artifacts` | List `@artifact` functions |
-| | `just mr-generators` | List `@customizable` functions |
-| | `just mr-export sphere /tmp/out step` | Export one artifact |
-| | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
-| | `just mr-snapshot sphere` | Headless artifact PNG via `mr` |
-| | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
-| **export** | `just export-smoke` | Discover and export all artifacts (CI smoke) |
-| | `just export dist/export step sphere` | Export via `cad_tooling.export` |
-| | `just release dist/` | STL + PNG release bundle |
-| | `just release-notes OWNER/REPO v0.0.1` | Generate `dist/RELEASE_BODY.md` |
-| | `just render` | Headless PNG preview(s) from `main.py` to `dist/` |
-| | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
-| **release** | `just version-bump` | Bump `pyproject.toml` patch version via `uv version --bump` |
-| | `just version-bump minor` | Bump minor (also accepts `major`, `alpha`, `beta`, `rc`, …) |
-| | `just version-tag` | Create and push git tag `v{version}` from the current package version |
-| **ci** | `just ci` | Full Dagger pipeline (lint + artifacts + test) |
-| | `just ci-test` | Dagger pytest only |
-| | `just ci-lint` | Dagger ruff + mypy only |
-| | `just ci-artifacts` | Dagger artifact smoke export |
-| | `just ci-release dist/` | Dagger release STL + PNG export to `dist/` |
-
-
-### Modeling conventions
-
-- **Source of truth:** Python model code — not STL meshes.
-- **Parts** live in `cad/parts/`; **assemblies** in `cad/assemblies/`.
-- Expose dimensions as function parameters with sensible defaults.
-- Return `Part` or `Compound` from builder functions.
-- Mark publishable models with MakerRepo decorators (see [MakerRepo](#makerrepo)).
-- Test key dimensions, validity, and export behavior for each reusable part.
-- Keep generated exports out of version control unless explicitly versioned under `tests/fixtures/`.
-
-### Export formats
-
-| Format | Use |
-|--------|-----|
-| STEP | CAD interchange (preferred for serious handoff) |
-| STL / 3MF | 3D printing and manufacturing meshes |
-| GLB / glTF | Lightweight preview and web |
-| SVG / DXF | 2D profiles, laser cutting, documentation |
-
-Initial implementation covers STEP, STL, and GLB. Additional formats will be added when a concrete model needs them.
-
-### Testing
-
-```bash
-uv run pytest          # geometry and export tests
-uv run pytest -v       # verbose output
-```
-
-Coverage includes validity, bounding boxes, volume checks, and STEP round-trip export.
-
-### Quality checks (local)
-
-```bash
-just quality          # lint + pytest
-just lint             # ruff + mypy only
-just format           # apply ruff formatting
-```
-
-Or run the same checks individually:
-
-```bash
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy cad cad_tooling tests cad_tooling_tests
-uv run pytest
-```
-
-Or run the same pipeline as CI (requires Docker on the host and a devcontainer rebuild so the socket is mounted):
-
-```bash
-just ci               # full gate
-just ci-test          # pytest only
-just ci-lint          # ruff + mypy only
-just ci-artifacts     # cad_tooling.export smoke
-just ci-release dist/ # release STL + PNG to dist/
-```
-
-Equivalent Dagger invocations:
-
-```bash
-dagger call -m ./ci check --source=.
-dagger call -m ./ci test --source=.       # pytest only
-dagger call -m ./ci lint --source=.       # ruff + mypy only
-dagger call -m ./ci artifacts --source=.  # cad_tooling.export smoke
-dagger call -m ./ci release-artifact --source=. export --path=./dist
-```
-
-The Dagger module builds the `.devcontainer/Dockerfile` image, runs `uv sync --group dev`, then executes checks inside that environment — matching GitHub Actions.
+| Topic | Documentation |
+|-------|---------------|
+| **just** recipes | [just commands](https://coffee2bits.github.io/CAD-as-Code-Template/tools/just) · [recipe reference](https://coffee2bits.github.io/CAD-as-Code-Template/reference/justfile-recipes) |
+| Modeling | [Conventions](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/conventions) · [Parts & assemblies](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/parts-and-assemblies) |
+| Testing & quality | [Testing](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/testing) · [uv & quality](https://coffee2bits.github.io/CAD-as-Code-Template/tools/uv-and-quality) |
+| Export | [Export & formats](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/export-and-formats) · [CAD tooling](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/) |
+| CI & releases | [CI & Dagger](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/ci-and-dagger) · [Releases](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/releases) |
+| Daily loop | [Daily development](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/daily-development) |
 
 ## MakerRepo
 
-[MakerRepo](https://docs.makerrepo.com/makerrepo-library/) adds Manufacturing-as-Code metadata to build123d functions. Decorators are **non-intrusive** — they do not change how your builders run; they only annotate functions so [makerrepo-cli](https://docs.makerrepo.com/makerrepo-cli/) (or MakerRepo.com CI) can discover, build, and export them.
+[MakerRepo](https://docs.makerrepo.com/makerrepo-library/) decorates build123d entry points for discovery and export (`@artifact`, `@customizable`, `@cached`). Import from `mr`. Full guide, sphere example, and CLI cookbook: [MakerRepo](https://coffee2bits.github.io/CAD-as-Code-Template/tools/makerrepo).
 
-Import decorators from `mr` (not `makerrepo`):
-
-```python
-from mr import artifact, customizable, cached
-```
-
-### MakerRepo annotations
-
-| Annotation | Applies to | Purpose |
-|------------|------------|---------|
-| `@artifact` | Fixed publishable models | Registers a default-configuration part or assembly for discovery, export, and release. Use `short_desc=` for human-readable listings; `cover=True` marks the repo thumbnail (at most one). |
-| `@customizable` | Parametric generators | Registers a function with a single Pydantic parameter model so users can vary dimensions via `mr generators export … -p '{…}'`. Requires `sample_parameters=` with valid defaults. |
-| `@cached` | Expensive sub-builds | Caches repeated builds with the same arguments. Use on helpers that are costly to rebuild, not on simple geometry. |
-
-`@artifact` and `@customizable` sit on entry points in `cad/parts/` or `cad/assemblies/` — not on bare `make_*` builders and not in `main.py`. See [AGENTS.md](AGENTS.md) for the three-layer pattern (`make_*` → `@artifact` / `@customizable`).
-
-### Custom tooling: `@render`
-
-[`@render`](cad_tooling/README.md#render-decorator) is **workspace custom tooling**, not a MakerRepo annotation. It lives in `cad_tooling` and exists to support `@artifact` release workflows: each published model can declare camera, colors, and PNG size for GitHub Release previews and `cad_tooling.export release`.
-
-Place `@render` directly below `@artifact` on the same function:
-
-```python
-from cad_tooling.render_decorator import render
-from mr import artifact
-
-@artifact(short_desc="Demo sphere")
-@render(camera="iso", face_color=(0.31, 0.63, 1.0))
-def sphere() -> Part:
-    return make_sphere()
-```
-
-MakerRepo discovery ignores `@render`; release export reads it when generating matching STL and PNG assets. Full preset list, CLI overrides, and resolution order: [CAD tooling — `@render`](cad_tooling/README.md#render-decorator).
-
-### Example (sphere part)
-
-```python
-from build123d import Align, BuildPart, Part, Sphere
-from cad_tooling.render_decorator import render
-from mr import artifact, customizable
-from pydantic import BaseModel, Field
-
-def make_sphere(radius: float = 10) -> Part:
-    with BuildPart() as part:
-        Sphere(radius=radius, align=(Align.CENTER, Align.CENTER, Align.CENTER))
-    return part.part
-
-@artifact(cover=True, short_desc="Demo sphere for workspace smoke tests")
-@render(camera="iso", face_color=(0.31, 0.63, 1.0))
-def sphere() -> Part:
-    return make_sphere()
-
-class SphereParameters(BaseModel):
-    radius: float = Field(default=10, gt=0)
-
-@customizable(sample_parameters=SphereParameters())
-def sphere_generator(parameters: SphereParameters) -> Part:
-    return make_sphere(radius=parameters.radius)
-```
-
-See [`cad/parts/sphere.py`](cad/parts/sphere.py) for the live implementation.
-
-### Repository config
-
-[`.makerrepo/config.yaml`](.makerrepo/config.yaml) holds repo-level defaults (e.g. whether artifacts export STEP or 3MF when the decorator omits those flags). Optional `pythonpaths` entries prepend paths to `sys.path` before discovery — useful for `src/` layouts.
-
-### CLI commands
-
-Run from the repo root (included in dev dependencies):
-
-```bash
-uv run mr artifacts list                          # discover @artifact functions
-uv run mr artifacts export sphere -o /tmp/out     # export STEP/STL/glTF/3MF/…
-uv run mr artifacts view sphere                   # send to OCP CAD Viewer
-uv run mr generators list                         # discover @customizable functions
-uv run mr generators export sphere_generator -o /tmp/out -p '{"radius": 15}'
-```
-
-For full command reference, see the [MakerRepo CLI docs](https://docs.makerrepo.com/makerrepo-cli/).
-
-### MakerRepo.com (optional)
-
-To publish artifacts on [MakerRepo.com](https://makerrepo.com), create a repository there, push this code, and the platform CI will build `@artifact` and `@customizable` functions automatically. Local workflow with `mr` remains fully usable without an account.
+**AI agents:** [AGENTS.md](AGENTS.md) for repo conventions; [for agents](https://coffee2bits.github.io/CAD-as-Code-Template/contributing/for-agents) on the docs site.
 
 ## MCP servers
 
-Two MCP servers are configured for agent-assisted CAD. [`.cursor/mcp.json`](.cursor/mcp.json) is committed for **Cursor**; launcher scripts resolve paths relative to the workspace so they work inside the devcontainer. Other editors may need equivalent MCP configuration.
-
-In Cursor, reload MCP servers (**Settings → MCP**) after container rebuilds.
-
-### Configured servers
-
-| Server | Package | Pin | Role |
-|--------|---------|-----|------|
-| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | `build123d-mcp` | `0.3.36` | Run build123d code in a sandboxed session; measure, render, export, compare geometry |
-| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | `ocp-viewer-mcp` | `0.1.0` | Capture screenshots from OCP CAD Viewer so agents can see displayed models |
-
-**build123d-mcp** runs in an isolated `uv tool` environment (Python 3.12 required for VTK/OCP wheels). Key tools: `execute`, `measure`, `render_view`, `export`, `session_state`.
-
-**ocp-viewer-mcp** runs in this project's `.venv` (installed via `uv sync` dev dependencies). Requires the OCP CAD Viewer extension and a model displayed via `show_object()`.
-
-### Workspace MCP config
-
-```json
-{
-  "mcpServers": {
-    "build123d-mcp": {
-      "command": "bash",
-      "args": [".cursor/run-build123d-mcp.sh"]
-    },
-    "ocp-viewer": {
-      "command": "bash",
-      "args": [".cursor/run-ocp-viewer-mcp.sh"]
-    }
-  }
-}
-```
-
-Launcher scripts pin `build123d-mcp==0.3.36` (Python 3.12 via `uv tool run`) and run `ocp-viewer-mcp` from the project `.venv`. To bump versions, edit the launcher scripts and reload MCP.
-
-### Typical agent workflow
-
-1. Use **build123d-mcp** `execute` to prototype geometry incrementally; verify with `measure` and `render_view`.
-2. Move stable parts into `cad/parts/` as normal Python modules with pytest coverage.
-3. Run `uv run python main.py` and display in OCP CAD Viewer.
-4. Use **ocp-viewer-mcp** `capture_ocp_screenshot` to let the agent visually confirm the viewer output.
-
-### Troubleshooting
-
-| Issue | Fix |
-|-------|-----|
-| build123d-mcp won't start | Ensure `uv` is on PATH; first launch downloads Python 3.12 + deps (network required) |
-| ocp-viewer connection failed | Run `bash .devcontainer/install-ocp-cad-viewer.sh install-cli`, then **Developer: Reload Window**. Open OCP CAD Viewer panel before running `show_object()` scripts |
-| MCP tools missing after container rebuild | Run `uv sync`; in Cursor, reload MCP (**Settings → MCP**) |
-
-### Other MCP candidates (not configured and not an endorsement)
-
-| Repository | Description |
-|------------|-------------|
-| [brs077/3dp-mcp-server](https://github.com/brs077/3dp-mcp-server) | 3D-printable CAD with build123d (Bambu Lab X1C focus) |
-| [jdilla1277/agentcad](https://github.com/jdilla1277/agentcad) | CAD CLI and MCP server for AI agents |
-| [rishigundakaram/cadquery-mcp-server](https://github.com/rishigundakaram/cadquery-mcp-server) | CadQuery MCP server |
-| [blwfish/freecad-mcp](https://github.com/blwfish/freecad-mcp) | FreeCAD MCP integration |
+MCP servers are an **optional agent interface surface** — they help Cursor, VS Code, Claude, and GitHub Copilot interact with geometry and the viewer alongside direct code editing. They do not replace the **CAD/** tree (`cad/`) as source of truth. Full architecture, config, and troubleshooting: [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers).
 
 ## Future work Roadmap
 
 Order may shift based on project needs.
 
 - Additional parts and real assemblies (constraints, patterns)
-- Import [build123d part libraries](https://build123d.readthedocs.io/en/latest/external.html#part-libraries) (see [References — build123d part libraries](#references--build123d-part-libraries))
+- Import [build123d part libraries](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/external-libraries)
 - [PartCAD](https://partcad.org/) integration — import and publish packaged CAD models
 - Bill of materials (BOM) generation from assemblies
 - 3MF, SVG, and DXF export helpers where models need them
@@ -396,131 +168,23 @@ Order may shift based on project needs.
 - `pytest-cov` coverage threshold on `cad/` once the library grows
 - CI demonstration of topology optimization (e.g. [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/))
 
-### CI and automation
+### CI, releases, and GitHub
 
-Pushes and pull requests to `main` run the Dagger pipeline when changes touch model code, tests, CI, dependencies, or agent docs — see path filters in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
-
-| Function | What it runs |
-|----------|--------------|
-| `check` | lint + artifacts + test (used in GitHub Actions) |
-| `test` | `uv run pytest` |
-| `lint` | `uv run ruff check .`, `ruff format --check .`, `mypy cad cad_tooling tests cad_tooling_tests` |
-| `artifacts` | `python -m cad_tooling.export smoke` (discover and export all artifacts as STEP + STL) |
-| `release-artifact` | `python -m cad_tooling.export release` (STL + PNG previews; per-artifact `@render` settings) |
-
-The pipeline builds from [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile) for Open CASCADE / Mesa parity with local dev. OCP viewer VSIX and MCP servers are not part of CI.
-
-### Release preview renders
-
-Each artifact's release PNG is configured with [`@render`](cad_tooling/README.md#render-decorator) on the `@artifact` function. See [`cad/parts/sphere.py`](cad/parts/sphere.py) and [CAD tooling — `@render`](cad_tooling/README.md#render-decorator) for CLI commands, camera presets, and override behavior.
-
-### Version management
-
-The package version lives in [`pyproject.toml`](pyproject.toml) (`[project].version`). Release tags use the same semver with a `v` prefix (e.g. `0.0.1` → tag `v0.0.1`). [release-please](https://github.com/googleapis/release-please) keeps `pyproject.toml`, [`CHANGELOG.md`](CHANGELOG.md), and tags in sync via Release PRs.
-
-| Command | What it does |
-|---------|--------------|
-| `just version-bump` | Bump the patch version locally via `uv version --bump` (manual fallback) |
-| `just version-bump minor` | Bump minor; also accepts `major`, `alpha`, `beta`, `rc`, and other `uv version --bump` kinds |
-| `just version-tag` | Create and push tag `v{version}` from the current package version (manual fallback) |
-
-Pass the bump kind as a positional argument (`just version-bump minor`), not as `name=value` — `just` treats `part=patch` as a literal string.
-
-**Repository setup (one-time):** in GitHub, open **Settings → Actions → General → Workflow permissions** and:
-
-1. Select **Read and write permissions** (not read-only).
-2. Enable **Allow GitHub Actions to create and approve pull requests**.
-
-release-please needs both so it can open and update Release PRs. Without them, [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml) fails when creating the release branch/PR.
-
-**Typical release flow** (from `main`, after CI is green):
-
-1. Merge feature/fix PRs with [Conventional Commit](https://www.conventionalcommits.org/) titles (`feat:`, `fix:`, etc.).
-2. Wait for [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml) to open or update a **Release PR** (version bump + changelog).
-3. Review and merge the Release PR. The workflow tags `v{version}` and publishes STL/PNG assets to GitHub Releases.
-
-To force a specific version in the next Release PR, push an empty commit with `Release-As: x.y.z` in the body (see [release-please docs](https://github.com/googleapis/release-please#how-do-i-change-the-version-number)).
-
-### Releases
-
-Merging a Release PR runs [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml), which tags the release and publishes assets. Pushing a semver tag manually (e.g. `just version-tag`) still runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
-
-1. **Quality gate** — same Dagger `check` as CI (lint, artifact smoke, pytest).
-2. **Export** — all `@artifact` models as STL plus PNG preview renders via `cad_tooling.render` (Open CASCADE offscreen rendering; Xvfb in CI).
-3. **GitHub Release** — attaches `dist/*.stl`, matching `dist/*.png` previews, and a generated release body listing each artifact with embedded preview images.
-
-**Download assets:** open the tag on GitHub Releases. The release page lists every `@artifact` with an embedded preview image and download links for each STL and PNG.
-
-**Local dry-run** (preview assets and release notes before tagging):
-
-```bash
-just release dist/
-just release-notes YOUR_ORG/YOUR_REPO v0.0.1
-```
-
-Or directly:
-
-```bash
-uv run python -m cad_tooling.export release -o dist/
-uv run python -m cad_tooling.export release-notes \
-  --assets-dir dist \
-  --repo YOUR_ORG/YOUR_REPO \
-  --tag v0.0.1 \
-  -o dist/RELEASE_BODY.md
-```
-
-**Release note URLs:** preview images and STL links in `RELEASE_BODY.md` use absolute GitHub Release asset URLs, not relative paths. GitHub does not resolve `sphere.png` or `./sphere.png` in a release body against attached assets — the body is not a repo file. Use the `releases/download` form so images render inline on the published release page:
-
-```markdown
-![sphere](https://github.com/YOUR_ORG/YOUR_REPO/releases/download/v0.0.1/sphere.png)
-
-[sphere.stl](https://github.com/YOUR_ORG/YOUR_REPO/releases/download/v0.0.1/sphere.stl)
-```
-
-`release-notes` builds these from `--repo` and `--tag`. Local `dist/` paths are only for exporting files on disk; the workflow uploads those assets and the generated body references them by release URL. Images in `dist/RELEASE_BODY.md` will not preview locally until the tag is published with `dist/*.png` attached.
-
-See [`.github/release_template.md`](.github/release_template.md) for the release notes format.
-
-**Local Dagger** (inside the devcontainer after rebuild):
-
-1. Host Docker must be running and `/var/run/docker.sock` mounted (configured in `devcontainer.json`).
-2. Run from the repo root: `just ci` (or `dagger call -m ./ci check --source=.`)
+- [Set up GitHub](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) — template clone settings (Actions, Pages, branch protection)
+- [Releases (getting started)](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases) — first release and versioning
+- [CI & Dagger](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/ci-and-dagger) — path filters, `just ci`, Dagger functions
+- [Releases (reference)](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/releases) — Conventional Commits detail, dry-run, manual tags
 
 ## Known limitations
 
-- build123d is code-first — not a full GUI CAD application.
-- OCP CAD Viewer visualizes Python-defined geometry; the model source remains code.
-- Selector-based operations (faces, edges) can break if topology changes unexpectedly.
-- STEP is the reliable interchange format; STL is lossy.
-- Rebuilding clean parametric code from imported STL usually requires human or agent interpretation.
-- MCP servers in this space are experimental until vetted and pinned.
-- VSIX extension install may require a manual step if the editor remote CLI (`code` / `cursor`) is unavailable in the container.
+See [Troubleshooting](https://coffee2bits.github.io/CAD-as-Code-Template/troubleshooting/) for known limitations and fixes.
 
 ## Additional resources
 
-- [CAD tooling](cad_tooling/README.md) — export helpers, headless OCP rendering, `@render`, release notes, and CI integration
-
-## References — build123d part libraries
-
-Community parametric part libraries that extend [build123d](https://build123d.readthedocs.io/). They are listed in [`pyproject.toml`](pyproject.toml) as **commented-out** optional dependencies — uncomment the line(s) you need and run `uv sync` before importing them in `cad/` code. Agents: use the one-line scopes below as categorizers; see [AGENTS.md — External part libraries](AGENTS.md#external-part-libraries) for when to reach for each.
-
-See also the upstream index: [build123d — External Tools and Libraries (part libraries)](https://build123d.readthedocs.io/en/latest/external.html#part-libraries).
-
-| Library | Description | Source | Docs |
-|---------|-------------|--------|------|
-| [bd_warehouse](https://github.com/gumyr/bd_warehouse) | Catalog mechanical parts: fasteners, bearings, flanges, pipes, threads, and sprockets. | [GitHub](https://github.com/gumyr/bd_warehouse) | [Read the Docs](https://bd-warehouse.readthedocs.io/) |
-| [bd_beams_and_bars](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | Standard structural beams and bars for frames and welded assemblies. Git install only (no PyPI package yet). | [GitLab](https://gitlab.com/experimentslabs/3d/bd_beams_and_bars) | [Experiments Labs](https://bd-beams-and-bars.3d.experimentslabs.com/) |
-| [py_gearworks](https://github.com/GarryBGoode/py_gearworks) | Parametric gears, gear pairs, and drive trains. | [GitHub](https://github.com/GarryBGoode/py_gearworks) | [README](https://github.com/GarryBGoode/py_gearworks#readme) |
-| [bd-vslot](https://github.com/keeeal/bd-vslot) | V-Slot extrusion profiles and linear-frame components (PyPI: `bd-vslot`). | [GitHub](https://github.com/keeeal/bd-vslot) | [Read the Docs](https://bd-vslot.readthedocs.io/) |
-
-**Enable in this repo** — matching commented lines in `pyproject.toml`:
-
-```toml
-# "bd_warehouse>=0.2.0",
-# "bd-vslot",
-# "bd_beams_and_bars @ git+https://gitlab.com/experimentslabs/3d/bd_beams_and_bars.git",
-# "py_gearworks @ git+https://github.com/GarryBGoode/py_gearworks.git",
-```
+- [Documentation site](https://coffee2bits.github.io/CAD-as-Code-Template/) — full guides
+- [Open CASCADE](https://coffee2bits.github.io/CAD-as-Code-Template/reference/open-cascade) — kernel under build123d
+- [External part libraries](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/external-libraries) — bd_warehouse, bd-vslot, and more
+- [CAD tooling](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/) — export, render, release notes
 
 ## License
 

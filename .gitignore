@@ -40,6 +40,9 @@ dist/
 # Ephemeral OCP CAD Viewer VSIX (downloaded to workspace root, not committed)
 ocp-cad-viewer-*.vsix
 
+# Last-applied template identity (local state for idempotent `just template-apply`)
+.template.repo.applied.json
+
 # OS/editor
 .DS_Store
 Thumbs.db

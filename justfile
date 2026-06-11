@@ -138,6 +138,24 @@ version-tag:
     git push origin "$tag"
     echo "Created and pushed $tag"
 
+# --- Documentation (Docusaurus) ---
+
+[group('docs')]
+docs-install:
+    cd website && npm ci
+
+[group('docs')]
+docs-serve:
+    # Docusaurus dev server with hot reload — http://localhost:3000
+    cd website && npm run start
+
+[group('docs')]
+docs-start: docs-serve
+
+[group('docs')]
+docs-build:
+    cd website && npm run build
+
 # --- Dagger CI (requires Docker; run inside devcontainer) ---
 
 [group('ci')]
