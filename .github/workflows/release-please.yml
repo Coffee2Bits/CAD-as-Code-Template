@@ -21,30 +21,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          # Only open/update Release PRs. Tagging and GitHub Releases are handled
-          # below when a Release PR squash-merge lands on main.
-          skip-github-release: true
-
-      - name: Detect merged Release PR
-        id: publish
-        env:
-          COMMIT_SUBJECT: ${{ github.event.head_commit.message }}
-        run: |
-          set -euo pipefail
-          subject="${COMMIT_SUBJECT%%$'\n'*}"
-          if [[ "$subject" =~ ^chore:\ release\ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "tag_name=v${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
-          else
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Checkout release commit
-        if: ${{ steps.publish.outputs.publish == 'true' }}
+        if: ${{ steps.release.outputs.release_created == 'true' }}
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.tag_name }}
 
       - name: Export release assets
-        if: ${{ steps.publish.outputs.publish == 'true' }}
+        if: ${{ steps.release.outputs.release_created == 'true' }}
         uses: dagger/dagger-for-github@v8.4.0
         with:
           version: "0.21.4"
@@ -54,33 +39,33 @@ jobs:
           dagger-flags: "--progress plain"
 
       - name: Set up Python
-        if: ${{ steps.publish.outputs.publish == 'true' }}
+        if: ${{ steps.release.outputs.release_created == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Set up uv
-        if: ${{ steps.publish.outputs.publish == 'true' }}
+        if: ${{ steps.release.outputs.release_created == 'true' }}
         uses: astral-sh/setup-uv@v5
 
       - name: Generate release notes
-        if: ${{ steps.publish.outputs.publish == 'true' }}
+        if: ${{ steps.release.outputs.release_created == 'true' }}
         run: |
           uv sync --group dev --frozen
           uv run python -m cad_tooling.export release-notes \
             --assets-dir dist \
             --repo "${{ github.repository }}" \
-            --tag "${{ steps.publish.outputs.tag_name }}" \
+            --tag "${{ steps.release.outputs.tag_name }}" \
             -o dist/RELEASE_BODY.md
 
       - name: Create or update GitHub Release
-        if: ${{ steps.publish.outputs.publish == 'true' }}
+        if: ${{ steps.release.outputs.release_created == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           shopt -s nullglob
-          tag="${{ steps.publish.outputs.tag_name }}"
+          tag="${{ steps.release.outputs.tag_name }}"
           assets=(dist/*.stl dist/*.png)
           if [ ${#assets[@]} -eq 0 ]; then
             echo "No release assets found in dist/" >&2
