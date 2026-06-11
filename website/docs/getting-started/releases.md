@@ -124,6 +124,7 @@ For STL/PNG assets and generated notes, use the automated path: merge the releas
 | No Release PR after merging `feat:` / `fix:` | [Workflow permissions](/getting-started/github-setup#actions-workflow-permissions); check Actions tab for failed `Release Please` run |
 | Release PR exists but will not update | Stale `autorelease: pending` label on an old Release PR — remove label and re-run workflow ([release-please docs](https://github.com/googleapis/release-please#why-are-there-multiple-release-prs)) |
 | Merge Release PR but no GitHub Release | Squash subject must match `chore: release X.Y.Z` exactly |
+| `Resource not accessible by integration` on create-a-release | Release commit includes `.github/workflows/` changes — job needs `workflows: write` (committed in `release-please.yml` / `release.yml`); re-run the failed workflow after merging the fix |
 | Release workflow fails on assets | Ensure at least one `@artifact` exports; run `just export-smoke` locally |
 | Wrong asset URLs in notes | Published notes need absolute `releases/download/{tag}/` URLs — see [release notes](/tools/cad-tooling/release-notes) |
 

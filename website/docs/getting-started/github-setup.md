@@ -150,8 +150,10 @@ Some workflows also declare job permissions explicitly:
 
 | Workflow | Job permissions |
 |----------|-----------------|
-| `release-please.yml` | `contents: write`, `pull-requests: write`, `issues: write` |
-| `release.yml` | `contents: write` (release job only) |
+| `release-please.yml` | `contents: write`, `pull-requests: write`, `issues: write`, `workflows: write`, `actions: read` |
+| `release.yml` | `contents: write`, `workflows: write`, `actions: read` (release job only) |
+
+`workflows: write` is required when a release targets a commit that changed files under `.github/workflows/` — without it, `create-a-release` returns **Resource not accessible by integration** even when repo Settings → Actions → General is set to read/write. See [GitHub CLI issue #9514](https://github.com/cli/cli/issues/9514).
 | `docs.yml` | `contents: read`, `pages: write`, `id-token: write` |
 | `ci.yml` | Default `GITHUB_TOKEN` (read) |
 

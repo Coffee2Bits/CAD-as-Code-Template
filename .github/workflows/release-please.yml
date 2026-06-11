@@ -13,6 +13,10 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+      # Required when the released commit changes files under .github/workflows/
+      # (GitHub REST create-release needs workflows:write in that case).
+      workflows: write
+      actions: read
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
@@ -21,6 +25,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Tag only — STL/PNG upload and release notes run in steps below.
+          skip-github-release: true
 
       - name: Checkout release commit
         if: ${{ steps.release.outputs.release_created == 'true' }}
