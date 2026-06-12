@@ -158,6 +158,28 @@ def test_render_stl_writes_png(tmp_path: Path, repo_root: Path):
     assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
 
 
+def test_show_edges_draws_face_boundaries(tmp_path: Path, repo_root: Path):
+    from cad_tooling.render import render_artifact
+    from cad_tooling.render_config import RenderConfig
+
+    plain = RenderConfig.model_validate({"show_edges": False, "camera": {"preset": "front"}})
+    edged = RenderConfig.model_validate(
+        {
+            "show_edges": True,
+            "edge_color": (0.0, 0.0, 0.0),
+            "edge_width": 1.5,
+            "camera": {"preset": "front"},
+        }
+    )
+
+    plain_png = tmp_path / "plain.png"
+    edged_png = tmp_path / "edged.png"
+    render_artifact("sphere", plain_png, overrides=plain, root=repo_root)
+    render_artifact("sphere", edged_png, overrides=edged, root=repo_root)
+
+    assert plain_png.read_bytes() != edged_png.read_bytes()
+
+
 def test_lighting_presets_change_render_brightness(tmp_path: Path, repo_root: Path):
     import numpy as np
     from PIL import Image
@@ -173,15 +195,19 @@ def test_lighting_presets_change_render_brightness(tmp_path: Path, repo_root: Pa
         return float(pixels[mask].mean())
 
     dark_config = RenderConfig(
-        lighting=LightingConfig(
-            preset="default",
-            intensity=0.35,
-            ambient=0.08,
-            headlight=0.35,
-            fill=0.15,
+        lighting=LightingConfig.model_validate(
+            {
+                "preset": "default",
+                "intensity": 0.35,
+                "ambient": 0.08,
+                "headlight": 0.35,
+                "fill": 0.15,
+            }
         )
     )
-    bright_config = RenderConfig(lighting=LightingConfig(preset="bright", intensity=1.5))
+    bright_config = RenderConfig(
+        lighting=LightingConfig.model_validate({"preset": "bright", "intensity": 1.5})
+    )
 
     dark_png = tmp_path / "dark.png"
     bright_png = tmp_path / "bright.png"
@@ -192,6 +218,32 @@ def test_lighting_presets_change_render_brightness(tmp_path: Path, repo_root: Pa
     bright_luma = _face_mean_luma(bright_png)
     assert bright_luma > dark_luma
     assert bright_luma - dark_luma > 12
+
+
+def test_render_artifact_preserves_part_colors(tmp_path: Path, repo_root: Path):
+    from cad_tooling.render import _build_artifact_shape, _colored_solids
+
+    shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
+    solids = _colored_solids(shape, (0.31, 0.63, 1.0))
+    assert len(solids) == 2
+    colors = {tuple(round(channel, 2) for channel in face_color) for _, face_color in solids}
+    assert len(colors) == 2
+
+
+def test_render_input_artifact_uses_python_shape_not_stl(tmp_path: Path, repo_root: Path):
+    from cad_tooling.render import _build_artifact_shape, _colored_solids, render_input
+
+    export_release(tmp_path, root=repo_root)
+    stl_path = tmp_path / "sphere_with_nut.stl"
+    written = render_input(
+        stl_path,
+        tmp_path / "previews",
+        artifact_name="sphere_with_nut",
+        root=repo_root,
+    )
+    assert written
+    shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
+    assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 2
 
 
 def test_render_cli(tmp_path: Path, repo_root: Path):

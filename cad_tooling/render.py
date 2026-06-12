@@ -16,8 +16,9 @@ from pathlib import Path
 
 from build123d import Compound, Part, import_stl
 from OCP.AIS import AIS_InteractiveContext, AIS_Shape, AIS_Shaded
-from OCP.Aspect import Aspect_DisplayConnection
+from OCP.Aspect import Aspect_DisplayConnection, Aspect_TOL_SOLID
 from OCP.Graphic3d import Graphic3d_MaterialAspect, Graphic3d_NOM_PLASTIC
+from OCP.Prs3d import Prs3d_LineAspect
 from OCP.OpenGl import OpenGl_GraphicDriver
 from OCP.Quantity import Quantity_Color, Quantity_TOC_RGB
 from OCP.TopoDS import TopoDS_Shape
@@ -173,11 +174,24 @@ def _scale_default_lights(viewer: V3d_Viewer, scale: float) -> None:
 
 
 def _apply_lighting(viewer: V3d_Viewer, profile: ResolvedLighting) -> None:
-    """Configure OCCT stock lights and optional intensity scaling."""
+    """Configure OCCT stock lights and scale them to the resolved profile."""
     viewer.SetDefaultLights()
     viewer.SetLightOn()
-    if not profile.use_stock:
-        _scale_default_lights(viewer, profile.light_scale)
+    _scale_default_lights(viewer, profile.light_scale)
+
+
+def _apply_face_boundaries(ais: AIS_Shape, settings: RenderConfig) -> None:
+    """Enable OCCT face-boundary edges on a shaded AIS_Shape."""
+    if not settings.show_edges:
+        return
+    drawer = ais.Attributes()
+    drawer.SetFaceBoundaryDraw(True)
+    aspect = Prs3d_LineAspect(
+        Quantity_Color(*settings.edge_color, Quantity_TOC_RGB),
+        Aspect_TOL_SOLID,
+        settings.edge_width,
+    )
+    drawer.SetFaceBoundaryAspect(aspect)
 
 
 def _material_for_shape(
@@ -185,8 +199,6 @@ def _material_for_shape(
     profile: ResolvedLighting,
 ) -> Graphic3d_MaterialAspect:
     """Build a shaded material tuned for headless PNG brightness."""
-    if profile.use_stock:
-        return Graphic3d_MaterialAspect(Graphic3d_NOM_PLASTIC)
     material = Graphic3d_MaterialAspect(Graphic3d_NOM_PLASTIC)
     ambient = tuple(min(1.0, channel * profile.ambient_factor) for channel in face_color)
     diffuse = tuple(min(1.0, channel * profile.diffuse_factor) for channel in face_color)
@@ -230,6 +242,7 @@ def _render_shape_once(
         ais = AIS_Shape(topo)
         ais.SetMaterial(_material_for_shape(face_color, lighting_profile))
         ais.SetColor(Quantity_Color(*face_color, Quantity_TOC_RGB))
+        _apply_face_boundaries(ais, settings)
         context.Display(ais, AIS_Shaded, 0, True)
 
     view.FitAll(settings.fit_margin, False)
@@ -369,10 +382,10 @@ def load_viewer_script(
     return shape, artifact.name, artifact.func
 
 
-def _artifact_func_for_name(
+def _artifact_for_name(
     name: str,
     root: Path | None = None,
-) -> Callable[..., object] | None:
+):
     from cad_tooling.export import list_artifacts
 
     matches = [item for item in list_artifacts(root) if item.name == name]
@@ -381,7 +394,46 @@ def _artifact_func_for_name(
     if len(matches) > 1:
         options = ", ".join(f"{item.module}/{item.name}" for item in matches)
         raise ValueError(f"Ambiguous artifact name '{name}'; use module/name: {options}")
-    return matches[0].func
+    return matches[0]
+
+
+def _artifact_func_for_name(
+    name: str,
+    root: Path | None = None,
+) -> Callable[..., object] | None:
+    artifact = _artifact_for_name(name, root)
+    return None if artifact is None else artifact.func
+
+
+def _build_artifact_shape(name: str, root: Path | None = None) -> Part | Compound:
+    """Build a MakerRepo artifact shape with native part colors intact."""
+    from cad_tooling.export import _shape, realize_artifact
+
+    artifact = _artifact_for_name(name, root)
+    if artifact is None:
+        raise ValueError(f"Artifact not found for render lookup: {name}")
+    return _shape(realize_artifact(artifact))
+
+
+def render_artifact(
+    name: str,
+    output: Path,
+    *,
+    overrides: RenderConfig | None = None,
+    root: Path | None = None,
+) -> list[Path]:
+    """Render a named @artifact from Python (preserves per-part colors)."""
+    artifact = _artifact_for_name(name, root)
+    if artifact is None:
+        raise ValueError(f"Artifact not found: {name}")
+    shape = _build_artifact_shape(name, root)
+    return render_model(
+        shape,
+        output,
+        name,
+        artifact_func=artifact.func,
+        overrides=overrides,
+    )
 
 
 def _resolve_render_configs_for_label(
@@ -449,9 +501,14 @@ def render_input(
     overrides: RenderConfig | None = None,
     root: Path | None = None,
 ) -> list[Path]:
-    """Render an STL file or viewer script (with build_model()) to PNG preview(s)."""
-    resolved = _resolve_input_path(input_path)
-    if resolved.suffix.lower() == ".py":
+    """Render an artifact name, STL file, or viewer script to PNG preview(s)."""
+    resolved: Path | None = None
+    try:
+        resolved = _resolve_input_path(input_path)
+    except FileNotFoundError:
+        resolved = None
+
+    if resolved is not None and resolved.suffix.lower() == ".py":
         return render_viewer_script(
             resolved,
             output,
@@ -460,13 +517,24 @@ def render_input(
             root=root,
         )
 
-    label = artifact_name or resolved.stem
-    artifact_func = _artifact_func_for_name(label, root)
-    configs = _resolve_render_configs_for_label(
-        label,
-        artifact_func=artifact_func,
-        overrides=overrides,
-    )
+    label = artifact_name or (resolved.stem if resolved is not None else input_path.stem)
+    artifact = _artifact_for_name(label, root)
+    if artifact is not None:
+        shape = _build_artifact_shape(label, root)
+        return render_model(
+            shape,
+            output,
+            label,
+            artifact_func=artifact.func,
+            overrides=overrides,
+        )
+
+    if resolved is None:
+        raise FileNotFoundError(
+            f"Input not found and no artifact named '{input_path}': {input_path}"
+        )
+
+    configs = _resolve_render_configs_for_label(label, artifact_func=None, overrides=overrides)
     if output.suffix.lower() == ".png":
         configs = configs[:1]
     multi_render = len(configs) > 1

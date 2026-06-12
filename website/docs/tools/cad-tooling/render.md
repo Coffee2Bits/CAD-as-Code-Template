@@ -28,6 +28,10 @@ just render dist/sphere.stl dist/sphere.png --camera top
 just render main.py dist --lighting-preset bright
 just render-artifact sphere /tmp/out           # export STL + PNG for one @artifact
 just render-artifact sphere_with_nut dist --lighting-preset bright
+
+PNG previews for named `@artifact` functions are rendered from **Python geometry**
+(same path as `export release`), not from the exported STL. STL meshes do not carry
+per-part `Part.color` metadata, so STL-based previews would appear as a single default color.
 ```
 
 ### Headless PNG for a named artifact
@@ -62,7 +66,10 @@ Sub-parts without `@render` (such as `m3_hex_nut`) are omitted. Release export s
 | `--camera` | Preset (see below) |
 | `--azimuth` / `--elevation` | Extra pose in degrees |
 | `--fit-margin` | Passed to `V3d_View.FitAll` |
-| `--lighting-preset` | `default`, `studio` (default), `bright`, or `flat` |
+| `--show-edges` / `--no-show-edges` | OCCT face-boundary edges on shaded solids (default: on) |
+| `--edge-color R,G,B` | Face-boundary edge RGB (0.0–1.0) |
+| `--edge-width` | Face-boundary line width in pixels |
+| `--lighting-preset` | `default` (global default), `studio`, `bright`, or `flat` |
 | `--light-intensity` | Global multiplier for directional lights and material reflectance |
 | `--ambient-intensity` | Material ambient reflectance override (0.0–2.0) |
 | `--headlight-intensity` | OCCT directional light scale override |
@@ -82,11 +89,19 @@ def sphere() -> Part:
     return make_sphere()
 ```
 
+**Edges** — face-boundary lines on shaded solids (default on):
+
+| Field | Purpose |
+|-------|---------|
+| `show_edges` | Enable OCCT face-boundary drawing (default `true`) |
+| `edge_color` | RGB triplet for edge lines (default black) |
+| `edge_width` | Line width in pixels (default `1.0`) |
+
 **Lighting** — pass a `lighting` mapping on `@render` or per entry in `renders=[...]`:
 
 | Field | Purpose |
 |-------|---------|
-| `preset` | `default` (OCCT stock), `studio` (balanced, default), `bright`, `flat` |
+| `preset` | `default` (global default), `studio`, `bright`, `flat` — coefficients in `LIGHTING_PRESETS` |
 | `intensity` | Global multiplier for directional lights and material reflectance (default `1.0`) |
 | `ambient` | Material ambient reflectance override (0.0–2.0) |
 | `headlight` | OCCT directional light scale override |
@@ -95,6 +110,11 @@ def sphere() -> Part:
 Headless renders scale OCCT's stock directional lights and tune per-shape plastic
 material ambient/diffuse coefficients. Custom `AddLight` sources are not used because
 they have little effect in the CI shaded PNG path.
+
+Face-boundary edges use OCCT `Prs3d_Drawer.SetFaceBoundaryDraw` on BRep solids. They
+apply when rendering from Python geometry (`render_artifact`, `export release`,
+viewer scripts) but not when importing STL meshes — STL triangulation does not carry
+the original face topology needed for boundary lines.
 
 Multiple release previews per artifact (filename encodes camera and size, e.g. `sphere_iso_800x600.png`):
 

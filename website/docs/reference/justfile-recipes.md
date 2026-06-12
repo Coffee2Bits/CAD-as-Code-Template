@@ -45,8 +45,9 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | Command | What it runs |
 |---------|--------------|
 | `just export-smoke` | Discover and export all artifacts (CI smoke) |
-| `just export dist/export step sphere` | Export via `cad_tooling.export` |
-| `just release dist/` | STL + PNG release bundle |
+| `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
+| `just export /tmp/out step sphere` | Export one artifact in a given format |
+| `just release dist/` | Alias for `just export dist/` |
 | `just template-apply` | Apply `template.repo.toml` to docs site, README links, `pyproject.toml` |
 | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | `just render` | Headless PNG from `main.py` to `dist/` |

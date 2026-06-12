@@ -28,6 +28,9 @@ def _settings_to_partial_config(
     background: RgbTriplet | None = None,
     face_color: RgbTriplet | None = None,
     fit_margin: float | None = None,
+    show_edges: bool | None = None,
+    edge_color: RgbTriplet | None = None,
+    edge_width: float | None = None,
     lighting: LightingConfig | Mapping[str, object] | None = None,
 ) -> RenderConfig:
     """Normalize @render keyword arguments into a partial RenderConfig."""
@@ -39,6 +42,9 @@ def _settings_to_partial_config(
         ("background", background),
         ("face_color", face_color),
         ("fit_margin", fit_margin),
+        ("show_edges", show_edges),
+        ("edge_color", edge_color),
+        ("edge_width", edge_width),
     ):
         if value is not None:
             payload[key] = value
@@ -88,6 +94,9 @@ def _spec_to_partial_config(spec: RenderSpec) -> RenderConfig:
             background=spec.get("background"),  # type: ignore[arg-type]
             face_color=spec.get("face_color"),  # type: ignore[arg-type]
             fit_margin=spec.get("fit_margin"),  # type: ignore[arg-type]
+            show_edges=spec.get("show_edges"),  # type: ignore[arg-type]
+            edge_color=spec.get("edge_color"),  # type: ignore[arg-type]
+            edge_width=spec.get("edge_width"),  # type: ignore[arg-type]
             lighting=spec.get("lighting"),  # type: ignore[arg-type]
         )
     raise TypeError(f"Expected RenderConfig or mapping in @render list, got {type(spec)}")
@@ -144,6 +153,9 @@ def render(
     background: RgbTriplet | None = None,
     face_color: RgbTriplet | None = None,
     fit_margin: float | None = None,
+    show_edges: bool | None = None,
+    edge_color: RgbTriplet | None = None,
+    edge_width: float | None = None,
     lighting: LightingConfig | Mapping[str, object] | None = None,
 ) -> Callable[[_F], _F]: ...
 
@@ -161,6 +173,9 @@ def render(
     background: RgbTriplet | None = None,
     face_color: RgbTriplet | None = None,
     fit_margin: float | None = None,
+    show_edges: bool | None = None,
+    edge_color: RgbTriplet | None = None,
+    edge_width: float | None = None,
     lighting: LightingConfig | Mapping[str, object] | None = None,
 ) -> _F | Callable[[_F], _F]:
     """Attach release preview settings to an @artifact entry point.
@@ -185,9 +200,15 @@ def render(
     **Image** — ``width``, ``height``, ``background`` and ``face_color`` RGB triplets (0.0–1.0),
     ``fit_margin`` for ``V3d_View.FitAll``.
 
+    **Edges** — OCCT face-boundary lines on shaded solids (default on):
+
+    - ``show_edges``: enable or disable face-boundary drawing
+    - ``edge_color``: RGB triplet for edge lines (default black)
+    - ``edge_width``: line width in pixels (default ``1.0``)
+
     **Lighting** — ``lighting`` mapping or :class:`~cad_tooling.render_config.LightingConfig`:
 
-    - ``preset``: ``default`` (OCCT stock), ``studio`` (balanced, default), ``bright``, ``flat``
+    - ``preset``: ``default`` (global default), ``studio``, ``bright``, ``flat``
     - ``intensity``: global multiplier for directional lights and material reflectance
     - ``ambient``: material ambient reflectance override (0.0–2.0)
     - ``headlight``: OCCT directional light scale override (0.0–2.0)
@@ -210,6 +231,9 @@ def render(
                 background,
                 face_color,
                 fit_margin,
+                show_edges,
+                edge_color,
+                edge_width,
                 lighting,
             )
         ):
@@ -232,6 +256,9 @@ def render(
             background=background,
             face_color=face_color,
             fit_margin=fit_margin,
+            show_edges=show_edges,
+            edge_color=edge_color,
+            edge_width=edge_width,
             lighting=lighting,
         )
 

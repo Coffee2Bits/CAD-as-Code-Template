@@ -139,6 +139,20 @@ def test_main_release_notes_command(tmp_path: Path, repo_root: Path):
     assert "## sphere" in notes_path.read_text()
 
 
+def test_export_release_uses_default_lighting_preset(repo_root: Path):
+    from cad_tooling.export import list_release_artifacts
+    from cad_tooling.render_config import LIGHTING_PRESETS, LightingPreset, resolve_render_configs
+
+    artifact = list_release_artifacts(repo_root)[0]
+    config = resolve_render_configs(artifact_func=artifact.func)[0]
+    assert config.lighting.preset == LightingPreset.DEFAULT
+    profile = config.lighting.resolved_profile()
+    light_scale, ambient_factor, diffuse_factor, _, _ = LIGHTING_PRESETS[LightingPreset.DEFAULT]
+    assert profile.light_scale == pytest.approx(light_scale)
+    assert profile.ambient_factor == pytest.approx(ambient_factor)
+    assert profile.diffuse_factor == pytest.approx(diffuse_factor)
+
+
 def test_main_release_applies_render_overrides(tmp_path: Path, repo_root: Path):
     assert (
         _main(

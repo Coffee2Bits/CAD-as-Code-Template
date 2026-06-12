@@ -4,8 +4,10 @@ import pytest
 
 from cad_tooling.render_config import (
     CAMERA_PRESET_CHOICES,
+    LIGHTING_PRESETS,
     CameraConfig,
     LightingConfig,
+    LightingPreset,
     RenderConfig,
     add_render_config_arguments,
     render_config_from_namespace,
@@ -77,17 +79,60 @@ def test_merge_deep_merges_nested_lighting():
 def test_lighting_config_resolved_profile():
     lighting = LightingConfig.model_validate({"preset": "studio", "intensity": 2.0})
     profile = lighting.resolved_profile()
-    assert profile.use_stock is False
     assert profile.light_scale == pytest.approx(3.2)
     assert profile.ambient_factor == pytest.approx(1.0)
     assert profile.diffuse_factor == pytest.approx(1.0)
 
 
-def test_lighting_config_default_preset_uses_occt_stock():
+def test_lighting_config_default_preset_uses_preset_table():
     lighting = LightingConfig.model_validate({"preset": "default"})
     profile = lighting.resolved_profile()
-    assert profile.use_stock is True
-    assert profile.light_scale == pytest.approx(1.0)
+    light_scale, ambient_factor, diffuse_factor, specular, shininess = LIGHTING_PRESETS[
+        LightingPreset.DEFAULT
+    ]
+    assert profile.light_scale == pytest.approx(light_scale)
+    assert profile.ambient_factor == pytest.approx(ambient_factor)
+    assert profile.diffuse_factor == pytest.approx(diffuse_factor)
+    assert profile.specular == pytest.approx(specular)
+    assert profile.shininess == pytest.approx(shininess)
+
+
+def test_render_config_edge_defaults():
+    config = RenderConfig()
+    assert config.show_edges is True
+    assert config.edge_color == (0.0, 0.0, 0.0)
+    assert config.edge_width == pytest.approx(1.0)
+
+
+def test_render_decorator_stores_edges():
+    @render(show_edges=False, edge_color=(0.2, 0.2, 0.2), edge_width=2.0)
+    def demo_part():
+        return None
+
+    config = get_render_config_from_func(demo_part)
+    assert config is not None
+    assert config.show_edges is False
+    assert config.edge_color == (0.2, 0.2, 0.2)
+    assert config.edge_width == pytest.approx(2.0)
+
+
+def test_render_config_from_namespace_edge_fields():
+    parser = argparse.ArgumentParser()
+    add_render_config_arguments(parser)
+    args = parser.parse_args(
+        [
+            "--no-show-edges",
+            "--edge-color",
+            "0.1,0.2,0.3",
+            "--edge-width",
+            "2.5",
+        ]
+    )
+    config = render_config_from_namespace(args)
+    assert config is not None
+    assert config.show_edges is False
+    assert config.edge_color == (0.1, 0.2, 0.3)
+    assert config.edge_width == pytest.approx(2.5)
 
 
 def test_render_decorator_stores_lighting():
@@ -148,6 +193,21 @@ def test_render_config_from_namespace_empty_returns_none():
     add_render_config_arguments(parser)
     args = parser.parse_args([])
     assert render_config_from_namespace(args) is None
+
+
+def test_cli_lighting_preset_studio_overrides_global_default(repo_root):
+    from cad_tooling.export import list_artifacts
+
+    parser = argparse.ArgumentParser()
+    add_render_config_arguments(parser)
+    args = parser.parse_args(["--lighting-preset", "studio"])
+    overrides = render_config_from_namespace(args)
+    artifact = next(item for item in list_artifacts(repo_root) if item.name == "sphere_with_nut")
+    configs = resolve_render_configs(artifact_func=artifact.func, overrides=overrides)
+    assert configs[0].lighting.preset == LightingPreset.STUDIO
+    assert configs[0].lighting.resolved_profile().light_scale == pytest.approx(
+        LIGHTING_PRESETS[LightingPreset.STUDIO][0]
+    )
 
 
 def test_invalid_rgb_rejected():
@@ -243,7 +303,7 @@ def test_resolve_render_configs_defaults_without_decorator():
     assert len(configs) == 1
     assert configs[0].width == 800
     assert configs[0].camera.preset == "iso"
-    assert configs[0].lighting.preset == "studio"
+    assert configs[0].lighting.preset == "default"
 
 
 def test_resolve_render_configs_multiple_from_renders_list():

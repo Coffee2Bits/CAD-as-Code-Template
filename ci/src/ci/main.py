@@ -88,6 +88,8 @@ class Ci:
                     "release",
                     "-o",
                     "/tmp/release-artifacts",
+                    "--lighting-preset",
+                    "default",
                 ]
             )
             .directory("/tmp/release-artifacts")

@@ -190,13 +190,14 @@ def bracket() -> Part:
 | `width` / `height` | PNG size |
 | `background` / `face_color` | RGB triplets in 0.0–1.0 |
 | `fit_margin` | Passed to `V3d_View.FitAll` |
+| `show_edges` / `edge_color` / `edge_width` | OCCT face-boundary edges on BRep solids (default on, black, 1 px); not on STL imports |
 | `lighting` | Lighting preset and intensities — see below |
 
 **Lighting** (`lighting={...}` or nested :class:`~cad_tooling.render_config.LightingConfig`):
 
 | Field | Purpose |
 |-------|---------|
-| `preset` | `default` (OCCT stock), `studio` (balanced, default), `bright`, `flat` |
+| `preset` | `default` (global default), `studio`, `bright`, `flat` — see `LIGHTING_PRESETS` in `render_config.py` |
 | `intensity` | Global multiplier for directional lights and material reflectance (default `1.0`) |
 | `ambient` | Material ambient reflectance override (0.0–2.0) |
 | `headlight` | OCCT directional light scale override (0.0–2.0) |
@@ -208,7 +209,8 @@ def bracket() -> Part:
     return make_bracket()
 ```
 
-CLI overrides: `--lighting-preset`, `--light-intensity`, `--ambient-intensity`,
+CLI overrides: `--show-edges` / `--no-show-edges`, `--edge-color`, `--edge-width`,
+`--lighting-preset`, `--light-intensity`, `--ambient-intensity`,
 `--headlight-intensity`, `--fill-intensity`.
 
 Resolution order at render time: **defaults** → **`@render` on the artifact** → **CLI flags** (`cad_tooling.render` / `cad_tooling.export release`).

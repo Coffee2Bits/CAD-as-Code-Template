@@ -33,8 +33,8 @@ Or via `just`:
 
 ```bash
 just export-smoke
-just export dist/export step sphere
-just release dist/
+just export                            # STL + PNG release bundle to dist/
+just export /tmp/out step sphere       # single-artifact STEP export
 just release-notes v0.1.0
 just render-artifact sphere /tmp/out   # STL + PNG — see render doc
 ```

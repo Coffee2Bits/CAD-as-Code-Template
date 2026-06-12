@@ -93,14 +93,19 @@ export-smoke:
     uv run python -m cad_tooling.export smoke
 
 [group('export')]
-export out='dist/export' format='step' *names:
-    mkdir -p {{out}}
-    uv run python -m cad_tooling.export export -o {{out}} --format {{format}} {{names}}
+export out='dist' format='release' *names:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p "{{out}}"
+    if [[ "{{format}}" == "release" ]]; then
+        uv run python -m cad_tooling.export release -o "{{out}}" --lighting-preset default
+    else
+        uv run python -m cad_tooling.export export -o "{{out}}" --format "{{format}}" {{names}}
+    fi
 
 [group('export')]
 release out='dist':
-    mkdir -p {{out}}
-    uv run python -m cad_tooling.export release -o {{out}}
+    @just export {{out}}
 
 [group('export')]
 release-notes tag out='dist/RELEASE_BODY.md' assets='dist' repo='':
@@ -215,7 +220,7 @@ render-artifact *args:
     if ((${#positionals[@]} > 1)); then out="${positionals[1]}"; fi
     mkdir -p "$out"
     uv run python -m cad_tooling.export export -o "$out" --format stl "$name"
-    uv run python -m cad_tooling.render "$out/$name.stl" -o "$out" --artifact "$name" "${flags[@]}"
+    uv run python -m cad_tooling.render "$name" -o "$out" --artifact "$name" "${flags[@]}"
 
 # --- Release versioning ---
 

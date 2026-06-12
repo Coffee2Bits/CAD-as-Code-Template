@@ -24,8 +24,9 @@ sidebar_position: 1
 | | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
 | | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
 | **export** | `just export-smoke` | Discover and export all artifacts (CI smoke) |
-| | `just export dist/export step sphere` | Export via `cad_tooling.export` |
-| | `just release dist/` | STL + PNG release bundle |
+| | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
+| | `just export /tmp/out step sphere` | Export one artifact in a given format |
+| | `just release dist/` | Alias for `just export dist/` |
 | **setup** | `just template-apply` | Apply `template.repo.toml` after "Use this template" |
 | | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | | `just render` | Headless PNG from `main.py` to `dist/` |
@@ -48,7 +49,8 @@ sidebar_position: 1
 ```bash
 just quality          # before pushing
 just ci               # full CI gate (Docker required)
-just release dist/    # local release dry-run
+just export           # local release dry-run (STL + PNG in dist/)
+just release-notes v0.1.0
 ```
 
 ## Pitfall: version bump

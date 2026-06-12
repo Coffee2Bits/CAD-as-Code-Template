@@ -69,7 +69,7 @@ Release notes template: [`.github/release_template.md`](https://github.com/Coffe
 `just release-notes` reads `owner/repo` from [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) — set that file first (see [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo)).
 
 ```bash
-just release dist/
+just export
 just release-notes v0.1.0
 ```
 

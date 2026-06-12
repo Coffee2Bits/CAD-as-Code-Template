@@ -16,7 +16,7 @@ Builds from [`.devcontainer/Dockerfile`](https://github.com/Coffee2Bits/CAD-as-C
 | `lint` | `uv run ruff check .`, `ruff format --check .`, `mypy cad cad_tooling tests cad_tooling_tests`, `vulture` |
 | `test` | `uv run pytest` |
 | `artifacts` | `uv run python -m cad_tooling.export smoke` |
-| `release-artifact` | `uv run python -m cad_tooling.export release -o /tmp/release-artifacts` → returns `dist/` directory |
+| `release-artifact` | `uv run python -m cad_tooling.export release -o /tmp/release-artifacts --lighting-preset default` → returns `dist/` directory |
 
 ## Invocations
 

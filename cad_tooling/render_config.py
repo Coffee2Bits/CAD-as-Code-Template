@@ -49,7 +49,7 @@ LIGHTING_PRESETS: dict[
     tuple[float, float, float, float, float],
 ] = {
     # (light_scale, ambient_factor, diffuse_factor, specular, shininess)
-    LightingPreset.DEFAULT: (1.0, 0.4, 0.75, 0.35, 0.3),
+    LightingPreset.DEFAULT: (1.6, 1.0, 0.8, 0.2, 0.1),
     LightingPreset.STUDIO: (1.6, 0.8, 0.95, 0.4, 0.3),
     LightingPreset.BRIGHT: (2.2, 0.75, 1.0, 0.5, 0.25),
     LightingPreset.FLAT: (1.2, 0.9, 0.7, 0.15, 0.1),
@@ -60,7 +60,6 @@ LIGHTING_PRESETS: dict[
 class ResolvedLighting:
     """Resolved lighting applied during headless OCCT shaded renders."""
 
-    use_stock: bool
     light_scale: float
     ambient_factor: float
     diffuse_factor: float
@@ -80,9 +79,9 @@ class LightingConfig(BaseModel):
     """OCCT scene lighting for shaded PNG previews."""
 
     preset: LightingPreset = Field(
-        default=LightingPreset.STUDIO,
+        default=LightingPreset.DEFAULT,
         description=(
-            "Named lighting setup: default (OCCT stock), studio (balanced), "
+            "Named lighting setup: default (global default), studio, "
             "bright (higher key + ambient), flat (soft ambient-heavy product lighting)"
         ),
     )
@@ -112,24 +111,7 @@ class LightingConfig(BaseModel):
     )
 
     def resolved_profile(self) -> ResolvedLighting:
-        """Return lighting coefficients applied during headless shaded renders."""
-        use_stock = (
-            self.preset == LightingPreset.DEFAULT
-            and self.intensity == 1.0
-            and self.ambient is None
-            and self.headlight is None
-            and self.fill is None
-        )
-        if use_stock:
-            return ResolvedLighting(
-                use_stock=True,
-                light_scale=1.0,
-                ambient_factor=0.2,
-                diffuse_factor=0.6,
-                specular=0.35,
-                shininess=0.1,
-            )
-
+        """Return lighting coefficients from preset table plus optional overrides."""
         light_scale, ambient_factor, diffuse_factor, specular, shininess = LIGHTING_PRESETS[
             self.preset
         ]
@@ -138,7 +120,6 @@ class LightingConfig(BaseModel):
         diffuse = self.fill if self.fill is not None else diffuse_factor
         scale = self.intensity
         return ResolvedLighting(
-            use_stock=False,
             light_scale=headlight * scale,
             ambient_factor=min(1.0, ambient * scale),
             diffuse_factor=min(1.0, diffuse * scale),
@@ -159,10 +140,24 @@ class RenderConfig(BaseModel):
     background: tuple[float, float, float] = (0.12, 0.12, 0.12)
     face_color: tuple[float, float, float] = (0.31, 0.63, 1.0)
     fit_margin: float = Field(default=0.01, ge=0)
+    show_edges: bool = Field(
+        default=True,
+        description="Draw OCCT face-boundary edges on shaded solids for clearer topology",
+    )
+    edge_color: tuple[float, float, float] = Field(
+        default=(0.0, 0.0, 0.0),
+        description="RGB color for face-boundary edges (0.0–1.0)",
+    )
+    edge_width: float = Field(
+        default=1.0,
+        gt=0,
+        le=5.0,
+        description="Line width for face-boundary edges in pixels",
+    )
     camera: CameraConfig = Field(default_factory=CameraConfig)
     lighting: LightingConfig = Field(default_factory=LightingConfig)
 
-    @field_validator("background", "face_color", mode="before")
+    @field_validator("background", "face_color", "edge_color", mode="before")
     @classmethod
     def _rgb_triplet(cls, value: object) -> tuple[float, float, float]:
         if not isinstance(value, (list, tuple)) or len(value) != 3:
@@ -279,6 +274,24 @@ def add_render_config_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--fit-margin", type=float, default=None, help="V3d_View.FitAll margin")
     parser.add_argument(
+        "--show-edges",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Draw OCCT face-boundary edges on shaded solids (default: on)",
+    )
+    parser.add_argument(
+        "--edge-color",
+        default=None,
+        metavar="R,G,B",
+        help="Face-boundary edge RGB in 0.0–1.0",
+    )
+    parser.add_argument(
+        "--edge-width",
+        type=float,
+        default=None,
+        help="Face-boundary edge line width in pixels (0–5)",
+    )
+    parser.add_argument(
         "--camera",
         choices=CAMERA_PRESET_CHOICES,
         default=None,
@@ -344,6 +357,12 @@ def render_config_from_namespace(args: argparse.Namespace) -> RenderConfig | Non
         fields["face_color"] = tuple(float(v) for v in args.face_color.split(","))
     if getattr(args, "fit_margin", None) is not None:
         fields["fit_margin"] = args.fit_margin
+    if getattr(args, "show_edges", None) is not None:
+        fields["show_edges"] = args.show_edges
+    if getattr(args, "edge_color", None) is not None:
+        fields["edge_color"] = tuple(float(v) for v in args.edge_color.split(","))
+    if getattr(args, "edge_width", None) is not None:
+        fields["edge_width"] = args.edge_width
     if camera_fields:
         fields["camera"] = camera_fields
 
