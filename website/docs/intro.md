@@ -6,7 +6,7 @@ title: Introduction
 
 # CAD-as-Code, in a box
 
-A turnkey workspace for [parametric CAD as software](/reference/glossary#cad-as-code). Reopen this repo in any Dev Containers-capable editor or cloud workspace — [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), [GitHub Codespaces](https://github.com/features/codespaces), GitHub Copilot in VS Code, and [many other clients](/getting-started/ide-and-workspaces) — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and a CI/CD pipeline already wired together.
+A turnkey workspace for [parametric CAD as software](/reference/glossary#cad-as-code). Reopen this repo in any Dev Containers-capable editor or cloud workspace — [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), [GitHub Codespaces](https://github.com/features/codespaces), and [many other clients](/getting-started/ide-and-workspaces) — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and a CI/CD pipeline already wired together.
 
 Define geometry with [build123d](https://build123d.readthedocs.io/), preview it in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), validate it with pytest and quality checks, then export STEP, STL, GLB, and release assets from the same source. Python in `cad/` is the [source of truth](/reference/glossary#source-of-truth); generated files are outputs, not files you hand-manage.
 
@@ -18,82 +18,110 @@ If you are new to software-style workflows, that is the point of the template: t
 
 | Layer | What you get |
 |-------|--------------|
-| IDE | Dev container (`.devcontainer/`) for [VS Code, Cursor, Codespaces, Copilot, and more](/getting-started/ide-and-workspaces); dependencies and docs site start with the workspace |
+| IDE | Dev container (`.devcontainer/`) for [VS Code, Cursor, Codespaces, and more](/getting-started/ide-and-workspaces); dependencies and docs site start with the workspace |
 | Modeling | build123d parts and assemblies under `cad/` |
 | Visualization | OCP CAD Viewer plus the `ocp-vscode` bridge for `show_object` |
-| Quality | pytest geometry tests, ruff, mypy, and vulture |
+| Quality | [pytest geometry tests](/modeling/testing), [ruff linting, mypy type checks, and vulture dead-code detection](/tools/uv-and-quality) |
 | Commands | [just](/tools/just) command runner for development, export, and CI/CD pipeline tasks |
 | CI/CD pipeline | [Dagger](/workflows/ci-and-dagger) plus GitHub Actions for repeatable checks and releases |
-| Agents | AI coding assistants such as Cursor, VS Code, Claude, and GitHub Copilot |
+| Agents | Optional AI assistance from tools such as Cursor, Claude, and GitHub Copilot |
 | MCP | Agent tools in the dev container: [build123d-mcp](/tools/mcp-servers) and [ocp-viewer-mcp](/tools/mcp-servers) |
 | Publish | [MakerRepo](/tools/makerrepo) decorators and `mr` CLI for artifact discovery and export |
 
 ## Stack architecture
 
-The source of truth is always Python model code in `cad/`. AI agents and MCP servers can help inspect, execute, and view the model, but they do not replace the files under version control. The CI/CD pipeline and release tooling regenerate outputs from that source so changes can be reviewed instead of guessed at.
+The source of truth is always Python model code in `cad/`. Editors and AI tools work around that source, while commands, quality checks, export tools, and the CI/CD pipeline all regenerate results from it. That keeps changes reviewable: the model code changes first, and artifacts follow from repeatable automation.
 
 ```mermaid
 flowchart TB
-  subgraph agents["AI coding agents"]
-    CURSOR["Cursor"]
+  subgraph workspaces["Workspaces"]
     VSCODE["VS Code"]
-    CLAUDE["Claude"]
-    COPILOT["GitHub Copilot"]
-  end
-
-  subgraph ide["Dev environment"]
+    CURSOR["Cursor"]
+    CODESPACES["GitHub Codespaces"]
     DC["Dev container"]
   end
 
-  subgraph mcp["MCP — agent interface surface"]
+  subgraph assistance["Optional AI assistance"]
+    AGENTS["Agent/model tools"]
+    MCP["MCP servers"]
     B123MCP["build123d-mcp"]
     OCPMCP["ocp-viewer-mcp"]
   end
 
-  subgraph model["Modeling — source of truth"]
-    CAD_SRC["cad/ Python code"]
-    B123D["build123d on Open CASCADE"]
+  subgraph source["Model source"]
+    CAD_SRC["cad/ Python files"]
+    B123D["build123d"]
+    OCC["Open CASCADE kernel"]
   end
 
-  subgraph viz["Visualization"]
-    OCP["OCP CAD Viewer"]
+  subgraph local["Local commands"]
+    JUST["just recipes"]
+    UV["uv environment"]
+  end
+
+  subgraph feedback["Design feedback"]
     BRIDGE["ocp-vscode"]
+    OCP["OCP CAD Viewer"]
   end
 
-  subgraph quality["Quality"]
-    PYTEST["pytest"]
-    RUFF["ruff + mypy + vulture"]
+  subgraph quality["Quality gates"]
+    PYTEST["pytest geometry tests"]
+    RUFF["ruff linting"]
+    MYPY["mypy typing"]
+    VULTURE["vulture dead-code checks"]
   end
 
-  subgraph make["Commands"]
-    JUST["just"]
-    UV["uv"]
+  subgraph publish["Artifact generation"]
+    MR["MakerRepo decorators"]
+    MRCLI["mr CLI"]
+    EXPORTS["STEP / STL / GLB / PNG"]
   end
 
   subgraph pipeline["CI/CD pipeline"]
-    DAGGER["Dagger"]
+    DAGGER["Dagger pipeline"]
     GHA["GitHub Actions"]
+    RELEASES["GitHub Releases"]
   end
 
-  subgraph publish["Publish"]
-    MR["MakerRepo"]
-    MRCLI["mr CLI"]
-    REL["GitHub Releases"]
-  end
+  VSCODE --> DC
+  CURSOR --> DC
+  CODESPACES --> DC
+  DC --> CAD_SRC
+  DC --> JUST
+  DC --> MCP
 
-  agents --> ide
-  agents -.->|"optional tool access"| mcp
-  ide --> CAD_SRC
-  mcp -.->|"execute and inspect"| CAD_SRC
-  mcp -.->|"viewer feedback"| OCP
+  AGENTS -.->|"use from editor"| DC
+  AGENTS -.->|"tool calls"| MCP
+  MCP --> B123MCP
+  MCP --> OCPMCP
+  B123MCP -.->|"execute and inspect"| CAD_SRC
+  OCPMCP -.->|"capture viewer feedback"| OCP
+
   CAD_SRC --> B123D
-  B123D --> OCP
+  B123D --> OCC
+  B123D --> BRIDGE
   BRIDGE --> OCP
-  CAD_SRC --> PYTEST
+
   JUST --> UV
-  DAGGER --> GHA
+  JUST --> PYTEST
+  JUST --> RUFF
+  JUST --> MYPY
+  JUST --> VULTURE
+  JUST --> MRCLI
+  CAD_SRC --> PYTEST
+  CAD_SRC --> MR
   MR --> MRCLI
-  MR --> REL
+  MRCLI --> EXPORTS
+
+  JUST --> DAGGER
+  DAGGER --> GHA
+  GHA --> PYTEST
+  GHA --> RUFF
+  GHA --> MYPY
+  GHA --> VULTURE
+  GHA --> MRCLI
+  EXPORTS --> RELEASES
+  GHA --> RELEASES
 ```
 
 ## Stack
