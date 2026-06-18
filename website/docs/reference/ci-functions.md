@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# CI functions
+# CI/CD pipeline functions
 
 Dagger module: [`ci/src/ci/main.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/ci/src/ci/main.py)
 
@@ -44,9 +44,9 @@ Dagger mounts the repo but ignores `.git`, `.venv`, `ci/.venv`, caches, VSIX, an
 
 Docs-only changes do not trigger Dagger CI (separate `docs-pr.yml`).
 
-## Not in CI
+## Not in the CI/CD pipeline
 
 - OCP CAD Viewer VSIX install
 - MCP servers
 
-See [CI & Dagger](/workflows/ci-and-dagger).
+See [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).

@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Dev container
 
-The `.devcontainer/` directory provides an [Open CASCADE](/reference/open-cascade) environment that matches CI.
+The `.devcontainer/` directory provides an [Open CASCADE](/reference/open-cascade) environment that matches the CI/CD pipeline.
 
 This folder is **editor-agnostic**: the same `devcontainer.json` is used by VS Code, Cursor, GitHub Codespaces, DevPod, and other [spec-compatible clients](/getting-started/ide-and-workspaces). Pick any supported IDE — the container contents stay the same.
 
@@ -24,7 +24,7 @@ From [`devcontainer.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/b
 
 ```bash
 just sync          # uv sync
-just sync-frozen   # frozen lockfile — matches CI
+just sync-frozen   # frozen lockfile — matches the CI/CD pipeline
 just setup-hooks   # pre-commit + Conventional Commit subject on commit-msg
 ```
 
@@ -54,12 +54,12 @@ just docs-serve                    # foreground with hot reload
 
 Extensions: Python, Pylance, Ruff.
 
-Format-on-save uses Ruff from the project venv (`importStrategy: fromEnvironment` in `.vscode/settings.json`). Mismatched formatters cause CI regressions — see [uv & quality](/tools/uv-and-quality).
+Format-on-save uses Ruff from the project venv (`importStrategy: fromEnvironment` in `.vscode/settings.json`). Mismatched formatters cause CI/CD pipeline regressions — see [uv & quality](/tools/uv-and-quality).
 
 ## Features
 
 - `common-utils` — zsh, automatic UID/GID alignment with host
-- `docker-outside-of-docker` — Dagger CI from inside the container
+- `docker-outside-of-docker` — run the Dagger CI/CD pipeline from inside the container
 - `node:20` — Docusaurus documentation site
 - `github-cli` — [GitHub CLI (`gh`)](https://cli.github.com/) for releases, PRs, and repo operations
 

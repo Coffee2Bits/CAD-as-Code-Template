@@ -8,7 +8,7 @@ Workspace helpers for exporting MakerRepo artifacts, rendering PNG previews, and
 - [Render](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/render)
 - [Release notes](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/release-notes)
 
-For day-to-day modeling, prefer the [`mr` CLI](https://docs.makerrepo.com/makerrepo-cli/). Use `cad_tooling` for programmatic export in tests/CI, headless renders, and release automation. This workspace uses OCP rendering instead of `mr artifacts snapshot` (which needs Playwright) — see the [render docs](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/render).
+For day-to-day modeling, prefer the [`mr` CLI](https://docs.makerrepo.com/makerrepo-cli/). Use `cad_tooling` for programmatic export in tests and the CI/CD pipeline, headless renders, and release automation. This workspace uses OCP rendering instead of `mr artifacts snapshot` (which needs Playwright) — see the [render docs](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/render).
 
 Run from the repository root:
 

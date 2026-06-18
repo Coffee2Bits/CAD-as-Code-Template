@@ -2,7 +2,7 @@
 sidebar_position: 4
 ---
 
-# CI & Dagger
+# CI/CD pipeline and Dagger
 
 ```mermaid
 flowchart LR
@@ -63,7 +63,7 @@ dagger call -m ./ci release-artifact --source=. export --path=./dist
 
 Pipeline builds from `.devcontainer/Dockerfile` for [Open CASCADE](/reference/open-cascade) / Mesa parity with local dev.
 
-## Not in CI
+## Not in the CI/CD pipeline
 
 - OCP CAD Viewer VSIX install
 - MCP servers

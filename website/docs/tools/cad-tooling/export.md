@@ -4,14 +4,14 @@ sidebar_position: 2
 
 # Export
 
-Programmatic export for tests, CI, and release automation. Prefer [`mr` CLI](/tools/makerrepo) for interactive local export.
+Programmatic export for tests, the CI/CD pipeline, and release automation. Prefer [`mr` CLI](/tools/makerrepo) for interactive local export.
 
 ## CLI
 
 Run from the repository root:
 
 ```bash
-# CI smoke — discover all @artifact functions, export STEP + STL
+# CI/CD pipeline smoke — discover all @artifact functions, export STEP + STL
 uv run python -m cad_tooling.export smoke
 
 # Export one or all artifacts
@@ -69,13 +69,13 @@ export_artifacts(Path("/tmp/out"), "step", ("sphere",))
 export_part(make_sphere(), "sphere", "/tmp/out")
 ```
 
-`export_artifacts()` and `list_artifacts()` power CI smoke and [`tests/test_makerrepo.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/tests/test_makerrepo.py).
+`export_artifacts()` and `list_artifacts()` power CI/CD pipeline smoke and [`tests/test_makerrepo.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/tests/test_makerrepo.py).
 
-## CI integration
+## CI/CD pipeline integration
 
 | Dagger function | Command |
 |-----------------|---------|
 | `artifacts` | `python -m cad_tooling.export smoke` |
 | `release-artifact` | `python -m cad_tooling.export release -o /tmp/release-artifacts` |
 
-See [CI functions](/reference/ci-functions) and [CI & Dagger](/workflows/ci-and-dagger).
+See [CI functions](/reference/ci-functions) and [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).

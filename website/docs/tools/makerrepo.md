@@ -113,7 +113,7 @@ Live implementation: [`cad/parts/sphere.py`](https://github.com/Coffee2Bits/CAD-
 
 ## MakerRepo.com (optional)
 
-Create a repository on [MakerRepo.com](https://makerrepo.com), push this code, and platform CI builds `@artifact` and `@customizable` functions. Local `mr` workflow works without an account.
+Create a repository on [MakerRepo.com](https://makerrepo.com), push this code, and MakerRepo's platform pipeline builds `@artifact` and `@customizable` functions. Local `mr` workflow works without an account.
 
 ## `mr` vs `cad_tooling`
 
@@ -121,7 +121,7 @@ Create a repository on [MakerRepo.com](https://makerrepo.com), push this code, a
 |------|--------|
 | List / export / view artifacts locally | `mr` CLI |
 | Parametric generator export | `mr generators …` |
-| CI smoke, release STL+PNG, pytest helpers | `cad_tooling.export` |
+| CI/CD pipeline smoke, release STL+PNG, pytest helpers | `cad_tooling.export` |
 | Headless PNG from STL or artifact name | `cad_tooling.render` (`just render`, `just render-artifact`) |
 | Per-artifact release camera/color | `@render` decorator |
 | Browser-based headless PNG (optional) | `mr artifacts snapshot` — requires Playwright; see [render](/tools/cad-tooling/render#alternative-mr-artifacts-snapshot) |

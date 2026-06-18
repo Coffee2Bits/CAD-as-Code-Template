@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Render
 
-Headless PNG previews via [Open CASCADE](/reference/open-cascade) (OCP). In CI and the devcontainer, Xvfb provides a virtual display when `DISPLAY` is unset.
+Headless PNG previews via [Open CASCADE](/reference/open-cascade) (OCP). In the CI/CD pipeline and the devcontainer, Xvfb provides a virtual display when `DISPLAY` is unset.
 
 ## CLI
 
@@ -109,7 +109,7 @@ def sphere() -> Part:
 
 Headless renders scale OCCT's stock directional lights and tune per-shape plastic
 material ambient/diffuse coefficients. Custom `AddLight` sources are not used because
-they have little effect in the CI shaded PNG path.
+they have little effect in the headless CI/CD pipeline PNG path.
 
 Face-boundary edges use OCCT `Prs3d_Drawer.SetFaceBoundaryDraw` on BRep solids. They
 apply when rendering from Python geometry (`render_artifact`, `export release`,
@@ -151,7 +151,7 @@ Set `part.color` in each part's `make_*` builder using a module-level `PART_COLO
 
 ## Alternative: `mr artifacts snapshot`
 
-The [MakerRepo CLI](https://docs.makerrepo.com/makerrepo-cli/) can capture headless PNGs via a browser-based viewer (`mr artifacts snapshot`). This workspace **does not** wire that into `just` or CI — the devcontainer does not install Playwright, and release previews use the OCP pipeline above instead.
+The [MakerRepo CLI](https://docs.makerrepo.com/makerrepo-cli/) can capture headless PNGs via a browser-based viewer (`mr artifacts snapshot`). This workspace **does not** wire that into `just` or the CI/CD pipeline — the devcontainer does not install Playwright, and release previews use the OCP pipeline above instead.
 
 If you prefer `mr snapshot` locally:
 
@@ -168,6 +168,6 @@ Trade-offs:
 | Runtime | Open CASCADE (OCP) + optional Xvfb | Playwright + browser viewer |
 | Devcontainer | Works out of the box | Extra `playwright install` step |
 | `@render` decorator | Honored via STL stem / artifact name | Not used — viewer defaults |
-| CI / release | Used by `export release` and GitHub Actions | Not used |
+| CI/CD pipeline / release | Used by `export release` and GitHub Actions | Not used |
 
-For template users: either approach is valid; this repo standardizes on OCP rendering so headless previews work in CI without a browser stack.
+For template users: either approach is valid; this repo standardizes on OCP rendering so headless previews work in the CI/CD pipeline without a browser stack.

@@ -35,7 +35,7 @@ Avoid duplicating whole sections across pages. Repeat only what helps a reader c
 
 ### 1. README as landing page
 
-Status: in progress.
+Status: complete.
 
 Goal: sales pitch → one-click get started → docs.
 
@@ -48,7 +48,7 @@ Acceptance:
 
 ### 2. Quick start as first success path
 
-Status: in progress.
+Status: complete.
 
 Goal: split cloud and local setup, then converge on the same first commands.
 
@@ -61,7 +61,7 @@ Acceptance:
 
 ### 3. Docs intro as concept map
 
-Status: in progress.
+Status: complete.
 
 Goal: make the docs homepage explain the approach and route readers deeper.
 
@@ -74,7 +74,14 @@ Acceptance:
 
 ### 4. De-duplicate entry pages
 
-Status: open.
+Status: in progress.
+
+Progress:
+
+- README is now the landing page and sales pitch.
+- Docs intro is now the concept map and reader router.
+- Quick start is now the first-success path.
+- Deeper glossary/reference pages are becoming the home for term definitions.
 
 Review these overlaps after the README/intro/quick-start pass:
 

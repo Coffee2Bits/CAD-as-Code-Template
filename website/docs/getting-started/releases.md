@@ -75,7 +75,7 @@ just release-notes v0.1.0
 
 Override the repo slug explicitly: `just release-notes v0.1.0 repo=USERNAME/my-widget`
 
-Inspect `dist/` for STL/PNG and `dist/RELEASE_BODY.md` before trusting CI output.
+Inspect `dist/` for STL/PNG and `dist/RELEASE_BODY.md` before trusting CI/CD pipeline output.
 
 ## Manual tag fallback
 
@@ -116,7 +116,7 @@ gh release delete v0.1.0-dup-test --repo OWNER/REPO --yes
 git push origin :refs/tags/v0.1.0-dup-test
 ```
 
-Keep one canonical release per version (for this repo: **`v0.1.0`** with STL/PNG assets). Optional: delete early CI test releases (`v0.0.1`, `v0.0.2`) the same way if you do not need them.
+Keep one canonical release per version (for this repo: **`v0.1.0`** with STL/PNG assets). Optional: delete early CI/CD pipeline test releases (`v0.0.1`, `v0.0.2`) the same way if you do not need them.
 
 ## Recover stuck release-please
 
@@ -163,4 +163,4 @@ After recovery, release-please should open the **next** Release PR for unrelease
 | Release workflow fails on assets | Ensure at least one `@artifact` exports; run `just export-smoke` locally |
 | Wrong asset URLs in notes | Published notes need absolute `releases/download/{tag}/` URLs — see [release notes](/tools/cad-tooling/release-notes) |
 
-More detail: [Releases workflow](/workflows/releases) · [GitHub setup troubleshooting](/getting-started/github-setup#troubleshooting) · [Export & CI troubleshooting](/troubleshooting/export-and-ci).
+More detail: [Releases workflow](/workflows/releases) · [GitHub setup troubleshooting](/getting-started/github-setup#troubleshooting) · [Export and CI/CD pipeline troubleshooting](/troubleshooting/export-and-ci).

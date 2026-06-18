@@ -13,7 +13,7 @@ sidebar_position: 1
 | OCP viewer missing / blank / ESM crash | [OCP viewer](/troubleshooting/ocp-viewer) |
 | MCP won't start or connect | [MCP](/troubleshooting/mcp) |
 | `just ci` / Dagger fails | [Dagger & Docker](/troubleshooting/dagger-and-docker) |
-| Export / discovery / CI lint failures | [Export & CI](/troubleshooting/export-and-ci) |
+| Export / discovery / CI/CD pipeline lint failures | [Export and CI/CD pipeline](/troubleshooting/export-and-ci) |
 | release-please / Pages / branch protection | [Set up GitHub](/getting-started/github-setup) |
 
 ## Known limitations

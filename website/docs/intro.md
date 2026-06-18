@@ -6,9 +6,9 @@ title: Introduction
 
 # CAD-as-Code, in a box
 
-This template is a complete starting point for parametric CAD as software. The model is Python source code. The generated files are outputs. The workflow around the model uses the same tools software teams use to make work repeatable: source control, tests, linting, CI/CD pipelines, releases, and documentation.
+This template is a complete starting point for [parametric CAD as software](/reference/glossary#cad-as-code). The model is Python [source of truth](/reference/glossary#source-of-truth). The generated files are outputs. The workflow around the model uses the same tools software teams use to make work repeatable: source control, tests, [linting](/reference/glossary#linting), [CI/CD pipeline](/reference/glossary#cicd-pipeline), releases, and documentation.
 
-If that sounds like a lot for CAD, here is the reason: the extra pieces make models easier to review, regenerate, automate, and hand off. A bracket, enclosure, jig, or assembly can be changed by editing a parameter, tested before release, exported in known formats, and published from the same source every time.
+If that sounds like a lot for CAD, here is the reason: the extra pieces make models easier to review, regenerate, automate, and hand off. A bracket, enclosure, jig, or assembly can be changed by editing a parameter, tested before release, exported in known formats, and published from the same source every time. If a term is unfamiliar, start with the [glossary](/reference/glossary) and follow the linked guide from there.
 
 ![Dev environment with build123d code, OCP CAD Viewer, and a parametric sphere](/img/repo_preview.png)
 
@@ -23,7 +23,7 @@ CAD-as-Code does not mean "write code because code is fashionable." It means the
 - The CI/CD pipeline reruns the checks when the repo changes.
 - Release workflows regenerate manufacturing artifacts from source.
 
-That is why this template includes tools that may not look like CAD at first: `just`, `uv`, pytest, ruff, mypy, Dagger, GitHub Actions, MakerRepo, and MCP launchers. They form the software layer around the CAD model.
+That is why this template includes tools that may not look like CAD at first: [`just`](/tools/just), [`uv`](/tools/uv-and-quality), pytest, ruff, mypy, [Dagger](/workflows/ci-and-dagger), GitHub Actions, [MakerRepo](/tools/makerrepo), and [MCP launchers](/tools/mcp-servers). They form the software layer around the CAD model.
 
 ## Stack architecture
 

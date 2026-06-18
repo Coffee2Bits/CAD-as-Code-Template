@@ -12,7 +12,7 @@ sidebar_position: 5
 
 ## Dagger version
 
-CI pins Dagger `0.21.4` in `.github/workflows/ci.yml` and `.devcontainer/Dockerfile`. Local CLI should match.
+The CI/CD pipeline pins Dagger `0.21.4` in `.github/workflows/ci.yml` and `.devcontainer/Dockerfile`. Local CLI should match.
 
 ## Equivalent invocation
 
@@ -20,4 +20,4 @@ CI pins Dagger `0.21.4` in `.github/workflows/ci.yml` and `.devcontainer/Dockerf
 dagger call -m ./ci check --source=.
 ```
 
-See [CI & Dagger](/workflows/ci-and-dagger).
+See [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).

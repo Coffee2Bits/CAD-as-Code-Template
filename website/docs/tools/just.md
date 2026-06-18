@@ -11,7 +11,7 @@ sidebar_position: 1
 | Group | Command | What it runs |
 |-------|---------|--------------|
 | **setup** | `just sync` | `uv sync` |
-| | `just sync-frozen` | `uv sync --group dev --frozen` (matches CI) |
+| | `just sync-frozen` | `uv sync --group dev --frozen` (matches the CI/CD pipeline) |
 | | `just setup-hooks` | pre-commit install |
 | **dev** | `just view` | Display `main.py` in OCP CAD Viewer |
 | | `just test` | `uv run pytest` (extra args: `just test -v tests/test_sphere.py`) |
@@ -23,7 +23,7 @@ sidebar_position: 1
 | | `just mr-export sphere /tmp/out step` | Export one artifact |
 | | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
 | | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
-| **export** | `just export-smoke` | Discover and export all artifacts (CI smoke) |
+| **export** | `just export-smoke` | Discover and export all artifacts (CI/CD pipeline smoke) |
 | | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
 | | `just export /tmp/out step sphere` | Export one artifact in a given format |
 | | `just release dist/` | Alias for `just export dist/` |
@@ -52,7 +52,7 @@ sidebar_position: 1
 
 ```bash
 just quality          # before pushing
-just ci               # full CI gate (Docker required)
+just ci               # full CI/CD pipeline gate (Docker required)
 just export           # local release dry-run (STL + PNG in dist/)
 just release-notes v0.1.0
 ```
