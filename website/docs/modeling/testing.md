@@ -203,6 +203,20 @@ just quality && just export-smoke
 
 That runs lint, all pytest groups, and artifact export verification.
 
+### Agents
+
+Agents should follow the same testing strategy, with one extra visual feedback loop for CAD edits:
+
+| Phase | Command |
+|-------|---------|
+| After CAD / `main.py` display edits | `just view` in the background so OCP CAD Viewer refreshes immediately after each geometry edit |
+| During implementation | `just test-unit`, plus targeted `test-integration`, `test-render`, or `test-functional` when the change touches those areas |
+| Final check before done | `just quality && just export-smoke` or `just ci` |
+
+When model geometry changes, launch `just view` right after the edit, not as a prerequisite to running tests. Re-launch it on every geometry edit. Details: [Visual verification](/workflows/visual-verification) and [AGENTS.md → Visual verification](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#visual-verification-after-cad-edits).
+
+See also [For agents](/contributing/for-agents) and [AGENTS.md → Task completion gate](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#task-completion-gate).
+
 ## Golden fixtures
 
 Commit STEP/STL fixtures under `tests/fixtures/` only when they are intentional regression fixtures. Generated release artifacts, routine exports, screenshots, and local render outputs should stay out of git.

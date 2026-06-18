@@ -12,6 +12,8 @@ If you are new to software-style workflows, that is the point of the template: t
 
 ![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](repo_preview.png)
 
+![OCP CAD Viewer clip view: Z-axis section through the demo sphere showing the nut pocket and embedded hardware](website/static/img/ocp_clip_z.png)
+
 ## Start here
 
 - [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate) to create your own CAD repo.

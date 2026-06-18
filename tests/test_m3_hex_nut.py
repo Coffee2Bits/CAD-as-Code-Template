@@ -94,7 +94,7 @@ def test_pocket_cutter_encloses_reference_nut_when_margin_increases():
         hex_nut_margin=0.2,
     )
 
-    assert cutter.intersect(reference).volume == pytest.approx(reference.volume, rel=0.01)
+    assert (reference - cutter).volume == pytest.approx(0, abs=0.01)
     assert cutter.bounding_box().max.X == pytest.approx(reference.bounding_box().max.X, abs=0.01)
 
 

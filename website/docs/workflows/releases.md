@@ -90,8 +90,8 @@ uv run python -m cad_tooling.export release-notes \
 
 ## Publish flow
 
-1. `release-please.yml` — Release PRs + git tag on merge (`skip-github-release: true`)
-2. `release.yml` — export and GitHub Release on tag push
+1. `release-please.yml` — Release PRs, git tag, and baseline GitHub Release on merge
+2. `release.yml` — quality gate, export STL/PNG, and update the release with assets on tag push
 
 Do not use `gh release create` for normal publishes. Release assets should come from the configured CI/CD pipeline so exports stay reproducible.
 

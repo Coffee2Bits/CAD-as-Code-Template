@@ -14,6 +14,8 @@ If you are new to software-style workflows, that is the point of the template: t
 
 ![Dev environment with build123d code, OCP CAD Viewer, and a parametric sphere](/img/repo_preview.png)
 
+![Section cut through the demo sphere assembly in OCP CAD Viewer](/img/ocp_clip_z.png)
+
 ## What's in the box
 
 | Layer | What you get |
@@ -21,7 +23,7 @@ If you are new to software-style workflows, that is the point of the template: t
 | IDE | Dev container (`.devcontainer/`) for [VS Code, Cursor, Codespaces, and more](/getting-started/ide-and-workspaces); dependencies and docs site start with the workspace |
 | Modeling | build123d parts and assemblies under `cad/` |
 | Visualization | OCP CAD Viewer plus the `ocp-vscode` bridge for `show_object` |
-| Quality | [Testing strategy](/modeling/testing) (pytest markers and groups), [ruff linting, mypy type checks, and vulture dead-code detection](/tools/uv-and-quality) |
+| Quality | [ruff linting, mypy type checks, and vulture dead-code detection](/tools/uv-and-quality) |
 | Commands | [just](/tools/just) command runner for development, export, and CI/CD pipeline tasks |
 | CI/CD pipeline | [Dagger](/workflows/ci-and-dagger) plus GitHub Actions for repeatable checks and releases |
 | Agents | Optional AI assistance from tools such as Cursor, Claude, and GitHub Copilot |
