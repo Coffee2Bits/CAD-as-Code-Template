@@ -4,130 +4,116 @@ sidebar_position: 3
 
 # Testing strategy
 
-Tests in this repo are layered. They start with small assertions about individual CAD models, then move through MakerRepo discovery and `cad_tooling`, and finally exercise user-facing workflows in isolated copies of the template.
+Testing in this template is meant to protect design intent, not just code style. A good test should make it clear what physical or workflow promise would break if it failed: a part became invalid, a clearance changed, an artifact stopped exporting, or a repository command no longer worked for a new user.
 
-The goal is not to test the CI/CD pipeline for its own sake. The goal is to prove that a change still produces valid, discoverable, exportable CAD artifacts.
+Most day-to-day CAD changes should start with a focused model test and end with the normal quality gate. Broader workflow and export checks are there for changes that affect artifact registration, release output, or the template machinery itself.
 
-## Run the tests
+## Run the normal test suite
 
 ```bash
 just test
 just test -v tests/test_sphere.py   # pass extra pytest args
 ```
 
-`just test` runs `uv run pytest`. Pytest collects both configured suites:
+`just test` runs `uv run pytest` across the project test suites.
 
 | Suite | What it covers |
 |-------|----------------|
-| [`tests/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests) | CAD models, MakerRepo registration, exports, template identity, commit-message rules, and functional `just init` behavior. |
-| [`cad_tooling_tests/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/cad_tooling_tests) | The reusable `cad_tooling` library: export helpers, render config, render discovery, release-note rendering, and asset collection. |
+| [`tests/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests) | CAD models, MakerRepo registration, exports, template initialization, commit-message rules, and user-facing recipes. |
+| [`cad_tooling_tests/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/cad_tooling_tests) | The reusable `cad_tooling` library used for export, render configuration, render discovery, release notes, and release asset collection. |
 
-## Test layers
+## Testing pyramid for this template
 
-| Layer | Files | What it proves | When to add one |
-|-------|-------|----------------|-----------------|
-| Model unit tests | `tests/test_sphere.py`, `tests/test_m3_hex_nut.py`, `tests/test_sphere_hex_nut_pocket.py` | A specific part or assembly is valid and still has the expected dimensions, volume, orientation, clearances, or feature count. | Add or change a model, parameter, sketch, boolean operation, clearance, or imported library part. |
-| Artifact registration tests | `tests/test_makerrepo.py`, `tests/test_sphere_with_nut.py` | MakerRepo can discover published `@artifact` entries and release filtering still selects the intended outputs. | Add, rename, remove, or reclassify an artifact or generator. |
-| Export behavior tests | `tests/test_exports.py`, export checks in `tests/test_makerrepo.py` | The export code can write manufacturing/viewer formats and read back key geometry where appropriate. | Change STEP/STL/GLB behavior, artifact output names, or export options. |
-| CAD tooling unit tests | `cad_tooling_tests/*.py` | The helper library behaves correctly without depending on one specific demo model. | Change `cad_tooling/export.py`, render config, release notes, discovery, or release asset collection. |
-| Functional tests | `tests/functional/test_just_init.py` | User-facing recipes work against an isolated copy of the repository and do not mutate the real checkout. | Change `just init`, template identity, generated docs, release state, or repo-initialization behavior. |
-| Dagger artifacts stage | `ci artifacts`, `just ci-artifacts`, `just export-smoke` | Every registered artifact can be discovered, realized, and exported as STEP and STL in the CI container. | Keep this green for publishable CAD changes; use it when a change might affect global artifact export, not just one model. |
+Use the narrowest test that proves the behavior you care about, then run the broader gate before pushing.
 
-## Model unit tests
+| Layer | Purpose | Add or update when |
+|-------|---------|--------------------|
+| Model tests | Prove a part or assembly still satisfies its design contract. | You change dimensions, parameters, sketches, booleans, orientation, clearances, or external library parts. |
+| Artifact tests | Prove publishable models are discoverable and exported under the right names. | You add, rename, remove, or reclassify a MakerRepo `@artifact`. |
+| Export tests | Prove STEP, STL, GLB, or related export behavior still works. | You change export options, file naming, release formats, or artifact output paths. |
+| Tooling tests | Prove the reusable `cad_tooling` package works independently from one demo model. | You change export helpers, render metadata, release-note generation, or asset collection. |
+| Functional tests | Prove command-line workflows work in isolated copies of the repository. | You change `just init`, template identity, generated docs, release state, or repo setup behavior. |
+| CI/CD artifact verification | Prove the full registered artifact set can export in the CI/CD pipeline container. | You change publishable geometry, artifact discovery, export plumbing, or release automation. |
 
-Model tests should focus on the CAD contract for one part or assembly. Good assertions are concrete and observable:
+## Model tests
+
+Model tests should describe the physical contract of one part or assembly. Prefer checks that a designer can understand later.
 
 | Assert | Why it matters |
 |--------|----------------|
-| `shape.is_valid()` or equivalent validity checks | Catches broken solids before export or release. |
+| Solid validity | Catches broken geometry before export or release. |
 | Bounding box dimensions | Catches accidental size, axis, or orientation changes. |
-| Volume changes | Catches missing cuts, added material, or failed booleans. |
-| Feature counts or face checks | Catches missing embossing, holes, pockets, or patterned details. |
-| Clearance relationships | Catches fit regressions between parts, fasteners, pockets, and assemblies. |
+| Volume | Catches missing cuts, added material, or failed booleans. |
+| Feature counts or face checks | Catches missing holes, pockets, embossing, patterns, or mounting features. |
+| Clearances and fit relationships | Catches regressions between parts, fasteners, pockets, and assemblies. |
 
-Prefer targeted tests over broad snapshots. A good model test should tell the next person what physical behavior changed.
+Prefer targeted assertions over broad snapshots. A failing test should point to the design intent that changed.
 
-## MakerRepo and artifact tests
+## Artifact and export tests
 
-MakerRepo is the publishable-artifact registry. Tests around it answer different questions from model unit tests:
+MakerRepo is the registry for publishable CAD outputs. Artifact tests answer questions that model tests usually do not:
 
 | Question | Example check |
 |----------|---------------|
 | Is the artifact discoverable? | `assert "sphere" in names` |
-| Is the release set correct? | release artifacts require render metadata and intended release flags |
-| Can a named artifact export? | export one artifact to STEP or STL and check the output exists |
+| Is it included in the intended release set? | release artifacts have the expected render metadata and release flags |
+| Can it export? | export one artifact to STEP or STL and check the output exists |
 
-Avoid exclusive discovery assertions such as `assert names == {...}` unless the point of the test is to lock the entire registry. Most tests should allow unrelated artifacts to be added later.
+Avoid brittle full-registry assertions such as `assert names == {...}` unless the purpose of the test is to lock the entire registry. Most tests should allow unrelated artifacts to be added later.
 
-## CAD tooling tests
+## Tooling tests
 
-`cad_tooling_tests/` protects the library code that makes this template behave like a CAD-as-Code workspace. These tests are lower-level than the Dagger artifacts stage.
+`cad_tooling_tests/` protects the support library that makes this a CAD-as-Code workspace. These tests are for behavior that belongs to the tooling layer rather than to one model.
 
-They check things like:
+Examples include:
 
 - artifact and generator resolution
 - format-to-extension mapping
 - render decorator configuration
 - render-target discovery from `main.py`
 - release asset collection
-- release-note Markdown/HTML output
+- release-note Markdown and HTML rendering
 
-Use these tests when the behavior belongs to the tooling layer itself. Do not hide a tooling regression inside a model-specific test unless the model is only a small fixture for the tooling behavior.
+If a change is really about `cad_tooling`, test it there. Use a model only as a fixture when the tooling behavior needs one.
 
 ## Functional tests
 
-Functional tests are for workflows a user or agent runs from the command line. They should use temporary isolated workspaces and prove side effects, not just helper return values.
+Functional tests cover workflows a user or agent runs from the command line. They should use temporary isolated workspaces and prove side effects, not just helper return values.
 
-Current examples cover `just init`:
+Current functional coverage focuses on `just init`:
 
 - dry-run output
 - docs sync behavior
 - rebranding from edited `template.repo.toml`
 - refusal to infer identity from git remotes
-- protection against modifying the real repo during functional test runs
+- protection against modifying the real checkout during tests
 
-Add a functional test when a bug only appears after recipes, scripts, generated files, and repo layout interact.
+Add a functional test when the behavior depends on recipes, scripts, generated files, and repository layout interacting together.
 
 ## Artifact export verification
 
-The Dagger `artifacts` function currently runs:
+Some commands use the word `smoke`, but the important idea is artifact export verification.
+
+The Dagger `artifacts` stage runs:
 
 ```bash
 uv run python -m cad_tooling.export smoke
 ```
 
-Despite the `smoke` name, this is not a test that CI itself can call a stage. It is the artifacts-stage verification step. It proves that every registered `@artifact` can be discovered, realized, and exported to both STEP and STL inside the same container family used by CI.
+That command verifies the registered artifact set. It discovers every `@artifact`, realizes each model, and exports STEP and STL in the same container family used by the CI/CD pipeline.
 
-That gives coverage that ordinary unit tests may not have:
+Keep this coverage because it catches failures that narrow model tests can miss:
 
-- a newly added artifact is not missing from discovery
-- a release artifact does not crash during realization
-- an artifact that is not mentioned by a narrow model test still exports
-- STEP and STL export paths both work for the full registered artifact set
+- a new artifact is not discoverable
+- a release artifact crashes during realization
+- an artifact without a dedicated model test no longer exports
+- STEP or STL export fails for part of the registered artifact set
 
-Keep the artifacts stage when you want CI to protect releasable geometry. If the command name feels confusing, rename or document it, but do not remove the all-artifacts export invariant unless equivalent coverage exists somewhere else.
-
-## What to assert
-
-- Model validity: no invalid solids.
-- Dimensions, volume, feature counts, and clearances that represent design intent.
-- Export success for formats the artifact promises to produce.
-- MakerRepo discovery with inclusion checks, not brittle full-set checks.
-- Functional side effects in temp workspaces for user-facing recipes.
+If the command name changes later, preserve the invariant: the CI/CD pipeline should prove that publishable artifacts can be generated from source.
 
 ## Golden fixtures
 
-Commit STEP/STL under `tests/fixtures/` only when an intentional regression fixture is needed. Generated release artifacts, routine exports, screenshots, and local render outputs should stay out of git.
-
-## Test design
-
-| Prefer | Avoid |
-|--------|-------|
-| `assert "sphere" in names` | `assert names == {"sphere"}` |
-| Scoped export checks per artifact | Requiring every artifact in unrelated model tests |
-| Explicit geometry assertions | Loosening unrelated bounds to pass |
-| CAD tooling tests for library behavior | Repeating the same helper assertions in every model test |
-| Functional tests in temp copies | Functional tests that mutate the working checkout |
+Commit STEP/STL fixtures under `tests/fixtures/` only when they are intentional regression fixtures. Generated release artifacts, routine exports, screenshots, and local render outputs should stay out of git.
 
 ## Choosing the right gate
 
@@ -136,8 +122,8 @@ Commit STEP/STL under `tests/fixtures/` only when an intentional regression fixt
 | Editing one model or model test | `just test -v tests/test_<model>.py` |
 | Changing `cad_tooling` behavior | `uv run pytest cad_tooling_tests -q` |
 | Changing artifact registration or export behavior | `just export-smoke` or `just ci-artifacts` |
-| Changing recipe/init behavior | `uv run pytest tests/functional -q` |
+| Changing repo initialization or command recipes | `uv run pytest tests/functional -q` |
 | Before pushing code or CAD changes | `just quality` |
-| Before merging tooling, CI, or release changes | `just ci` |
+| Before merging tooling, CI/CD pipeline, or release changes | `just ci` |
 
-Related pages: [uv and quality tools](/tools/uv-and-quality), [CAD tooling export](/tools/cad-tooling/export), and [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).
+Related pages: [uv and quality tools](/tools/uv-and-quality), [CAD tooling export](/tools/cad-tooling/export), [MakerRepo](/tools/makerrepo), and [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).
