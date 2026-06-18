@@ -27,7 +27,7 @@ just render --lighting-preset default          # flags before positionals OK
 just render dist/sphere.stl dist/sphere.png --camera top
 just render main.py dist --lighting-preset bright
 just render-artifact sphere /tmp/out           # export STL + PNG for one @artifact
-just render-artifact sphere_with_nut dist --lighting-preset bright
+just render-artifact demo_sphere dist --lighting-preset bright
 
 PNG previews for named `@artifact` functions are rendered from **Python geometry**
 (same path as `export release`), not from the exported STL. STL meshes do not carry
@@ -51,7 +51,7 @@ just render-artifact sphere /tmp/out
 
 Rendering a viewer script writes PNGs for:
 
-1. The primary `@render` artifact discovered from `build_model()` imports (e.g. `sphere_with_nut_*.png`)
+1. The primary `@render` artifact discovered from `build_model()` imports (e.g. `demo_sphere_*.png`)
 2. Any other `@render` artifacts from `cad/` modules in that composition chain (e.g. `sphere_*.png` from `cad.parts.sphere`)
 
 Sub-parts without `@render` (such as `m3_hex_nut`) are omitted. Release export still uses `list_release_artifacts()` — only explicit `@render` artifacts — not this viewer expansion.

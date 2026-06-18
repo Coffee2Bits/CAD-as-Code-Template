@@ -64,7 +64,7 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | `just render dist/sphere.stl dist/sphere.png --camera top` | Headless PNG from STL |
 | `just render main.py dist --lighting-preset bright` | Viewer script with CLI render overrides |
 | `just render-artifact sphere /tmp/out` | Export STL + headless PNG for one artifact |
-| `just render-artifact sphere_with_nut dist --lighting-preset bright` | Artifact render with lighting override |
+| `just render-artifact demo_sphere dist --lighting-preset bright` | Artifact render with lighting override |
 
 ## Release versioning
 

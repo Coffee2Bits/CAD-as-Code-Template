@@ -18,7 +18,7 @@ class TestArtifactDiscovery:
         names = artifact_names(registry)
 
         assert "sphere" in names
-        assert "sphere_with_nut" in names
+        assert "demo_sphere" in names
         assert "m3_hex_nut" in names
         assert "m3_socket_head_cap_screw" in names
 
@@ -57,7 +57,7 @@ class TestReleaseIntegration:
         png_paths = list(release_artifacts.glob("*.png"))
         stl_names = {path.stem for path in stl_paths}
 
-        assert stl_names == {"sphere", "sphere_with_nut"}
+        assert stl_names == {"sphere", "demo_sphere", "sphere_tripod_support"}
         assert "m3_hex_nut" not in stl_names
         assert len(png_paths) >= len(stl_paths)
 

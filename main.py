@@ -1,11 +1,11 @@
 from ocp_vscode import show
 
-from cad.assemblies.sphere_with_nut import make_sphere_with_nut
+from cad.assemblies.demo_sphere import make_demo_sphere
 
 
 def build_model():
     """Geometry shown in OCP CAD Viewer and used by cad_tooling.render."""
-    return make_sphere_with_nut()
+    return make_demo_sphere()
 
 
 def main() -> None:

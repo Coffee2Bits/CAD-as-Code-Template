@@ -15,14 +15,14 @@ pytestmark = pytest.mark.unit
 
 def test_cad_modules_referenced_by_main(repo_root: Path):
     modules = cad_modules_referenced_by_build_model(repo_root / "main.py")
-    assert modules == {"cad.assemblies.sphere_with_nut"}
+    assert modules == {"cad.assemblies.demo_sphere"}
 
 
 def test_discover_render_artifact_from_main(repo_root: Path):
     artifact = discover_render_artifact(repo_root / "main.py", root=repo_root)
     assert artifact is not None
-    assert artifact.name == "sphere_with_nut"
-    assert artifact.module == "cad.assemblies.sphere_with_nut"
+    assert artifact.name == "demo_sphere"
+    assert artifact.module == "cad.assemblies.demo_sphere"
 
 
 def test_expand_composition_modules_includes_assembly_parts(repo_root: Path):
@@ -30,15 +30,21 @@ def test_expand_composition_modules_includes_assembly_parts(repo_root: Path):
         cad_modules_referenced_by_build_model(repo_root / "main.py"),
         root=repo_root,
     )
-    assert "cad.assemblies.sphere_with_nut" in modules
+    assert "cad.assemblies.demo_sphere" in modules
     assert "cad.parts.sphere" in modules
     assert "cad.parts.m3_hex_nut" in modules
     assert "cad.parts.m3_socket_head_cap_screw" in modules
 
+    assert "cad.parts.sphere_tripod_support" in modules
+
 
 def test_discover_viewer_render_targets_includes_sub_parts(repo_root: Path):
     targets = discover_viewer_render_targets(repo_root / "main.py", root=repo_root)
-    assert [artifact.name for artifact in targets] == ["sphere_with_nut", "sphere"]
+    assert [artifact.name for artifact in targets] == [
+        "demo_sphere",
+        "sphere",
+        "sphere_tripod_support",
+    ]
 
 
 def test_discover_render_artifact_returns_none_without_cad_imports(tmp_path: Path):

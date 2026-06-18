@@ -205,7 +205,7 @@ def test_cli_lighting_preset_studio_overrides_global_default(repo_root):
     add_render_config_arguments(parser)
     args = parser.parse_args(["--lighting-preset", "studio"])
     overrides = render_config_from_namespace(args)
-    artifact = next(item for item in list_artifacts(repo_root) if item.name == "sphere_with_nut")
+    artifact = next(item for item in list_artifacts(repo_root) if item.name == "demo_sphere")
     configs = resolve_render_configs(artifact_func=artifact.func, overrides=overrides)
     assert configs[0].lighting.preset == LightingPreset.STUDIO
     assert configs[0].lighting.resolved_profile().light_scale == pytest.approx(

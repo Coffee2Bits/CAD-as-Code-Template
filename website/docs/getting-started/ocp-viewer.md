@@ -40,7 +40,7 @@ Then:
 
 ## Clip view (section cuts)
 
-Use the **Clip** tab when you need to see inside a solid — nut pockets, screw seats, bore depth, or any feature hidden behind an outer shell. The demo [`sphere_with_nut`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/assemblies/sphere_with_nut.py) assembly is a good model to practice on: load it via `main.py`, then slice along each axis.
+Use the **Clip** tab when you need to see inside a solid — nut pockets, screw seats, bore depth, or any feature hidden behind an outer shell. The [`demo_sphere`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/assemblies/demo_sphere.py) assembly is a good model to practice on: load it via `main.py`, then slice along each axis.
 
 ### Open the Clip tab
 

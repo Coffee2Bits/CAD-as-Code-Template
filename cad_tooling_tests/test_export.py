@@ -50,7 +50,7 @@ class TestArtifactDiscovery:
             artifact.name for artifact in all_artifacts if artifact_has_render(artifact.func)
         }
         assert "sphere" in release_names
-        assert "sphere_with_nut" in release_names
+        assert "demo_sphere" in release_names
         assert "m3_hex_nut" in all_names
         assert "m3_socket_head_cap_screw" in all_names
         assert "m3_hex_nut" not in release_names

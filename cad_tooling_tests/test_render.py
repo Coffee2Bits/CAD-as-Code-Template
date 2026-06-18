@@ -219,16 +219,16 @@ class TestReleaseRender:
     ):
         from cad_tooling.render import _build_artifact_shape, _colored_solids, render_input
 
-        stl_path = release_artifacts / "sphere_with_nut.stl"
+        stl_path = release_artifacts / "demo_sphere.stl"
         written = render_input(
             stl_path,
             tmp_path / "previews",
-            artifact_name="sphere_with_nut",
+            artifact_name="demo_sphere",
             root=repo_root,
         )
         assert written
-        shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
-        assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 3
+        shape = _build_artifact_shape("demo_sphere", root=repo_root)
+        assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 4
 
     def test_render_cli(self, release_artifacts: Path, tmp_path: Path):
         stl_path = release_artifacts / "sphere.stl"
@@ -246,8 +246,8 @@ class TestReleaseRender:
         size = TEST_RENDER_SIZE_TOKEN
         assert (release_artifacts / f"sphere_front_{size}.png").exists()
         assert (release_artifacts / f"sphere_iso_{size}.png").exists()
-        assert (release_artifacts / f"sphere_with_nut_front_{size}.png").exists()
-        assert (release_artifacts / f"sphere_with_nut_iso_{size}.png").exists()
+        assert (release_artifacts / f"demo_sphere_front_{size}.png").exists()
+        assert (release_artifacts / f"demo_sphere_iso_{size}.png").exists()
         assert not (release_artifacts / "sphere.png").exists()
 
 
@@ -278,11 +278,11 @@ class TestRenderArtifact:
     def test_render_artifact_preserves_part_colors(self, repo_root: Path):
         from cad_tooling.render import _build_artifact_shape, _colored_solids
 
-        shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
+        shape = _build_artifact_shape("demo_sphere", root=repo_root)
         solids = _colored_solids(shape, (0.31, 0.63, 1.0))
-        assert len(solids) == 3
+        assert len(solids) == 4
         colors = {tuple(round(channel, 2) for channel in face_color) for _, face_color in solids}
-        assert len(colors) == 3
+        assert len(colors) == 4
 
 
 @pytest.mark.integration
@@ -291,10 +291,10 @@ class TestViewerScript:
         shape, artifact_name, artifact_func = load_viewer_script(
             repo_root / "main.py", root=repo_root
         )
-        assert artifact_name == "sphere_with_nut"
+        assert artifact_name == "demo_sphere"
         assert artifact_func is not None
-        assert artifact_func.__name__ == "sphere_with_nut"
-        assert len(shape.children) == 3
+        assert artifact_func.__name__ == "demo_sphere"
+        assert len(shape.children) == 4
         assert shape.volume > 0
 
 
@@ -314,13 +314,16 @@ class TestRenderMainPy:
 
     def test_render_main_py_to_directory(self, main_py_renders):
         size = TEST_RENDER_SIZE_TOKEN
-        assert len(main_py_renders) == 4
+        assert len(main_py_renders) == 7
         names = {path.name for path in main_py_renders}
         assert names == {
-            f"sphere_with_nut_front_{size}.png",
-            f"sphere_with_nut_iso_{size}.png",
+            f"demo_sphere_front_{size}.png",
+            f"demo_sphere_iso_{size}.png",
             f"sphere_front_{size}.png",
             f"sphere_iso_{size}.png",
+            f"sphere_tripod_support_front_{size}.png",
+            f"sphere_tripod_support_top_{size}.png",
+            f"sphere_tripod_support_iso_{size}.png",
         }
         assert all(path.exists() for path in main_py_renders)
         assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in main_py_renders)
