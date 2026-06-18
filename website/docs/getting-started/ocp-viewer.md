@@ -10,33 +10,74 @@ Live 3D visualization for build123d models via `show_object()` and the [OCP CAD 
 
 ## VSIX install
 
-The VSIX is **not committed**. It is downloaded to the workspace root as `ocp-cad-viewer-3.4.0.vsix` (gitignored).
+The VSIX is **not committed**. Devcontainer hooks download and patch it to the workspace root as `ocp-cad-viewer-3.4.0.vsix` (gitignored).
 
-### Cursor ESM patch
+### VS Code and Codespaces
 
-v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes in Cursor's extension host (`ERR_REQUIRE_ESM`). Devcontainer scripts patch the VSIX before install. VS Code is unaffected.
+[Visual Studio Code](https://code.visualstudio.com/) and **GitHub Codespaces** usually install OCP CAD Viewer from the Marketplace — accept the extension recommendation on first open, or search Extensions for **`bernhard-42.ocp-cad-viewer`**.
 
-## Automated setup
+### Manual VSIX install (Cursor and other forks)
 
-| Hook | Action |
-|------|--------|
-| `onCreateCommand` | `install-ocp-cad-viewer.sh download` |
-| `postCreateCommand` | download (again after `uv sync`) |
-| `postStartCommand` | `post-start.sh` — OCP viewer CLI install (non-fatal) and `start-docs.sh` for Docusaurus |
+**[Cursor](https://cursor.com/)**, [Windsurf](https://windsurf.com/), [VSCodium](https://vscodium.com/), and some other VS Code derivatives **often do not auto-install** the extension. Plan on installing the **patched** workspace VSIX by hand the first time you open the project — and again if Cursor disables the extension after an activation crash.
 
-## Manual recovery
+Use the file at the **workspace root**, not an unpatched copy from the Marketplace (see [Cursor ESM patch](#cursor-esm-patch) below).
 
-If commands are missing after reopening the container:
+**From the Command Palette (typical Cursor workflow):**
+
+1. Ensure the VSIX exists — container create/start runs the download. If the file is missing:
+
+   ```bash
+   bash .devcontainer/install-ocp-cad-viewer.sh download
+   ```
+
+2. Press **F1** (Command Palette) → **`Extensions: Install from VSIX...`**
+3. Select the patched file, for example:
+
+   `/workspaces/<your-repo-folder>/ocp-cad-viewer-3.4.0.vsix`
+
+   In a Dev Container the workspace is usually mounted under `/workspaces/`; the folder name matches your clone (e.g. `cad-as-code-project`). You can also browse to `${workspaceFolder}/ocp-cad-viewer-3.4.0.vsix` from the file picker.
+
+4. **Developer: Reload Window**
+5. Open the **OCP CAD Viewer** panel (activity bar icon)
+6. `just view` or `uv run python main.py`
+
+**From a terminal (Cursor only):**
 
 ```bash
 bash .devcontainer/install-ocp-cad-viewer.sh install-cli
 ```
 
-Then:
+Then reload the window and open the viewer panel before running `just view`.
 
-1. **Developer: Reload Window**
-2. Open the **OCP CAD Viewer** panel (activity bar icon)
-3. `just view` or `uv run python main.py`
+### Cursor ESM patch
+
+v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes in Cursor's extension host (`ERR_REQUIRE_ESM`). Devcontainer scripts patch the VSIX before install. VS Code and unpatched Marketplace installs are unaffected — **Cursor must use the patched workspace VSIX**.
+
+## Automated setup
+
+| Hook | Action |
+|------|--------|
+| `onCreateCommand` | `install-ocp-cad-viewer.sh download` — fetch and patch VSIX to workspace root |
+| `postCreateCommand` | download again (after `uv sync`) |
+| `postStartCommand` | `post-start.sh` — optional `install-cli` via Cursor CLI (non-fatal), then `start-docs.sh` |
+
+Automated CLI install only runs when the **Cursor** command-line tool is available inside the container. If the extension is still missing after attach, use [manual VSIX install](#manual-vsix-install-cursor-and-other-forks) above.
+
+## Manual recovery
+
+If the extension is missing or commands disappeared after reopening the container:
+
+1. [Install from the patched VSIX](#manual-vsix-install-cursor-and-other-forks) (Cursor and forks), **or** run:
+
+   ```bash
+   bash .devcontainer/install-ocp-cad-viewer.sh install-cli
+   ```
+
+   (Cursor terminal path only)
+
+2. **Developer: Reload Window**
+3. Open the **OCP CAD Viewer** panel (activity bar icon)
+4. `just view` or `uv run python main.py`
 
 ## Clip view (section cuts)
 

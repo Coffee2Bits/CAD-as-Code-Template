@@ -68,6 +68,8 @@ What should happen:
 - `just view` opens the demo sphere in the OCP CAD Viewer.
 - `just mr-artifacts` lists the exportable MakerRepo artifacts.
 
+**Cursor and some other VS Code forks:** OCP CAD Viewer often must be installed by hand — **F1** → **Install from VSIX** → `ocp-cad-viewer-3.4.0.vsix` at the workspace root (patched by the devcontainer). See [OCP CAD Viewer setup](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/ocp-viewer#manual-vsix-install-cursor-and-other-forks).
+
 Full setup, local Docker notes, MCP notes, and first-release setup live in the [quick start](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/quick-start).
 
 ## Where to go next

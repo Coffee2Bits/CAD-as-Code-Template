@@ -52,7 +52,10 @@ just docs-serve                    # foreground with hot reload
 
 ## Editor setup
 
-Extensions: Python, Pylance, Ruff.
+`devcontainer.json` recommends **Python**, **Pylance**, and **Ruff** only. **OCP CAD Viewer** is installed separately:
+
+- **VS Code / Codespaces** — Marketplace extension `bernhard-42.ocp-cad-viewer` (recommendation or Extensions search).
+- **Cursor and other forks** — manual install from the patched `ocp-cad-viewer-3.4.0.vsix` at the workspace root ([OCP CAD Viewer](/getting-started/ocp-viewer#manual-vsix-install-cursor-and-other-forks)).
 
 Format-on-save uses Ruff from the project venv (`importStrategy: fromEnvironment` in `.vscode/settings.json`). Mismatched formatters cause CI/CD pipeline regressions — see [uv & quality](/tools/uv-and-quality).
 

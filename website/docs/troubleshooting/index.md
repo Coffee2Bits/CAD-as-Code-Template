@@ -24,7 +24,7 @@ sidebar_position: 1
 - Selector-based ops can break if topology changes unexpectedly
 - STEP is reliable interchange; STL is lossy
 - MCP agent tools are pinned in the dev container; upstream MCP/agent APIs may still change
-- VSIX install may need manual step if `code`/`cursor` CLI unavailable
+- **Cursor** and some VS Code forks require **manual OCP CAD Viewer install** from the patched workspace VSIX (`Extensions: Install from VSIX...`); automated `install-cli` only helps when the Cursor CLI is available
 
 ## Still stuck?
 

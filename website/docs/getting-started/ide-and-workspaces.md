@@ -57,7 +57,11 @@ The initial image build can take several minutes (Open CASCADE system packages, 
 ### Cursor-specific notes
 
 - **MCP** — servers run in the dev container; `.cursor/mcp.json` connects automatically. Reload MCP after container rebuilds ([quick start](/getting-started/quick-start#mcp-servers)).
-- **OCP CAD Viewer** — the devcontainer patches the VSIX for a Cursor extension-host ESM issue; VS Code is unaffected ([OCP viewer](/getting-started/ocp-viewer#cursor-esm-patch)).
+- **OCP CAD Viewer** — Cursor (and some other VS Code forks) usually **cannot rely on automatic extension install**. After the container builds, install the **patched** workspace VSIX by hand: **F1** → **`Extensions: Install from VSIX...`** → `/workspaces/<your-repo-folder>/ocp-cad-viewer-3.4.0.vsix`. The devcontainer downloads and patches that file for a Cursor extension-host ESM issue; VS Code Marketplace installs are unaffected ([manual VSIX install](/getting-started/ocp-viewer#manual-vsix-install-cursor-and-other-forks), [ESM patch](/getting-started/ocp-viewer#cursor-esm-patch)). If Cursor crashes on activation, it may uninstall the extension — reinstall from the same patched VSIX.
+
+### Other VS Code forks (Windsurf, VSCodium, …)
+
+Marketplace and devcontainer extension wiring differ from stock VS Code. Treat **OCP CAD Viewer** like Cursor: use the patched `ocp-cad-viewer-3.4.0.vsix` at the workspace root via **Install from VSIX** ([OCP viewer](/getting-started/ocp-viewer#manual-vsix-install-cursor-and-other-forks)).
 
 ## Cloud workspaces
 
@@ -126,9 +130,10 @@ After switching IDEs or moving local → cloud:
 
 1. **Reopen in Container** (or rebuild the codespace) so lifecycle hooks run.
 2. Run `just sync` if dependencies look stale.
-3. Run `just test` and `just view` to confirm geometry + viewer.
-4. Reload MCP in the IDE after a container rebuild (servers are already in the container).
-5. For Dagger locally: confirm Docker is reachable (`just ci`).
+3. **Cursor / forks:** confirm OCP CAD Viewer is installed ([manual VSIX](/getting-started/ocp-viewer#manual-vsix-install-cursor-and-other-forks) if missing).
+4. Run `just test` and `just view` to confirm geometry + viewer.
+5. Reload MCP in the IDE after a container rebuild (servers are already in the container).
+6. For Dagger locally: confirm Docker is reachable (`just ci`).
 
 ## Related docs
 

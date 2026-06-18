@@ -63,15 +63,24 @@ uv run pytest
 
 ### 2. View the demo model
 
-Open the OCP CAD Viewer panel in the activity bar, then run:
+1. Confirm **OCP CAD Viewer** is installed (see below).
+2. Open the **OCP CAD Viewer** panel in the activity bar.
+3. Run:
 
 ```bash
 just view
 ```
 
-The demo sphere should appear in the OCP CAD Viewer panel.
+The demo sphere should appear in the panel.
 
-If the panel or extension is missing, use the [OCP CAD Viewer guide](/getting-started/ocp-viewer). Because we install from VSIX on cursor, if the extension crashes as often happens then cursor will uninstall the extension; you will need to reinstall the extension in order to run it again.
+**Extension not installed?**
+
+| Editor | What to do |
+|--------|------------|
+| **VS Code** or **Codespaces** | Install **OCP CAD Viewer** (`bernhard-42.ocp-cad-viewer`) from the Extensions view or accept the Marketplace recommendation. |
+| **Cursor** and other [VS Code forks](/getting-started/ide-and-workspaces) | Install manually from the patched VSIX at the workspace root — **F1** → **`Extensions: Install from VSIX...`** → e.g. `/workspaces/<your-repo-folder>/ocp-cad-viewer-3.4.0.vsix`. Full steps: [OCP CAD Viewer — manual VSIX install](/getting-started/ocp-viewer#manual-vsix-install-cursor-and-other-forks). |
+
+Cursor may **uninstall** the extension after an activation crash (`ERR_REQUIRE_ESM` on an unpatched build). Reinstall from the **same patched** workspace VSIX, not from the Marketplace.
 
 ### 3. List and export artifacts
 
