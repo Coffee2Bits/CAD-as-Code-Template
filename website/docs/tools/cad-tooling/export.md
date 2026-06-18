@@ -11,7 +11,7 @@ Programmatic export for tests, the CI/CD pipeline, and release automation. Prefe
 Run from the repository root:
 
 ```bash
-# CI/CD pipeline smoke — discover all @artifact functions, export STEP + STL
+# Artifact export verification — discover all @artifact functions, export STEP + STL
 uv run python -m cad_tooling.export smoke
 
 # Export one or all artifacts
@@ -69,7 +69,9 @@ export_artifacts(Path("/tmp/out"), "step", ("sphere",))
 export_part(make_sphere(), "sphere", "/tmp/out")
 ```
 
-`export_artifacts()` and `list_artifacts()` power CI/CD pipeline smoke and [`tests/test_makerrepo.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/tests/test_makerrepo.py).
+`export_artifacts()` and `list_artifacts()` power the CI/CD pipeline's artifact export verification and [`tests/test_makerrepo.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/tests/test_makerrepo.py).
+
+The CLI subcommand is named `smoke` for historical reasons. In CI, it is the artifacts-stage check: it proves every registered artifact can be discovered, realized, and exported as STEP and STL. See [Testing strategy](/modeling/testing#artifact-export-verification).
 
 ## CI/CD pipeline integration
 

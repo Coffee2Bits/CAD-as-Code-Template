@@ -23,7 +23,7 @@ sidebar_position: 1
 | | `just mr-export sphere /tmp/out step` | Export one artifact |
 | | `just mr-view sphere` | Send artifact to OCP CAD Viewer |
 | | `just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'` | Export with parameters |
-| **export** | `just export-smoke` | Discover and export all artifacts (CI/CD pipeline smoke) |
+| **export** | `just export-smoke` | Discover and export all artifacts as STEP and STL |
 | | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
 | | `just export /tmp/out step sphere` | Export one artifact in a given format |
 | | `just release dist/` | Alias for `just export dist/` |
@@ -41,7 +41,7 @@ sidebar_position: 1
 | **ci** | `just ci` | Full Dagger pipeline |
 | | `just ci-test` | Dagger pytest only |
 | | `just ci-lint` | Dagger ruff + mypy + vulture only |
-| | `just ci-artifacts` | Dagger artifact smoke |
+| | `just ci-artifacts` | Dagger artifact export verification |
 | | `just ci-release dist/` | Dagger release STL + PNG |
 | **docs** | `just docs-install` | `npm ci` in `website/` |
 | | `just docs-serve` | Docusaurus dev server (alias: `just docs-start`; auto-started in devcontainer on port 3000) |

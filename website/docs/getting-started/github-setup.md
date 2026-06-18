@@ -100,7 +100,7 @@ Apply to branch: `main`
 | Rule | Setting | Why |
 |------|---------|-----|
 | Require a pull request before merging | Enabled | Keeps `main` stable and reviewable |
-| Required status checks | `Dagger CI` | Runs linting, artifact smoke, and tests for CAD/code changes |
+| Required status checks | `Dagger CI` | Runs linting, artifact export verification, and tests for CAD/code changes |
 | Optional docs check | `build` from Documentation PR check | Useful when protecting docs-heavy repos |
 | Require branches to be up to date before merging | Recommended | Avoids merging stale green PRs |
 | Require conversation resolution | Recommended | Keeps review feedback explicit |
@@ -140,7 +140,7 @@ These workflows are already committed by the template. GitHub settings decide wh
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| [`ci.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/ci.yml) | PR + push to `main` with path filters | Dagger `check`: lint, artifact smoke, pytest |
+| [`ci.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/ci.yml) | PR + push to `main` with path filters | Dagger `check`: lint, artifact export verification, pytest |
 | [`release-please.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release-please.yml) | Push to `main` | Open/update Release PR; create tags for releases |
 | [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) | Push tag `v*.*.*` | Quality gate → export STL/PNG → GitHub Release |
 | [`docs.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/docs.yml) | Push to `main` with docs paths | Build and deploy Docusaurus to Pages |

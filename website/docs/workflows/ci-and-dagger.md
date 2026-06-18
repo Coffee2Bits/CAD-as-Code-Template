@@ -9,7 +9,7 @@ flowchart LR
   PUSH["push/PR to main"] --> FILTER{"path filter"}
   FILTER --> DAG["Dagger check"]
   DAG --> LINT["lint"]
-  DAG --> ART["artifacts smoke"]
+  DAG --> ART["artifact export verification"]
   DAG --> TEST["pytest"]
 ```
 
@@ -34,6 +34,23 @@ Job name for branch protection: **Dagger CI**.
 | `release-artifact` | `python -m cad_tooling.export release --lighting-preset default` |
 
 Full reference: [CI functions](/reference/ci-functions).
+
+## What the artifacts stage tests
+
+The `artifacts` stage is not a smoke test of Dagger or GitHub Actions. It is the CI/CD pipeline's export verification for publishable CAD geometry.
+
+The command name is still `cad_tooling.export smoke`, but the invariant is concrete: discover every MakerRepo `@artifact`, realize each artifact, then export the set as STEP and STL inside the CI container.
+
+That catches failures that narrower tests can miss:
+
+- an artifact was added but not discoverable through MakerRepo
+- a model builds in one test path but fails when realized through the artifact registry
+- STEP export works but STL export fails, or the reverse
+- a registered artifact has no dedicated model test yet
+
+Keep this separate from `test` on purpose. `test` runs pytest suites for model behavior, tooling behavior, and functional workflows. `artifacts` proves the repository's published CAD outputs still export as a full set.
+
+For the full testing layer map, see [Testing strategy](/modeling/testing).
 
 ## Local
 
