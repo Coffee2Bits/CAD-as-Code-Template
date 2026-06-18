@@ -101,8 +101,23 @@ Use the **Clip** tab when you need to see inside a solid — nut pockets, screw 
 |---------|--------|
 | **Intersection** | Keep only the volume inside all active planes (narrower slice). Off by default — planes remove geometry on their negative side independently. |
 | **Planes** | Show semi-transparent grid helpers for each active plane. |
-| **Use object color caps** | Color cut faces with each object's material instead of the default cap highlight. |
+| [**Use object color caps**](#use-object-color-caps) | Color cut faces with each object's material instead of the default cap highlight. |
 | **Reset** (Clip tab) | Restore default slider positions and options. |
+
+### Use object color caps
+
+By default, clipping planes paint every cut face with one **cap highlight** color. That makes the slice easy to spot, but every part on the section reads as the same material — in the [Y-axis clip](#open-the-clip-tab) above, the sphere shell, nut pocket, screw, and legs all appear green on the cut.
+
+Enable **Use object color caps** when you need to see *which object* each cut face belongs to — especially in multi-part assemblies where [`Part.color`](https://build123d.readthedocs.io/) already encodes identity (body, reference hardware, tripod legs, and so on).
+
+1. Open the **Clip** tab and position your slice (a **Y** cut through [`demo_sphere`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/assemblies/demo_sphere.py) is a good practice view for nut pockets and screw seats).
+2. Check **Use object color caps**.
+
+![Clip along Y with object color caps — sphere body, nut, screw, and legs each keep their part color on the cut faces](/img/ocp_clip_y_object_color_cap.png)
+
+With the option on, the yellow sphere shell, black nut, silver screw, and orange tripod legs each keep their own color on the section. You can trace a pocket wall or seat without hiding reference parts in the **Tree** tab — the slice itself shows which solid owns each face.
+
+To restore the uniform cap highlight, uncheck the option or use **Reset** on the Clip tab.
 
 ### Tips
 
