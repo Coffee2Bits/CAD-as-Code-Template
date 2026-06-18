@@ -25,6 +25,7 @@ const sidebars: SidebarsConfig = {
         'modeling/parts-and-assemblies',
         'modeling/testing',
         'modeling/external-libraries',
+        'modeling/third-party-assets',
       ],
     },
     {

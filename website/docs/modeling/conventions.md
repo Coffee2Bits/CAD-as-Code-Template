@@ -6,7 +6,7 @@ sidebar_position: 1
 
 ## Source of truth
 
-Python model code is authoritative — not STL or STEP meshes. Generated exports stay out of version control except golden fixtures under `tests/fixtures/`.
+Python model code is authoritative — not STL or STEP meshes. Generated exports stay out of version control except golden fixtures under `tests/fixtures/`. Committed **reference** files (texture masks, vendor STEP, SVG profiles) belong under [`cad/assets/`](/modeling/third-party-assets) with a manifest — not scattered in `cad/parts/`.
 
 ## Units and types
 

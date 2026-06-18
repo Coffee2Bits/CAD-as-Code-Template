@@ -27,6 +27,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 ├── .makerrepo/
 │   └── config.yaml           # Repo-level MakerRepo defaults
 ├── cad/                      # All durable model code
+│   ├── assets/               # Third-party reference files — see [Third-party assets](#third-party-assets)
 │   ├── parts/                # Reusable parametric components
 │   └── assemblies/           # Composed products built from parts
 ├── cad_tooling/              # Export, render, and release helpers — see cad_tooling/README.md
@@ -47,6 +48,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 
 | Path | Purpose | Agent rules |
 |------|---------|-------------|
+| `cad/assets/` | Committed third-party reference files (`images/`, `meshes/`, `svg/`, `step/`) and `manifests/` | One YAML manifest per asset (license, source, `used_by`). Load via `Path(__file__).resolve().parents[1] / "assets" / ...`. Do not commit generated exports here. Human docs: [third-party assets](website/docs/modeling/third-party-assets.md). |
 | `cad/parts/` | Single reusable components (brackets, enclosures, product-specific geometry) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. Prefer [external part libraries](#external-part-libraries) for catalog fasteners, structural sections, gears, and V-Slot — thin-wrap here, do not reimplement ISO tables. |
 | `cad/assemblies/` | Products composed from parts (positions, patterns, constraints) | Import from `cad.parts`; do not duplicate part geometry. Assemblies may define their own `@artifact` / `@customizable` entry points. |
 | `cad_tooling/` | MakerRepo-aware export, OCP rendering, release notes | See [cad_tooling/README.md](cad_tooling/README.md). Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. Import `@render` from `cad_tooling.render_decorator`. |
@@ -121,6 +123,30 @@ Use the **one-line scope** below as the first categorizer — if the task fits a
 - Keep **`simple=True`** (default) on bd_warehouse fasteners in tests and CI unless the task explicitly needs modeled threads.
 - Library objects are build123d solids/`BasePartObject` — return `.part` (or equivalent) from `make_*` builders so tests and assemblies stay consistent.
 - New `@artifact` wrappers around library-backed parts still need pytest geometry checks and the [agent workflow checklist](#agent-workflow-checklist).
+
+---
+
+## Third-party assets
+
+Committed **reference files** that models load at build time (not generated exports) live under `cad/assets/`:
+
+```text
+cad/assets/
+├── images/       # PNG, JPEG, alpha masks, height maps
+├── meshes/       # STL, OBJ, PLY reference geometry
+├── svg/          # 2D profiles and logos
+├── step/         # Vendor STEP / legacy B-rep imports
+└── manifests/    # One YAML per asset — license, source, used_by
+```
+
+Each type folder has an empty `.gitignore` so Git keeps the directory before files are added.
+
+- Add a manifest in `manifests/` for every committed asset (SPDX license, `source_url`, `used_by` modules).
+- Resolve paths from `cad/`: `Path(__file__).resolve().parents[1] / "assets" / "images" / ...`
+- Unit-test that default asset paths exist when builders depend on them.
+- Do **not** put generated STEP/STL from `@artifact` export here — only `tests/fixtures/` golden meshes are exceptions.
+
+Live example: texture emboss on the demo sphere — [`cad/parts/sphere_texture_emboss.py`](cad/parts/sphere_texture_emboss.py) loads [`cad/assets/images/circle_alpha.jpg`](cad/assets/images/circle_alpha.jpg). Human docs: [third-party assets](website/docs/modeling/third-party-assets.md).
 
 ---
 
@@ -701,6 +727,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 ## Reference
 
 - [Testing strategy](website/docs/modeling/testing.md) — markers, test groups, agent/human test loop
+- [Third-party assets](website/docs/modeling/third-party-assets.md) — `cad/assets/` layout, manifests, loading from model code
 - [MakerRepo library](https://docs.makerrepo.com/makerrepo-library/)
 - [MakerRepo CLI](https://docs.makerrepo.com/makerrepo-cli/)
 - [MakerRepo artifacts](https://docs.makerrepo.com/makerrepo-library/artifacts/)

@@ -16,6 +16,7 @@ sidebar_position: 5
 ├── ci/                           # Dagger module
 ├── .devcontainer/                # Dev container + OCP VSIX install
 ├── cad/
+│   ├── assets/                   # Committed third-party reference files (images, meshes, STEP, …)
 │   ├── parts/                    # Reusable parametric parts
 │   └── assemblies/               # Composed products
 ├── cad_tooling/                  # Export, render, release helpers
@@ -29,6 +30,7 @@ sidebar_position: 5
 
 | Path | Purpose |
 |------|---------|
+| `cad/assets/` | Third-party reference files (images, meshes, SVG, STEP) + manifests — see [Third-party assets](/modeling/third-party-assets) |
 | `cad/parts/` | Single reusable components; builders + MR decorators |
 | `cad/assemblies/` | Products composed from parts; placement and patterns |
 | `cad_tooling/` | Export, headless render, release notes |

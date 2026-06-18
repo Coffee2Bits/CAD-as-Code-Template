@@ -1,0 +1,11 @@
+# Third-party asset manifest — see website/docs/modeling/third-party-assets.md
+id: circle_alpha
+path: images/circle_alpha.jpg
+type: image
+format: jpeg
+used_by:
+  - cad.parts.sphere_texture_emboss
+description: Tileable alpha mask for seigaiha-style radial bump embossing on the demo sphere
+license: CC0-1.0
+source_url: https://github.com/Coffee2Bits/CAD-as-Code-Template
+notes: Dark pixels become surface bumps; white pixels are skipped
