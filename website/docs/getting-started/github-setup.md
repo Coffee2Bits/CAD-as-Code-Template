@@ -184,5 +184,3 @@ After configuration:
 - [Release workflow reference](/workflows/releases) — deeper release mechanics
 - [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) — what the required check runs
 - [Dev container GitHub CLI](/getting-started/dev-container#github-cli) — `gh` authentication inside the container
-
-In-repo copy: [`.github/GITHUB_SETUP.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/GITHUB_SETUP.md)

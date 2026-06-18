@@ -107,7 +107,6 @@ holder = "acme"
 | `website/package.json` | Docs package name |
 | `AGENTS.md` | Template identity strings |
 | README and docs pages | Updated by default unless `--no-sync-docs` is used |
-| `.github/GITHUB_SETUP.md` | Short in-repo GitHub setup pointer |
 
 The embedded `cad_tooling/` library is never modified by `just init` or `just template-apply`.
 

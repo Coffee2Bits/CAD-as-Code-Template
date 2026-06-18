@@ -20,7 +20,7 @@ Before editing, decide what kind of change you are making:
 | GitHub Actions, Dagger, or publishing | [CI/CD pipeline and Dagger](/workflows/ci-and-dagger), [Releases](/workflows/releases) | `just ci` |
 | Documentation only | The page you are changing, plus nearby linked pages | `just docs-build` |
 
-Small PRs are easier to review. Prefer one model change, one workflow change, or one docs cleanup at a time.
+Small PRs are easier to review. Keep each one focused on a single model change, workflow change, or docs cleanup.
 
 ## Local checks
 

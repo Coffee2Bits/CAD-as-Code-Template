@@ -12,7 +12,6 @@ sidebar_position: 5
 ├── .cursor/                      # MCP wiring (IDE → in-container servers)
 ├── .makerrepo/config.yaml        # MakerRepo defaults
 ├── .github/
-│   ├── GITHUB_SETUP.md           # One-time GitHub.com settings (branch protection, Pages, …)
 │   └── workflows/                # CI/CD pipeline, release, docs
 ├── ci/                           # Dagger module
 ├── .devcontainer/                # Dev container + OCP VSIX install
@@ -20,7 +19,7 @@ sidebar_position: 5
 │   ├── parts/                    # Reusable parametric parts
 │   └── assemblies/               # Composed products
 ├── cad_tooling/                  # Export, render, release helpers
-├── justfile                      # Dev, export, CI/CD pipeline/CD pipeline commands
+├── justfile                      # Dev, export, and CI/CD pipeline commands
 ├── main.py                       # Viewer entry (not model logic)
 ├── tests/                        # CAD model tests
 └── cad_tooling_tests/            # Tooling unit tests

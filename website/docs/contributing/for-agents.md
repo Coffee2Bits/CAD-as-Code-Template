@@ -28,7 +28,7 @@ Follow the **Documentation** section in AGENTS.md. Keep the docs shaped like an 
 Whenever you change code, config, `justfile`, or workflows:
 
 1. Open the matching guide under [`website/docs/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/website/docs) and confirm it still describes **current** behavior.
-2. **Search** `website/docs/`, `README.md`, `.github/GITHUB_SETUP.md`, and `cad_tooling/README.md` for the **old** command names, paths, and strings you replaced.
+2. **Search** `website/docs/`, `README.md`, `AGENTS.md`, and `cad_tooling/README.md` for the **old** command names, paths, and strings you replaced.
 3. **Update every reference** in the same change — links, tables, and examples included.
 
 Full rules: **[Keep docs in sync (mandatory)](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#keep-docs-in-sync-mandatory)** in AGENTS.md.
