@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.2.0...v0.3.0) (2026-06-18)
+
+
+### Features
+
+* enhance M3 hex nut and screw with threads. ([60bc779](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/60bc7791ec2ff1e53a43c970c4bb37126e7ff69e))
+
+
+### Documentation
+
+* enhance OCP CAD Viewer documentation with clip view instructions and new images ([212e6d8](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/212e6d80b666d63f4101d166e65f4b854ea8ce3b))
+* Further docs refinement ([#5](https://github.com/Coffee2Bits/CAD-as-Code-Template/issues/5)) ([c78dc30](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/c78dc30a087b8c8d7782ea391b3624e1990bc302))
+* refine agent instructions for CAD edits to emphasize immediate viewer refresh after geometry changes ([f23948f](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/f23948f99b39260ac4db21e832341219154b8436))
+* update visual verification process for CAD edits ([da956c1](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/da956c152d4fafa8b308463b12390c959dbe3365))
+
 ## [0.2.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.1.0...v0.2.0) (2026-06-18)
 
 
