@@ -50,7 +50,7 @@ A **Manufacturing-as-Code** workspace: parametric CAD is defined in Python with 
 | `cad/parts/` | Single reusable components (brackets, enclosures, product-specific geometry) | One module per part family. Put builders, MR decorators, and Pydantic parameter models here. Prefer [external part libraries](#external-part-libraries) for catalog fasteners, structural sections, gears, and V-Slot — thin-wrap here, do not reimplement ISO tables. |
 | `cad/assemblies/` | Products composed from parts (positions, patterns, constraints) | Import from `cad.parts`; do not duplicate part geometry. Assemblies may define their own `@artifact` / `@customizable` entry points. |
 | `cad_tooling/` | MakerRepo-aware export, OCP rendering, release notes | See [cad_tooling/README.md](cad_tooling/README.md). Use `export_artifacts()` / `list_artifacts()` in tests and CI; use `export_part()` for non-MR scripts. Import `@render` from `cad_tooling.render_decorator`. |
-| `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. **After editing `cad/parts/` or `cad/assemblies/`**, start `just view` in the background before tests (see [Visual verification](#visual-verification-after-cad-edits)). |
+| `main.py` | Display / demo scripts for OCP CAD Viewer | Keep thin — import builders from `cad/`, call `show_object`. No MR decorators here. **After editing `cad/parts/` or `cad/assemblies/`**, start `just view` in the background (see [Visual verification](#visual-verification-after-cad-edits)). |
 | `tests/` | pytest coverage for CAD models and MR integration | Mirror `cad/` structure: `test_<part>.py`, `test_makerrepo.py` for discovery smoke tests. |
 | `cad_tooling_tests/` | pytest coverage for workspace tooling | Mirror `cad_tooling/` module layout; keep detached from `tests/`. |
 | `.makerrepo/config.yaml` | MR repo config | Set export defaults and optional `pythonpaths`; do not put model logic here. |
@@ -338,14 +338,13 @@ uv run mr cache prune
 **Required:** after any edit to a file under `cad/parts/` or `cad/assemblies/` (or `main.py` display wiring), refresh the OCP CAD Viewer so the user can see geometry changes in real time as you work.
 
 1. Point `main.py` at the part or assembly you changed — import its `make_*` builder (or assembly builder) and call `show_object`. Keep one focused demo per run.
-2. **Start the viewer in the background immediately before unit tests** — from the repo root, launch `just view` as a **non-blocking** background process, then run `just test-unit` (or the targeted test group for the change). The viewer updates while tests run so the user can watch the model evolve iteration by iteration.
+2. **Start the viewer in the background immediately after the geometry edit** — from the repo root, launch `just view` as a **non-blocking** background process right after saving model changes. Do not wait for the script to exit; continue with implementation or tests.
 
 ```bash
-just view          # background — do not wait for this to finish
-just test-unit     # foreground — fast feedback loop
+just view   # background — run after every geometry edit; do not wait for this to finish
 ```
 
-Use your shell runner's background mode (e.g. `block_until_ms: 0` in Cursor) so `just view` does not block the test command. Re-launch `just view` in the background on **every** model edit before the next test run — each invocation re-executes `main.py` and pushes the latest solid to the viewer.
+Use your shell runner's background mode (e.g. `block_until_ms: 0` in Cursor) so `just view` does not block your next step. Re-launch `just view` in the background on **every** model geometry edit — each invocation re-executes `main.py` and pushes the latest solid to the viewer.
 
 3. Confirm the model appears in the OCP CAD Viewer panel (extension must be open). Use ocp-viewer-mcp `capture_ocp_screenshot` when you need visual confirmation in the agent session.
 
@@ -355,7 +354,7 @@ Skip this only for edits that do not touch model geometry or display behavior (e
 
 **Testing strategy:** markers, test groups, and the daily loop are documented in [website/docs/modeling/testing.md](website/docs/modeling/testing.md) (site: [Testing strategy](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/testing)). Read it before adding or reclassifying tests.
 
-**During implementation**, after CAD or `main.py` display edits, start `just view` in the background (see [Visual verification](#visual-verification-after-cad-edits)), then prefer `just test-unit` for fast feedback. When your change touches CAD builds, export, render, or `just` recipes, also run the matching group (`just test-integration`, `just test-render`, or `just test-functional`). **Do not** run the full suite on every edit.
+**During implementation**, after CAD or `main.py` display edits, start `just view` in the background (see [Visual verification](#visual-verification-after-cad-edits)). Prefer `just test-unit` for fast feedback — tests are independent of the viewer refresh. When your change touches CAD builds, export, render, or `just` recipes, also run the matching group (`just test-integration`, `just test-render`, or `just test-functional`). **Do not** run the full suite on every edit.
 
 **Before marking work complete**, run the [completion gate](#task-completion-gate) (`just quality && just export-smoke` or `just ci`) — that runs lint plus the **full** pytest suite.
 
@@ -410,7 +409,7 @@ When adding or changing a published model:
 1. Implement `make_*` builder in `cad/parts/` or `cad/assemblies/` (or wrap an [external part library](#external-part-libraries) when the geometry is catalog-standard).
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
 3. Add pytest tests (geometry + export) with the correct [markers](website/docs/modeling/testing.md#test-categories-pytest-markers).
-4. **Iterate:** update `main.py` if needed, start `just view` in the background, then `just test-unit`; add `just test-integration` (or `test-render`) when exercising CAD/export/render paths — see [Testing strategy](website/docs/modeling/testing.md#recommended-workflow) and [Visual verification](#visual-verification-after-cad-edits).
+4. **Iterate:** update `main.py` if needed, start `just view` in the background after each geometry edit, and run `just test-unit` (or targeted groups) for feedback — see [Testing strategy](website/docs/modeling/testing.md#recommended-workflow) and [Visual verification](#visual-verification-after-cad-edits).
 5. Confirm MR discovery: `just mr-artifacts` / `just mr-generators`.
 6. **Completion gate:** run `just ci` (or the [local equivalent](#task-completion-gate)) and do not finish until it passes.
 
@@ -683,7 +682,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
 - **Exports**: write to `/tmp` or pytest `tmp_path`; never commit generated meshes (except golden fixtures under `tests/fixtures/`).
 - **Prototyping**: use build123d-mcp `execute` for experiments; promote stable code into `cad/parts/` with tests. For catalog parts, prototype with the matching [external library](#external-part-libraries) rather than one-off ISO dimensions.
-- **Visualization**: after every `cad/parts/` or `cad/assemblies/` edit, start `just view` in the background immediately before `just test-unit` (update `main.py` first if the displayed model changed) so the user sees live updates in OCP CAD Viewer. Use `just mr-view <name>` for MR-driven viewing of `@artifact` entry points.
+- **Visualization**: after every `cad/parts/` or `cad/assemblies/` edit (or `main.py` display wiring change), start `just view` in the background immediately so the user sees live updates in OCP CAD Viewer. Re-launch on each geometry edit; tests run separately. Use `just mr-view <name>` for MR-driven viewing of `@artifact` entry points.
 
 ---
 

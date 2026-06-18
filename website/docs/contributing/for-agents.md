@@ -15,7 +15,7 @@ sidebar_position: 2
 1. **Structure** — parts in `cad/parts/`, assemblies in `cad/assemblies/`, three-layer pattern (`make_*` → `@artifact` / `@customizable`)
 2. **Testing loop** — [`just test-unit`](/modeling/testing#recommended-workflow) while implementing; targeted `test-integration` / `test-render` / `test-functional` when those areas change; **full suite only at completion** ([Testing strategy](/modeling/testing))
 3. **Completion gate** — `just ci` or `just quality && just export-smoke` before marking work done
-4. **Visual verify** — after geometry edits to `cad/` (or `main.py` display wiring), start `just view` **in the background** immediately before `just test-unit` so the user sees live updates in OCP CAD Viewer as you iterate
+4. **Visual verify** — after geometry edits to `cad/` (or `main.py` display wiring), start `just view` **in the background** immediately so the user sees live updates in OCP CAD Viewer; re-launch on every geometry edit (independent of test runs)
 5. **MakerRepo** — `from mr import artifact, customizable, cached`; decorators on entry points only
 6. **External libs** — use bd_warehouse, bd-vslot, etc. for catalog geometry; thin-wrap in `cad/parts/`
 7. **`just` command tests** — destructive recipes (`just init`, `just template-apply`, …) only in [`tests/functional/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests/functional) via `isolated_repo` + `run_just()` — never on the real repo root ([AGENTS.md → Testing just commands](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#testing-just-commands-agents); markers in [Testing strategy](/modeling/testing))

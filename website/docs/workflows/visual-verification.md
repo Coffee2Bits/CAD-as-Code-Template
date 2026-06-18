@@ -10,17 +10,19 @@ sidebar_position: 2
 
 1. Import the changed builder in `main.py` (keep `main.py` thin)
 2. `just view` or `uv run python main.py`
-3. Confirm geometry in OCP CAD Viewer panel
+3. Confirm geometry in OCP CAD Viewer panel — rotate, zoom, and use the [Clip tab](/getting-started/ocp-viewer#clip-view-section-cuts) when you need to inspect pockets, bores, or embedded hardware
+
+![Section cut through the demo sphere assembly in OCP CAD Viewer](/img/ocp_clip_z.png)
 
 ## Agent loop (live updates)
 
-When an agent edits model geometry, it should refresh the viewer **on every iteration** so you can watch changes in real time:
+When an agent edits model geometry, it should refresh the viewer **immediately after each edit** so you can watch changes in real time:
 
 1. Update `main.py` if the displayed model changed
-2. Start `just view` in the **background** (non-blocking — do not wait for the script to exit)
-3. Run `just test-unit` (or a targeted integration/render group) in the foreground
+2. Start `just view` in the **background** right after saving the geometry change (non-blocking — do not wait for the script to exit)
+3. Continue implementation or run tests (`just test-unit`, targeted groups, etc.) — viewer refresh is **not** tied to test commands
 
-Re-launch `just view` in the background before each test run after a geometry edit. Each invocation re-executes `main.py` and pushes the latest solid to OCP CAD Viewer while tests run.
+Re-launch `just view` in the background on **every** geometry edit. Each invocation re-executes `main.py` and pushes the latest solid to OCP CAD Viewer.
 
 ## Alternatives
 
