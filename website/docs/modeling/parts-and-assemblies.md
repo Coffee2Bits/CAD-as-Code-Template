@@ -49,4 +49,8 @@ When embedding hardware (nuts, bearings, inserts, any other parts), generate a v
 
 Live example: [`cad/parts/sphere.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/parts/sphere.py) (M3 nut pocket and screw clearance hole), [`cad/parts/m3_socket_head_cap_screw.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/parts/m3_socket_head_cap_screw.py), and [`cad/assemblies/sphere_with_nut.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/assemblies/sphere_with_nut.py).
 
+After building the assembly, use the OCP CAD Viewer [Clip tab](/getting-started/ocp-viewer#clip-view-section-cuts) to confirm the reference nut and screw sit flush in their seats — a Y-axis section cut makes the pocket alignment easy to read.
+
+![Y-axis clip through the sphere assembly showing nut pocket alignment](/img/ocp_clip_y.png)
+
 Agents: full rules in [AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md).

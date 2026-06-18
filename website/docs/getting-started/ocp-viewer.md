@@ -38,6 +38,38 @@ Then:
 2. Open the **OCP CAD Viewer** panel (activity bar icon)
 3. `just view` or `uv run python main.py`
 
+## Clip view (section cuts)
+
+Use the **Clip** tab when you need to see inside a solid — nut pockets, screw seats, bore depth, or any feature hidden behind an outer shell. The demo [`sphere_with_nut`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/assemblies/sphere_with_nut.py) assembly is a good model to practice on: load it via `main.py`, then slice along each axis.
+
+### Open the Clip tab
+
+1. Display a model (`just view` or `uv run python main.py`).
+2. In the OCP CAD Viewer sidebar, select **Clip** (tab order: Tree · **Clip** · Zebra · Material · Studio).
+3. Drag the three sliders to move clipping planes along **X** (red), **Y** (green), and **Z** (blue). Each slider shows its plane normal `N=(…)` and position.
+
+![Clip along X — screw head and socket section](/img/ocp_clip_x.png)
+
+![Clip along Y — nut pocket and clearance bore](/img/ocp_clip_y.png)
+
+![Clip along Z — sphere quadrant cut and embedded hardware](/img/ocp_clip_z.png)
+
+### Clip options
+
+| Control | Effect |
+|---------|--------|
+| **Intersection** | Keep only the volume inside all active planes (narrower slice). Off by default — planes remove geometry on their negative side independently. |
+| **Planes** | Show semi-transparent grid helpers for each active plane. |
+| **Use object color caps** | Color cut faces with each object's material instead of the default cap highlight. |
+| **Reset** (Clip tab) | Restore default slider positions and options. |
+
+### Tips
+
+- **Clipping vs hiding** — Clip removes geometry from the *render* so you can see through a shell; it does not delete objects from the scene tree. To hide a whole part (e.g. a reference nut), use the eye icon on that node in the **Tree** tab instead.
+- **Measurement mode** — Clipping is disabled while measuring; exit measure mode to adjust planes again.
+- **Keep settings while iterating** — The viewer reuses the same panel across repeated `show_object` / `just view` runs, so Clip slider positions often persist while you edit and re-run — useful when tuning a pocket or seat.
+- **From Python** — Pass clip kwargs to `show()` / `show_object()` (via [ocp-vscode](https://github.com/bernhard-42/ocp_vscode)): `clip_slider_0`, `clip_normal_0`, …, `clip_intersection`, `clip_planes`, `clip_object_colors`. See upstream [show command docs](https://github.com/bernhard-42/vscode-ocp-cad-viewer/blob/main/docs/show.md).
+
 ## Troubleshooting
 
 See [OCP viewer troubleshooting](/troubleshooting/ocp-viewer).
