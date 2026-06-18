@@ -21,7 +21,7 @@ sidebar_position: 2
 
 ## Documentation work
 
-Follow [`website/DOCS_ROLLOUT_PLAN.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/website/DOCS_ROLLOUT_PLAN.md) and the **Documentation** section in AGENTS.md.
+Follow the **Documentation** section in AGENTS.md. Keep the docs shaped like an iceberg: README for the pitch and shortest path, the docs intro as the concept map, quick start for first success, and deeper pages for technical detail.
 
 ### No doc drift (mandatory)
 

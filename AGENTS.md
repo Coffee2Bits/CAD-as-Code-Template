@@ -706,9 +706,8 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 
 | Location | Role |
 |----------|------|
-| [`README.md`](README.md) | Turnkey template landing: pitch, what's-in-the-box, stack table, quick start, project layout summary, link to full docs. Keep template-facing content here; do not strip the stack. |
-| [`website/docs/`](website/docs/) | Deep guides: tools, workflows, troubleshooting, reference. Migrate prose from README when it becomes unwieldy, not before the matching page exists. |
-| [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) | Master checklist — work through phases in order; mark steps complete as you go. |
+| [`README.md`](README.md) | Turnkey template landing: pitch, CAD-as-Code concept, shortest start path, and links into the docs. Keep it focused on orientation, not full-manual detail. |
+| [`website/docs/`](website/docs/) | Deep guides: tools, workflows, troubleshooting, reference, and contributing docs. This is the canonical home for detailed user documentation. |
 | [`AGENTS.md`](AGENTS.md) | Agent contract only. Do **not** duplicate agent rules on the docs site; [`website/docs/contributing/for-agents.md`](website/docs/contributing/for-agents.md) summarizes and links here. |
 | [`cad_tooling/README.md`](cad_tooling/README.md) | Short pointer to `website/docs/tools/cad-tooling/` once that section exists. |
 | [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md) | Short checklist; canonical guide at `website/docs/getting-started/github-setup.md`. |
@@ -720,13 +719,12 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 
 **Before marking work complete:**
 
-1. **Read the canonical doc** for the area you touched (Getting started, Tools, Workflows, Troubleshooting, or Reference under `website/docs/`). If no page exists, add or extend one per [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) before claiming the behavior is documented.
+1. **Read the canonical doc** for the area you touched (Getting started, Tools, Workflows, Troubleshooting, or Reference under `website/docs/`). If no page exists, add or extend the closest matching page before claiming the behavior is documented.
 2. **Search for stale references** to anything you renamed, removed, or changed. At minimum search:
    - `website/docs/` (all `.md` files)
    - [`README.md`](README.md)
    - [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md)
    - [`cad_tooling/README.md`](cad_tooling/README.md)
-   - [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) if the change affects rollout status
    Use ripgrep for the **old** command string, recipe name, file path, env var, workflow name, status check name, config key, and any prose you replaced in code comments or docstrings.
 3. **Update every hit** — links, tables, mermaid labels, code blocks, and “jump to line” examples. Prefer relative links between Docusaurus pages; keep GitHub blob links pointed at the correct path on `main`.
 4. **Verify behavior matches prose** — commands in docs must match `justfile` / CLI flags; checklist items must match real GitHub settings; diagrams must match architecture you implemented.
@@ -743,8 +741,8 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 
 ### Agent rules when editing docs
 
-1. **Follow the rollout plan** — open [`website/DOCS_ROLLOUT_PLAN.md`](website/DOCS_ROLLOUT_PLAN.md) and complete the next unchecked phase/file before starting unrelated pages.
-2. **Linking** — prefer Docusaurus doc IDs (`/docs/tools/just`) or relative paths between pages. For the GitHub repo, use `https://github.com/Coffee2Bits/CAD-as-Code-Template` (or a path suffix like `/tree/main/cad/parts/sphere.py`). Never link to `cad_as_code_project`.
+1. **Respect the documentation shape** — README is the tip of the iceberg, `website/docs/intro.md` is the concept map, quick start is the first-success path, and deeper pages hold technical detail. Avoid duplicating long sections across entry pages.
+2. **Linking** — prefer Docusaurus doc IDs (`/tools/just`) or relative paths between pages. For the GitHub repo, use `https://github.com/Coffee2Bits/CAD-as-Code-Template` (or a path suffix like `/tree/main/cad/parts/sphere.py`). Never link to `cad_as_code_project`.
 3. **Diagrams** — stack and architecture diagrams live under `website/static/img/` (SVG/PNG) or as Mermaid fenced blocks in markdown (enabled in `docusaurus.config.ts`). Regenerate static SVGs when the stack changes.
 4. **Code examples** — copy from working repo sources (`justfile`, `cad/parts/sphere.py`, workflows); verify commands against the current tree before publishing.
 5. **README sync** — when moving a README section to the site, replace it with a short paragraph + link to the new doc page. Do not delete template stack/quick-start content from README.

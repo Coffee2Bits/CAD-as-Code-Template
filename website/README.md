@@ -16,5 +16,3 @@ just docs-build     # production build → website/build/
 ```
 
 In the dev container, `postStartCommand` runs `post-start.sh`, which starts the Docusaurus dev server in the background via `start-docs.sh` and opens port **3000** in your browser.
-
-Rollout tracker: [DOCS_ROLLOUT_PLAN.md](./DOCS_ROLLOUT_PLAN.md)

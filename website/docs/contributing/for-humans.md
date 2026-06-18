@@ -26,5 +26,3 @@ just docs-install
 just docs-start
 just docs-build
 ```
-
-Rollout tracker: [`website/DOCS_ROLLOUT_PLAN.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/website/DOCS_ROLLOUT_PLAN.md)
