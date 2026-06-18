@@ -36,6 +36,17 @@ Steps:
 
 Your editor should be attached to the container, not just the host folder.
 
+## Authenticate GitHub CLI
+
+The container includes GitHub CLI (`gh`) for pull requests, issues, and release inspection. Codespaces may already be authenticated. In a local Dev Container, log in once before you need GitHub from the terminal:
+
+```bash
+gh auth login
+gh auth status
+```
+
+Use `gh` to inspect releases, not to create normal releases. See [Dev container → GitHub CLI](/getting-started/dev-container#github-cli) for the command reference and [Releases](/getting-started/releases) for the automated release path.
+
 ## First commands
 
 The container syncs dependencies and starts the docs site automatically. If that did not happen, run:
