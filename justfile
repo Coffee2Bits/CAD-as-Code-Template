@@ -21,6 +21,74 @@ sync-frozen:
 setup-hooks:
     uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 
+# First-time setup after "Use this template": read template.repo.toml, optional CLI overrides.
+# Edit template.repo.toml, or: just init --owner acme --repo widget-cad
+[group('setup')]
+[arg('owner', long='owner')]
+[arg('repo', long='repo')]
+[arg('pages_url', long='pages-url')]
+[arg('docs_title', long='docs-title')]
+[arg('navbar_title', long='navbar-title')]
+[arg('tagline', long='tagline')]
+[arg('package_name', long='package-name')]
+[arg('copyright', long='copyright')]
+[arg('initial_version', long='initial-version')]
+[arg('npm_package_name', long='npm-package-name')]
+[arg('no_sync_docs', long='no-sync-docs', value='true')]
+init owner='' repo='' pages_url='' docs_title='' navbar_title='' tagline='' package_name='' copyright='' initial_version='' npm_package_name='' no_sync_docs='false':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    args=()
+    [[ -n "{{owner}}" ]] && args+=(--owner "{{owner}}")
+    [[ -n "{{repo}}" ]] && args+=(--repo "{{repo}}")
+    [[ -n "{{pages_url}}" ]] && args+=(--pages-url "{{pages_url}}")
+    [[ -n "{{docs_title}}" ]] && args+=(--docs-title "{{docs_title}}")
+    [[ -n "{{navbar_title}}" ]] && args+=(--navbar-title "{{navbar_title}}")
+    [[ -n "{{tagline}}" ]] && args+=(--tagline "{{tagline}}")
+    [[ -n "{{package_name}}" ]] && args+=(--package-name "{{package_name}}")
+    [[ -n "{{copyright}}" ]] && args+=(--copyright "{{copyright}}")
+    [[ -n "{{initial_version}}" ]] && args+=(--initial-version "{{initial_version}}")
+    [[ -n "{{npm_package_name}}" ]] && args+=(--npm-package-name "{{npm_package_name}}")
+    if [[ "{{no_sync_docs}}" == "true" ]]; then
+      args+=(--no-sync-docs)
+    else
+      args+=(--sync-docs)
+    fi
+    uv run python scripts/init_project.py "${args[@]}"
+
+[group('setup')]
+[arg('owner', long='owner')]
+[arg('repo', long='repo')]
+[arg('pages_url', long='pages-url')]
+[arg('docs_title', long='docs-title')]
+[arg('navbar_title', long='navbar-title')]
+[arg('tagline', long='tagline')]
+[arg('package_name', long='package-name')]
+[arg('copyright', long='copyright')]
+[arg('initial_version', long='initial-version')]
+[arg('npm_package_name', long='npm-package-name')]
+[arg('no_sync_docs', long='no-sync-docs', value='true')]
+init-dry-run owner='' repo='' pages_url='' docs_title='' navbar_title='' tagline='' package_name='' copyright='' initial_version='' npm_package_name='' no_sync_docs='false':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    args=(--dry-run)
+    [[ -n "{{owner}}" ]] && args+=(--owner "{{owner}}")
+    [[ -n "{{repo}}" ]] && args+=(--repo "{{repo}}")
+    [[ -n "{{pages_url}}" ]] && args+=(--pages-url "{{pages_url}}")
+    [[ -n "{{docs_title}}" ]] && args+=(--docs-title "{{docs_title}}")
+    [[ -n "{{navbar_title}}" ]] && args+=(--navbar-title "{{navbar_title}}")
+    [[ -n "{{tagline}}" ]] && args+=(--tagline "{{tagline}}")
+    [[ -n "{{package_name}}" ]] && args+=(--package-name "{{package_name}}")
+    [[ -n "{{copyright}}" ]] && args+=(--copyright "{{copyright}}")
+    [[ -n "{{initial_version}}" ]] && args+=(--initial-version "{{initial_version}}")
+    [[ -n "{{npm_package_name}}" ]] && args+=(--npm-package-name "{{npm_package_name}}")
+    if [[ "{{no_sync_docs}}" == "true" ]]; then
+      args+=(--no-sync-docs)
+    else
+      args+=(--sync-docs)
+    fi
+    uv run python scripts/init_project.py "${args[@]}"
+
 # Apply template.repo.toml to docs config, README links, and related files.
 [group('setup')]
 template-apply:
@@ -29,6 +97,11 @@ template-apply:
 [group('setup')]
 template-apply-dry-run:
     uv run python scripts/apply_template_identity.py --dry-run
+
+# Re-apply identity to integration files only (repo-identity.ts, pyproject name, AGENTS.md).
+[group('setup')]
+template-apply-integration:
+    uv run python scripts/apply_template_identity.py --integration-only
 
 # --- Development ---
 

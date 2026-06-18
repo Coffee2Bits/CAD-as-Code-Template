@@ -17,6 +17,7 @@ sidebar_position: 2
 3. **Visual verify** — `just view` after geometry edits to `cad/`
 4. **MakerRepo** — `from mr import artifact, customizable, cached`; decorators on entry points only
 5. **External libs** — use bd_warehouse, bd-vslot, etc. for catalog geometry; thin-wrap in `cad/parts/`
+6. **`just` command tests** — destructive recipes (`just init`, `just template-apply`, …) only in [`tests/functional/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests/functional) via `isolated_repo` + `run_just()` — never on the real repo root ([AGENTS.md → Testing just commands](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#testing-just-commands-agents))
 
 ## Documentation work
 
@@ -32,4 +33,4 @@ Whenever you change code, config, `justfile`, or workflows:
 
 Full rules: **[Keep docs in sync (mandatory)](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#keep-docs-in-sync-mandatory)** in AGENTS.md.
 
-**Template identity:** after “Use this template”, users edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) and run `just template-apply` — [Getting started: Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
+**Template identity:** edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then `just init` — or pass `just init --owner … --repo …`. [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).

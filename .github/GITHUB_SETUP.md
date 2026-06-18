@@ -17,7 +17,7 @@ https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases
 | GitHub Pages | Settings → Pages | Source: **GitHub Actions** |
 | Branch protection | Settings → Branches | Protect `main`; require **Dagger CI** (optional: **build** for docs PRs) |
 | Merge method | Settings → General → Pull Requests | **Squash** default; disable merge commits (recommended) |
-| Template identity | `template.repo.toml` + `just template-apply` | Your org, repo name, Pages URL, docs title |
+| Template identity | `template.repo.toml` + `just init` | Edit TOML, or `just init --owner … --repo …` for CLI overrides |
 
 ## Workflows (committed)
 

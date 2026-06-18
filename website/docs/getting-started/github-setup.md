@@ -18,7 +18,7 @@ This page is for **your** repository after you use the template or fork — not 
 | 3 | [GitHub Pages source](#github-pages) | Settings → Pages | Docusaurus docs site |
 | 4 | [Branch protection on `main`](#branch-protection) | Settings → Branches (or Rules → Rulesets) | CI gate before merge |
 | 5 | [Squash merge as default](#merge-settings) | Settings → General → Pull Requests | release-please changelog parsing |
-| 6 | [Replace template identity](#replace-template-identity-in-your-repo) | [`template.repo.toml`](/getting-started/github-setup#replace-template-identity-in-your-repo) + `just template-apply` | correct Pages URL and links |
+| 6 | [Replace template identity](#replace-template-identity-in-your-repo) | Edit `template.repo.toml` or pass `just init --owner … --repo …` | correct Pages URL and release version |
 | 7 | [Workflows present in repo](#workflows-inventory) | `.github/workflows/` (committed) | automation itself |
 
 After GitHub settings, follow [Releases](/getting-started/releases) for the first automated GitHub Release.
@@ -28,7 +28,7 @@ After GitHub settings, follow [Releases](/getting-started/releases) for the firs
 1. Open [CAD-as-Code-Template](https://github.com/Coffee2Bits/CAD-as-Code-Template) on GitHub → [**Use this template**](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate) → **Create a new repository** (pick visibility and name; **`main` only** is enough).
 2. **Clone** your new repo (HTTPS or SSH) and complete [Quick start](/getting-started/quick-start) in a Dev Container.
 3. Work through the [setup checklist](#setup-checklist) on **your** repository — GitHub settings are per-repo and are **not** copied from the template.
-4. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) for your org/repo, then run `just template-apply` — see [Replace template identity](#replace-template-identity-in-your-repo).
+4. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) for your org/repo, then run **`just init`** — see [Replace template identity](#replace-template-identity-in-your-repo).
 5. Merge a `feat:` or `fix:` PR, then follow [First release](/getting-started/releases#first-release-on-a-new-repository).
 
 ### Fork vs template
@@ -41,27 +41,38 @@ After GitHub settings, follow [Releases](/getting-started/releases) for the firs
 
 ### Replace template identity in your repo
 
-Your new repository is a copy of the template — it still contains upstream names until you rebrand it. CI workflows use `${{ github.repository }}` — **no edits** under [`.github/workflows/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.github/workflows).
+Your new repository is a copy of the template — it still contains upstream names until you run `just init`. CI workflows use `${{ github.repository }}` automatically — **no edits** under `.github/workflows/`.
 
-Edit **one config file** at the repo root, then apply:
+`just init` reads **`template.repo.toml`** and applies it to the workspace (versions, Docusaurus config, README/docs). Two ways to set identity:
+
+1. **Edit the TOML**, then run `just init`.
+2. **Pass CLI overrides** instead of editing the file: `just init --owner acme --repo widget-cad` (and any other `--*` fields). Overrides are saved back to `template.repo.toml`.
 
 ```bash
-# 1. Edit template.repo.toml (github owner/repo, Pages URL, docs title, package name)
-# 2. Propagate to Docusaurus, README, docs cross-links, pyproject.toml
-just template-apply
+# Identity from template.repo.toml:
+just init
+
+# Identity from CLI flags (no file edit required):
+just init --owner acme --repo widget-cad
+
+# Integration files only (skip README/docs):
+just init --no-sync-docs
 ```
 
-Preview without writing: `just template-apply-dry-run`
+Preview: `just init-dry-run`
+
+After the first init, run `just template-apply` when you change `template.repo.toml` again. Use `just template-apply-integration` to skip README/docs.
 
 #### `template.repo.toml` fields
 
 | Section | Keys | Purpose |
 |---------|------|---------|
-| `[github]` | `owner`, `repo` | GitHub org/user and repository name |
-| `[pages]` | `url` | GitHub Pages host (usually `https://<owner>.github.io`) |
-| `[docs]` | `title`, `navbar_title`, `tagline` | Docusaurus site branding |
-| `[python]` | `package_name` | `pyproject.toml` `[project] name` |
-| `[copyright]` | `holder` | Docs footer copyright |
+| `[github]` | `owner`, `repo` | GitHub org/user and repository name (required) |
+| `[pages]` | `url` | GitHub Pages host — **defaults to** `https://<owner>.github.io` |
+| `[docs]` | `title`, `navbar_title`, `tagline`, `npm_package_name` | Docusaurus branding — title/navbar default to repo name; npm name defaults to `<repo>-docs` |
+| `[python]` | `package_name` | `pyproject.toml` `[project] name` — **defaults to** repo kebab-case |
+| `[copyright]` | `holder` | Docs footer — **defaults to** `[github] owner` |
+| `[init]` | `initial_version` | Semver for `just init` — **defaults to** `0.0.0` |
 
 **Example** — repo `acme/widget-cad` at `https://acme.github.io/widget-cad/`:
 
@@ -85,13 +96,26 @@ package_name = "widget-cad"
 holder = "acme"
 ```
 
-#### What `just template-apply` updates
+#### What `just init` updates
 
 | Output | Source |
 |--------|--------|
+| `pyproject.toml` | `[project] name` and `version` (`[init] initial_version`) |
+| `.release-please-manifest.json` | Current version pointer |
+| `CHANGELOG.md` | Reset to `# Changelog` header only |
 | `website/repo-identity.ts` | Generated — imported by `website/docusaurus.config.ts` |
-| `pyproject.toml` | `[project] name` from `[python] package_name` |
-| README, docs pages, `AGENTS.md`, etc. | Replaces previous identity strings with values from `template.repo.toml` |
+| `website/package.json` | `"name"` from `[docs] npm_package_name` or `<repo>-docs` |
+| `AGENTS.md` | Replaces upstream template identity strings |
+
+`cad_tooling/` (embedded library) is **never** modified by `just init` or `just template-apply`.
+
+README, docs pages, and setup checklists are updated by default. Pass `just init --no-sync-docs` to touch integration files only.
+
+#### What `just template-apply` adds
+
+| Output | Source |
+|--------|--------|
+| README, docs pages, `.github/GITHUB_SETUP.md` | Replaces previous identity strings with values from `template.repo.toml` |
 | README GitHub Pages badge | Regenerated between `<!-- template:pages-badge:* -->` markers — deployment shield + link to docs site |
 
 You can re-run `just template-apply` after changing `template.repo.toml` (for example if you rename the repository again). Local state in `.template.repo.applied.json` (gitignored) keeps replacements idempotent.
@@ -117,7 +141,7 @@ Direct link: `https://github.com/YOUR_ORG/YOUR_REPO/settings/actions`
 
 ## Customize after clone
 
-1. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) and run `just template-apply` — see [Replace template identity](#replace-template-identity-in-your-repo).
+1. After clone, edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) and run **`just init`** — see [Replace template identity](#replace-template-identity-in-your-repo).
 2. Commit the updated files and push to `main`.
 3. Enable [GitHub Pages](#github-pages) (Actions source) if you have not already.
 
@@ -175,7 +199,7 @@ For a **project site** (repo name `CAD-as-Code-Template`):
 
 `https://YOUR_ORG.github.io/CAD-as-Code-Template/`
 
-Derived from `[github] repo` in [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) (`baseUrl: '/CAD-as-Code-Template/'` in the upstream template). Run `just template-apply` after editing — see [Replace template identity](#replace-template-identity-in-your-repo).
+Derived from `[github] repo` in [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) (`baseUrl: '/CAD-as-Code-Template/'` in the upstream template). Run `just init` after editing — see [Replace template identity](#replace-template-identity-in-your-repo).
 
 ### `github-pages` environment
 
@@ -283,7 +307,7 @@ After configuration:
 | Release PR merge does not create GitHub Release | Squash title must be `chore: release X.Y.Z`; check workflow run on `main` |
 | Docs site 404 | Pages source must be **GitHub Actions**; wait for first `docs.yml` deploy |
 | Cannot merge PR — missing check | Add **Dagger CI** to branch protection; or push a commit that triggers `ci.yml` paths |
-| Wrong docs URL | Fix `[github] repo` and `[pages] url` in `template.repo.toml`, then `just template-apply` |
+| Wrong docs URL | Fix `[github] repo` and `[pages] url` in `template.repo.toml`, then `just init` or `just template-apply` |
 
 ## Related docs
 

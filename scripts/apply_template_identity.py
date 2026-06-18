@@ -19,10 +19,18 @@ def main() -> int:
         action="store_true",
         help="Print files that would change without writing.",
     )
+    parser.add_argument(
+        "--integration-only",
+        action="store_true",
+        help="Skip README and docs markdown (same scope as `just init` without sync_docs).",
+    )
     args = parser.parse_args()
 
     identity = load_identity()
-    changed = apply_template_identity(dry_run=args.dry_run)
+    changed = apply_template_identity(
+        dry_run=args.dry_run,
+        sync_docs=not args.integration_only,
+    )
 
     if args.dry_run:
         if changed:

@@ -1,4 +1,4 @@
-// Auto-generated from ../template.repo.toml by `just template-apply`. Do not edit manually.
+// Auto-generated from ../template.repo.toml by `just template-apply` / `just init`. Do not edit manually.
 
 export const repoIdentity = {
   githubOwner: "Coffee2Bits",

@@ -27,7 +27,11 @@ sidebar_position: 1
 | | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
 | | `just export /tmp/out step sphere` | Export one artifact in a given format |
 | | `just release dist/` | Alias for `just export dist/` |
-| **setup** | `just template-apply` | Apply `template.repo.toml` after "Use this template" |
+| **setup** | `just init` | Apply `template.repo.toml` — reset versions, rebrand workspace |
+| | `just init --owner acme --repo widget-cad` | Same, with CLI overrides instead of editing the TOML |
+| | `just init --no-sync-docs` | Integration files only (skip README/docs) |
+| | `just template-apply` | Re-apply `template.repo.toml` (includes README/docs) |
+| | `just template-apply-integration` | Re-apply integration files only |
 | | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | | `just render` | Headless PNG from `main.py` to `dist/` |
 | | `just render-artifact sphere /tmp/out` | Export STL + headless PNG via `cad_tooling` |

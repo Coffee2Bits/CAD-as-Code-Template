@@ -7,7 +7,7 @@ sidebar_position: 1
 Get the turnkey template running in a Dev Container in a few minutes.
 
 :::tip Created your own repo from the template?
-Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) for your GitHub org and repo name, run `just template-apply`, then finish [Set up GitHub](/getting-started/github-setup). See [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
+Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run **`just init`**. Or: `just init --owner acme --repo widget-cad`. See [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
 :::
 
 ## Prerequisites
@@ -74,7 +74,7 @@ See [MCP servers](/tools/mcp-servers).
 
 If you created this repo from **[Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)** (or forked it as your own project), configure settings that live **only on GitHub.com**:
 
-1. [Set up GitHub for your repository](/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge; edit `template.repo.toml` + `just template-apply` for your org/repo name
+1. [Set up GitHub for your repository](/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge; edit `template.repo.toml`, then `just init`
 2. [Releases](/getting-started/releases) — first automated GitHub Release (STL + PNG) via release-please
 
 Forking to contribute upstream? You usually only need local [Quick start](#steps) steps — skip release automation on your fork.

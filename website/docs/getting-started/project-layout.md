@@ -6,7 +6,7 @@ sidebar_position: 5
 
 ```text
 .
-├── template.repo.toml            # Org/repo identity — edit after "Use this template", then just template-apply
+├── template.repo.toml            # Org/repo identity — edit after "Use this template", then just init
 ├── AGENTS.md                     # Agent conventions
 ├── README.md                     # Template landing page
 ├── .cursor/                      # MCP wiring (IDE → in-container servers)
@@ -50,4 +50,4 @@ See [Parts & assemblies](/modeling/parts-and-assemblies) for the three-layer pat
 |------|-------|
 | One-time GitHub.com settings | [Set up GitHub](/getting-started/github-setup) |
 | First GitHub Release | [Releases](/getting-started/releases) |
-| Rename repo / fix docs URL | Edit `template.repo.toml`, then `just template-apply` — [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo) |
+| Rename repo / fix docs URL | Edit `template.repo.toml`, then `just init` or `just template-apply` — [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo) |

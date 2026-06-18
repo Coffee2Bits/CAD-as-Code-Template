@@ -373,6 +373,25 @@ Follow this order for feature work — do not weaken or delete tests just to lan
 | Geometry changes | Explicit assertions for the new behavior (pocket depth, fit, margin) | Loosening unrelated bounds so old inequalities still pass |
 | Cutouts vs reference parts | Assert profile alignment (shared seat origin, matched hex rotation, wall-normal angles) and flush fit; use the same plane/orientation helpers for the cutter and the reference solid | Hand-drawn pocket sketches with separate placement math from the reference part |
 | Reference / library parts | Keep `@artifact` when the part should be discoverable; use `sample=True` only for throwaway dev geometry | Dropping publish metadata to silence discovery tests |
+| Destructive `just` recipes (`init`, `template-apply`, …) | `tests/functional/` — copy repo to `tmp_path`, run `just` only in the copy via `run_just()` | Running `just init` or similar against the real workspace root |
+
+### Testing just commands (agents)
+
+Recipes that rewrite the workspace (`just init`, `just init-dry-run`, `just template-apply`, and similar) **must never be run against the real repository root** to “check” behavior — that mutates `template.repo.toml`, `README.md`, versions, and docs in place.
+
+Instead:
+
+1. Add or extend tests under [`tests/functional/`](tests/functional/) (see [`tests/functional/conftest.py`](tests/functional/conftest.py)).
+2. Use the `isolated_repo` fixture — it `copytree`s the repo into `tmp_path` (excluding `.venv`, `.git`, `node_modules`, etc.).
+3. Invoke recipes only via `run_just(isolated_repo, "init", "--owner", "acme", …)` — it refuses to run when `cwd` is `REPO_ROOT`.
+4. Assert on files inside the isolated copy and, when relevant, that the real repo paths are unchanged.
+
+```bash
+uv run pytest tests/functional/ -v          # just-command functional suite only
+uv run pytest tests/functional/test_just_init.py -v
+```
+
+Unit tests for init logic without the `just` CLI stay in [`tests/test_template_identity.py`](tests/test_template_identity.py) (monkeypatched `REPO_ROOT` / `tmp_path`). New `just` recipe coverage belongs in `tests/functional/`.
 
 ### Agent workflow checklist
 
@@ -459,6 +478,7 @@ Skip only when the change cannot affect CI (e.g. typo in a comment with no tooli
 | New assembly | Overall bounds; confirms sub-parts are present; critical interfaces |
 | New `@artifact` | Will be picked up by `tests/test_makerrepo.py` — ensure the artifact name appears in `mr artifacts list`; do not require exclusive discovery (other artifacts may coexist) |
 | New `@customizable` | Same discovery test; consider a test that exports with non-default parameters |
+| `justfile` init / template / setup recipes | Add functional tests in [`tests/functional/`](tests/functional/) using `isolated_repo` + `run_just()` — never run destructive recipes on the real repo to verify behavior |
 
 Keep files under **300–400 lines**. Split large parts into submodules if needed.
 
@@ -692,7 +712,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | [`AGENTS.md`](AGENTS.md) | Agent contract only. Do **not** duplicate agent rules on the docs site; [`website/docs/contributing/for-agents.md`](website/docs/contributing/for-agents.md) summarizes and links here. |
 | [`cad_tooling/README.md`](cad_tooling/README.md) | Short pointer to `website/docs/tools/cad-tooling/` once that section exists. |
 | [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md) | Short checklist; canonical guide at `website/docs/getting-started/github-setup.md`. |
-| [`template.repo.toml`](template.repo.toml) | Single source for org/repo identity, Pages URL, docs branding, and Python package name after “Use this template”. Run `just template-apply` to propagate — documented in [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md#replace-template-identity-in-your-repo). |
+| [`template.repo.toml`](template.repo.toml) | **Source of truth** for repo identity. `just init` reads this file (plus optional CLI overrides); `just template-apply` re-applies after edits. See [github-setup](website/docs/getting-started/github-setup.md#replace-template-identity-in-your-repo). **`cad_tooling/` is never modified.** |
 
 ### Keep docs in sync (mandatory)
 
@@ -710,7 +730,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
    Use ripgrep for the **old** command string, recipe name, file path, env var, workflow name, status check name, config key, and any prose you replaced in code comments or docstrings.
 3. **Update every hit** — links, tables, mermaid labels, code blocks, and “jump to line” examples. Prefer relative links between Docusaurus pages; keep GitHub blob links pointed at the correct path on `main`.
 4. **Verify behavior matches prose** — commands in docs must match `justfile` / CLI flags; checklist items must match real GitHub settings; diagrams must match architecture you implemented.
-5. **Template identity** — if the change involves org/repo URLs, Pages `baseUrl`, or package naming, update [`template.repo.toml`](template.repo.toml) and run `just template-apply` (or document that users must), rather than hand-editing `website/docusaurus.config.ts` or scattering owner/repo strings.
+5. **Template identity** — if the change involves org/repo URLs, Pages `baseUrl`, or package naming, update [`template.repo.toml`](template.repo.toml) and run `just init` or `just template-apply` (or document that users must), rather than hand-editing `website/docusaurus.config.ts` or scattering owner/repo strings.
 6. **Build check** — run `just docs-build` when `website/**`, `README.md`, or doc-linked config changes; fix broken links (`onBrokenLinks: throw`).
 
 | You change… | Also update… |

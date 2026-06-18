@@ -115,9 +115,8 @@ flowchart TB
 
 If you used **[Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)** on GitHub:
 
-1. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) for your org, repo name, and Pages URL.
-2. Run `just template-apply` to update the docs site, README links, and `pyproject.toml`.
-3. Complete [Set up GitHub](/getting-started/github-setup) (Actions permissions, Pages, branch protection) and [Releases](/getting-started/releases).
+1. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) for your org and repo name, then run **`just init`**. Or pass overrides: `just init --owner YOUR_ORG --repo YOUR_REPO`.
+2. Complete [Set up GitHub](/getting-started/github-setup) (Actions permissions, Pages, branch protection) and [Releases](/getting-started/releases).
 
 Details: [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
 

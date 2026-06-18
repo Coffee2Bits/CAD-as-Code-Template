@@ -89,7 +89,7 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
 If you used **[Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)**, configure one-time settings on GitHub.com, then run your first automated release:
 
-1. [Set up GitHub for your repository](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge; edit `template.repo.toml` then `just template-apply`
+1. [Set up GitHub for your repository](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge; edit `template.repo.toml`, then `just init`
 2. [Releases](https://coffee2bits.github.io/CAD-as-Code-Template/getting-started/releases) — release-please flow and published STL/PNG assets
 
 In-repo summary: [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
@@ -102,7 +102,7 @@ The VSIX is downloaded and patched automatically in the dev container (not commi
 
 ```text
 .
-├── template.repo.toml            # Org/repo identity — edit after "Use this template", then just template-apply
+├── template.repo.toml            # Org/repo identity — `just init` after "Use this template"
 ├── AGENTS.md                     # Agent conventions (parts, assemblies, MakerRepo)
 ├── LICENSE
 ├── .cursor/

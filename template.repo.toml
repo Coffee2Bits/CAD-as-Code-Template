@@ -1,26 +1,35 @@
 # Repository identity for this CAD-as-Code workspace.
 #
-# After "Use this template", edit this file for your org and repo name, then run:
-#   just template-apply
+# After "Use this template": edit this file for your org/repo, then run `just init`.
+# Or pass overrides without editing: `just init --owner acme --repo widget-cad`
 #
-# GitHub Actions workflows use ${{ github.repository }} automatically — no workflow edits needed.
+# Linked defaults (omit keys to use them):
+#   [pages] url              -> https://<owner>.github.io
+#   [copyright] holder       -> [github] owner
+#   [python] package_name    -> repo name in kebab-case
+#   [docs] title             -> repo name
+#   [docs] navbar_title      -> repo name
+#   [docs] npm_package_name  -> <repo>-docs
+#   [docs] tagline           -> turnkey template tagline
+#   [init] initial_version   -> 0.0.0
+#
+# GitHub Actions workflows use ${{ github.repository }} automatically.
 
 [github]
 owner = "Coffee2Bits"
 repo = "CAD-as-Code-Template"
 
 [pages]
-# GitHub Pages host for a project site (usually https://<owner>.github.io)
-url = "https://coffee2bits.github.io"
+# url defaults to https://<owner>.github.io
 
 [docs]
 title = "CAD-as-Code Template"
 navbar_title = "CAD-as-Code"
 tagline = "Turnkey parametric CAD in Python"
+# npm_package_name defaults to <repo>-docs
 
 [python]
-# pyproject.toml [project] name
 package_name = "programmatic-cad-workspace"
 
-[copyright]
-holder = "Coffee2Bits"
+[init]
+# initial_version defaults to "0.0.0"

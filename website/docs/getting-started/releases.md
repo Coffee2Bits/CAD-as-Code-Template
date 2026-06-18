@@ -28,7 +28,7 @@ flowchart LR
 | 3 | You review the Release PR (version bump in `pyproject.toml`, `CHANGELOG.md`) and merge it |
 | 4 | The squash subject `chore: release X.Y.Z` triggers export + [`cad_tooling`](/tools/cad-tooling/) release notes + GitHub Release upload |
 
-Version tracking: [`release-please-config.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/release-please-config.json) and [`.release-please-manifest.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.release-please-manifest.json) (starts at `0.1.0` in the template).
+Version tracking: [`release-please-config.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/release-please-config.json) and [`.release-please-manifest.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.release-please-manifest.json) (reset to `0.0.0` by `just init`).
 
 ## First release on a new repository
 
@@ -73,7 +73,7 @@ just export
 just release-notes v0.1.0
 ```
 
-Override the repo slug explicitly: `just release-notes v0.1.0 repo=acme/my-widget`
+Override the repo slug explicitly: `just release-notes v0.1.0 repo=USERNAME/my-widget`
 
 Inspect `dist/` for STL/PNG and `dist/RELEASE_BODY.md` before trusting CI output.
 

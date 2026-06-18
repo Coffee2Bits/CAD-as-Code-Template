@@ -13,6 +13,12 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | `just sync` | `uv sync` |
 | `just sync-frozen` | `uv sync --group dev --frozen` (matches CI) |
 | `just setup-hooks` | pre-commit install (commit + commit-msg hooks) |
+| `just init` | Apply `template.repo.toml` — reset versions, rebrand workspace |
+| `just init --owner acme --repo widget-cad` | CLI overrides instead of editing the TOML (all `--*` fields optional) |
+| `just init --no-sync-docs` | Integration files only — skip README and docs markdown |
+| `just init-dry-run` | Preview `just init` without writing |
+| `just template-apply` | Re-apply `template.repo.toml` to README, docs, and integration files |
+| `just template-apply-integration` | Re-apply identity to integration files only (skip README/docs) |
 
 ## Development
 
@@ -48,7 +54,6 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
 | `just export /tmp/out step sphere` | Export one artifact in a given format |
 | `just release dist/` | Alias for `just export dist/` |
-| `just template-apply` | Apply `template.repo.toml` to docs site, README links, `pyproject.toml` |
 | `just release-notes v0.0.1` | Generate `dist/RELEASE_BODY.md` (repo from `template.repo.toml`) |
 | `just render` | Headless PNG from `main.py` to `dist/` |
 | `just render --lighting-preset default` | Same with CLI render overrides (flags may precede positionals) |
