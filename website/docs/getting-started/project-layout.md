@@ -50,4 +50,4 @@ See [Parts & assemblies](/modeling/parts-and-assemblies) for the three-layer pat
 |------|-------|
 | One-time GitHub.com settings | [Set up GitHub](/getting-started/github-setup) |
 | First GitHub Release | [Releases](/getting-started/releases) |
-| Rename repo / fix docs URL | Edit `template.repo.toml`, then `just init` or `just template-apply` — [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo) |
+| Rename repo / fix docs URL | Edit `template.repo.toml`, then `just init` or `just template-apply` — [Create and initialize your repository](/getting-started/template-and-init) |

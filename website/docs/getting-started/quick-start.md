@@ -9,7 +9,7 @@ This page gets the template from GitHub to a running model. It assumes you are n
 [CAD-as-Code](/reference/glossary#cad-as-code) means the model is source code. You edit Python in `cad/`, then use tests, viewer feedback, exports, and the CI/CD pipeline to prove the model still works. If a setup term is new, check the [glossary](/reference/glossary) and keep moving.
 
 :::tip Created your own repo from the template?
-Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`. Or run `just init --owner acme --repo widget-cad`. See [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
+Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`. Or run `just init --owner acme --repo widget-cad`. See [Create and initialize your repository](/getting-started/template-and-init).
 :::
 
 ## Choose a workspace
@@ -103,8 +103,9 @@ If an MCP server fails to connect, see [MCP troubleshooting](/troubleshooting/mc
 
 If you clicked [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate), a few settings live on GitHub.com and cannot be configured by the Dev Container alone:
 
-1. [Set up GitHub](/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge, and template identity.
-2. [Releases](/getting-started/releases) — first automated GitHub Release with exported assets.
+1. [Create and initialize your repository](/getting-started/template-and-init) — Use this template, `template.repo.toml`, and `just init`.
+2. [Set up GitHub](/getting-started/github-setup) — Actions permissions, Pages, branch protection, and squash merge.
+3. [Releases](/getting-started/releases) — first automated GitHub Release with exported assets.
 
 
 ## Next steps

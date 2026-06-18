@@ -145,17 +145,17 @@ flowchart TB
 
 If you used [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate):
 
-1. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`.
-2. Complete [Set up GitHub](/getting-started/github-setup) for Actions, Pages, branch protection, and release settings.
+1. Follow [Create and initialize your repository](/getting-started/template-and-init): Use this template, edit `template.repo.toml`, then run `just init`.
+2. Complete [Set up GitHub](/getting-started/github-setup) for Actions, Pages, branch protection, and merge settings.
 3. Read [Releases](/getting-started/releases) before publishing generated assets.
 
-Details: [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
+Details: [Replace the template identity](/getting-started/template-and-init#replace-the-template-identity).
 
 ## Explore the docs
 
 | Area | Start here |
 |------|------------|
-| Getting started | [Quick start](/getting-started/quick-start) · [GitHub setup](/getting-started/github-setup) · [Releases](/getting-started/releases) · [Project layout](/getting-started/project-layout) · [IDEs and workspaces](/getting-started/ide-and-workspaces) |
+| Getting started | [Quick start](/getting-started/quick-start) · [Create and initialize](/getting-started/template-and-init) · [GitHub setup](/getting-started/github-setup) · [Releases](/getting-started/releases) · [Project layout](/getting-started/project-layout) · [IDEs and workspaces](/getting-started/ide-and-workspaces) |
 | Modeling | [Conventions](/modeling/conventions) · [Parts and assemblies](/modeling/parts-and-assemblies) · [Testing](/modeling/testing) · [External libraries](/modeling/external-libraries) |
 | Tools | [just](/tools/just) · [uv and quality](/tools/uv-and-quality) · [MakerRepo](/tools/makerrepo) · [MCP servers](/tools/mcp-servers) · [CAD tooling](/tools/cad-tooling/) |
 | Workflows | [Daily development](/workflows/daily-development) · [Export and formats](/workflows/export-and-formats) · [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) · [Releases](/workflows/releases) |

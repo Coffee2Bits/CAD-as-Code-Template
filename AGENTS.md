@@ -711,7 +711,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | [`AGENTS.md`](AGENTS.md) | Agent contract only. Do **not** duplicate agent rules on the docs site; [`website/docs/contributing/for-agents.md`](website/docs/contributing/for-agents.md) summarizes and links here. |
 | [`cad_tooling/README.md`](cad_tooling/README.md) | Short pointer to `website/docs/tools/cad-tooling/` once that section exists. |
 | [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md) | Short checklist; canonical guide at `website/docs/getting-started/github-setup.md`. |
-| [`template.repo.toml`](template.repo.toml) | **Source of truth** for repo identity. `just init` reads this file (plus optional CLI overrides); `just template-apply` re-applies after edits. See [github-setup](website/docs/getting-started/github-setup.md#replace-template-identity-in-your-repo). **`cad_tooling/` is never modified.** |
+| [`template.repo.toml`](template.repo.toml) | **Source of truth** for repo identity. `just init` reads this file (plus optional CLI overrides); `just template-apply` re-applies after edits. See [Create and initialize your repository](website/docs/getting-started/template-and-init.md). **`cad_tooling/` is never modified.** |
 
 ### Keep docs in sync (mandatory)
 

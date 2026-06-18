@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 8
 title: Releases
 ---
 
@@ -7,7 +7,7 @@ title: Releases
 
 This template ships **automated GitHub Releases**: STL and PNG assets for every `@artifact`, plus a generated release body. The flow is driven by [release-please](https://github.com/googleapis/release-please) and [Conventional Commits](https://www.conventionalcommits.org/) on `main`.
 
-**Prerequisite:** complete [Set up GitHub for your repository](/getting-started/github-setup) first — workflow permissions and squash merge are required before release-please can open Release PRs or publish assets.
+**Prerequisites:** create and initialize your repo first, then complete [Set up GitHub for your repository](/getting-started/github-setup). Workflow permissions and squash merge are required before release-please can open Release PRs or publish assets.
 
 ## How it works
 
@@ -32,7 +32,7 @@ Version tracking: [`release-please-config.json`](https://github.com/Coffee2Bits/
 
 ## First release on a new repository
 
-After [using the template](/getting-started/github-setup#using-the-template) and [GitHub setup](/getting-started/github-setup):
+After [creating and initializing your repo](/getting-started/template-and-init) and completing [GitHub setup](/getting-started/github-setup):
 
 1. **Confirm Actions settings** — Settings → Actions → General: **Read and write permissions** and **Allow GitHub Actions to create and approve pull requests** (see [workflow permissions](/getting-started/github-setup#actions-workflow-permissions)).
 2. **Merge a releasable change** — open a PR with a Conventional Commit squash title, e.g. `feat: initial customization`, and merge to `main`.
@@ -66,7 +66,7 @@ Release notes template: [`.github/release_template.md`](https://github.com/Coffe
 
 ## Local dry-run
 
-`just release-notes` reads `owner/repo` from [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) — set that file first (see [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo)).
+`just release-notes` reads `owner/repo` from [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) — set that file first (see [Replace the template identity](/getting-started/template-and-init#replace-the-template-identity)).
 
 ```bash
 just export

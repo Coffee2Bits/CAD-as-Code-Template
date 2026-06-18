@@ -66,7 +66,7 @@ Release notes format: [`.github/release_template.md`](https://github.com/Coffee2
 
 ## Local dry-run
 
-Set [`template.repo.toml`](/getting-started/github-setup#replace-template-identity-in-your-repo) first, then:
+Set [`template.repo.toml`](/getting-started/template-and-init#replace-the-template-identity) first, then:
 
 ```bash
 just release dist/

@@ -72,7 +72,7 @@ gh auth login
 gh auth status
 ```
 
-Common tasks (replace `OWNER/REPO` with your fork after [template apply](/getting-started/github-setup#replace-template-identity-in-your-repo)):
+Common tasks (replace `OWNER/REPO` with your fork after [template initialization](/getting-started/template-and-init)):
 
 ```bash
 gh pr create --fill

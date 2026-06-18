@@ -33,4 +33,4 @@ Whenever you change code, config, `justfile`, or workflows:
 
 Full rules: **[Keep docs in sync (mandatory)](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#keep-docs-in-sync-mandatory)** in AGENTS.md.
 
-**Template identity:** edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then `just init` — or pass `just init --owner … --repo …`. [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
+**Template identity:** edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then `just init` — or pass `just init --owner … --repo …`. [Create and initialize your repository](/getting-started/template-and-init).
