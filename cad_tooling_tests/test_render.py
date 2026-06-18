@@ -228,7 +228,7 @@ class TestReleaseRender:
         )
         assert written
         shape = _build_artifact_shape("demo_sphere", root=repo_root)
-        assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 4
+        assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 5
 
     def test_render_cli(self, release_artifacts: Path, tmp_path: Path):
         stl_path = release_artifacts / "sphere.stl"
@@ -280,9 +280,11 @@ class TestRenderArtifact:
 
         shape = _build_artifact_shape("demo_sphere", root=repo_root)
         solids = _colored_solids(shape, (0.31, 0.63, 1.0))
-        assert len(solids) == 4
+        assert len(solids) == 5
         colors = {tuple(round(channel, 2) for channel in face_color) for _, face_color in solids}
-        assert len(colors) == 4
+        assert len(colors) == 5
+        assert (0.82, 0.62, 0.18) in colors
+        assert (0.08, 0.18, 0.55) in colors
 
 
 @pytest.mark.integration

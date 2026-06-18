@@ -145,6 +145,22 @@ Example: [`cad/parts/sphere.py`](https://github.com/Coffee2Bits/CAD-as-Code-Temp
 
 Set `part.color` in each part's `make_*` builder using a module-level `PART_COLOR` constant. Assemblies use `Compound(children=[...])` only — composite PNGs pick up each child's color automatically (see [AGENTS.md — Part preview colors](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#part-preview-colors)).
 
+### Nested compounds
+
+When a part needs more than one material color, return a `Compound` of separately colored leaf `Part` solids. Assemblies may nest those compounds alongside other parts. Headless render walks the full tree with `cad_tooling.render._colored_solids`, which recursively flattens to leaves and reads `Part.color` from each one.
+
+| Layer | Color source |
+|-------|----------------|
+| Leaf `Part` | `part.color` set in the part `make_*` builder |
+| Intermediate `Compound` (no `.color`) | Does not inherit child colors — if flattening stops here, fallback is `RenderConfig.face_color` (default light blue `(0.31, 0.63, 1.0)`) |
+| Top-level assembly child | Same rules — nested multi-color parts must flatten through to their leaves |
+
+**Approach:** assign colors in part builders, compose with `Compound(children=[...])` in assemblies, and validate release PNGs on the **published** top-level `@artifact` — not only on nested part artifacts or `make_*` builders alone.
+
+**Diagnose:** `_colored_solids` should return one entry per colored leaf. Unexpected default blue means a missing leaf `part.color` or incomplete compound flattening. See [Release PNG colors](/troubleshooting/ocp-viewer#release-png-colors).
+
+PNG previews for named `@artifact` functions are rendered from **Python geometry** (same path as `export release`), not from exported STL. STL meshes do not carry per-part `Part.color` metadata, so STL-based previews appear as a single default color.
+
 ## Release export scope
 
 `export release` and GitHub Release notes include only `@artifact` entry points that also declare `@render`. Artifacts without `@render` stay discoverable via `mr artifacts list` but are omitted from release PNG/STL bundles.

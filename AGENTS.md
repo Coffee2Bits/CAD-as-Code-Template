@@ -235,6 +235,16 @@ def make_sphere(...) -> Part:
 - **`@render`** on an artifact controls cameras and PNG size for release export. Omit `face_color` when the builder sets `part.color`; keep `face_color` only as a fallback for artifacts whose geometry has no color.
 - Assemblies that need a sub-part's color constant may import `PART_COLOR` from `cad.parts.<name>` for tests or docs, not for re-assigning on assembly children.
 
+**Nested `Compound` colors (headless render).** When a part needs more than one material color, return a nested `Compound` of separately colored leaf `Part` solids rather than fusing them into one `Part` with a single `part.color`.
+
+- **Headless PNG export** (`cad_tooling.render`, `export release`) reads `Part.color` from each **leaf** `Part`. `cad_tooling.render._colored_solids` recursively flattens nested compounds to those leaves.
+- **Intermediate `Compound` nodes** do not inherit child colors. An uncolored wrapper is rendered as one solid using `RenderConfig.face_color` (default light blue `(0.31, 0.63, 1.0)`) unless flattening reaches the colored leaves beneath it.
+- **Assemblies** can nest compounds arbitrarily (part compound inside assembly compound). Validate release previews on the **top-level** `@artifact`, not only on nested part artifacts — color flattening depth must cover the full tree.
+- **Live OCP CAD Viewer** (`just view`) walks the scene tree and may look correct even when headless export mis-assigns color; use `just render-artifact` or `_colored_solids` to verify PNG output.
+- **Diagnose:** build the artifact shape and list `_colored_solids` colors — unexpected default blue means a missing leaf `part.color` or incomplete compound flattening.
+
+See [Render — Assembly colors](https://coffee2bits.github.io/CAD-as-Code-Template/tools/cad-tooling/render#assembly-colors) and [OCP viewer troubleshooting — Release PNG colors](https://coffee2bits.github.io/CAD-as-Code-Template/troubleshooting/ocp-viewer#release-png-colors).
+
 ### `@customizable` requirements
 
 - Exactly **one** argument, typed as a Pydantic `BaseModel` subclass.
@@ -778,6 +788,7 @@ When a task involves **diagnosing, fixing, or working around** a tool or workflo
 |---------------|----------------------|
 | Dev container, `uv sync`, permissions, hooks, rebuild | [`website/docs/troubleshooting/dev-container.md`](website/docs/troubleshooting/dev-container.md) |
 | OCP CAD Viewer extension, `just view`, blank panel, ESM crash | [`website/docs/troubleshooting/ocp-viewer.md`](website/docs/troubleshooting/ocp-viewer.md) |
+| Headless release PNG wrong or missing per-part colors | [`website/docs/troubleshooting/ocp-viewer.md`](website/docs/troubleshooting/ocp-viewer.md#release-png-colors) |
 | MCP servers, `.cursor/mcp.json`, agent tools in container | [`website/docs/troubleshooting/mcp.md`](website/docs/troubleshooting/mcp.md) |
 | `just ci`, Dagger, Docker socket, CI module | [`website/docs/troubleshooting/dagger-and-docker.md`](website/docs/troubleshooting/dagger-and-docker.md) |
 | Export, `mr artifacts`, release PNGs, ruff/mypy/vulture in CI, artifact discovery | [`website/docs/troubleshooting/export-and-ci.md`](website/docs/troubleshooting/export-and-ci.md) |

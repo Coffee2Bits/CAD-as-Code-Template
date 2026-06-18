@@ -145,10 +145,18 @@ def _colored_solids(
     if isinstance(shape, TopoDS_Shape):
         return [(shape, default_face_color)]
     if isinstance(shape, Compound) and shape.children:
-        return [
-            (_shape_wrapped(child), _face_color_from_shape(child, default_face_color))
-            for child in shape.children
-        ]
+        solids: list[tuple[TopoDS_Shape, tuple[float, float, float]]] = []
+        for child in shape.children:
+            if isinstance(child, Compound) and child.children:
+                solids.extend(_colored_solids(child, default_face_color))
+            else:
+                solids.append(
+                    (
+                        _shape_wrapped(child),
+                        _face_color_from_shape(child, default_face_color),
+                    )
+                )
+        return solids
     return [(_shape_wrapped(shape), _face_color_from_shape(shape, default_face_color))]
 
 
