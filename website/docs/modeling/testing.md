@@ -110,8 +110,11 @@ This is the standard agent pattern:
 
 | Phase | Command |
 |-------|---------|
+| After CAD / `main.py` display edits | `just view` in the **background** (non-blocking), then tests — refreshes OCP CAD Viewer while you iterate |
 | During implementation | `just test-unit` (plus targeted `test-integration` / `test-render` / `test-functional` when the change touches those areas) |
 | Final check before done | `just quality && just export-smoke` or `just ci` |
+
+When model geometry changes, always launch `just view` as a background process **right before** the next test command. Re-launch on every edit so the viewer shows the latest solid while tests run. Details: [Visual verification](/workflows/visual-verification) and [AGENTS.md → Visual verification](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#visual-verification-after-cad-edits).
 
 See also [For agents](/contributing/for-agents) and [AGENTS.md → Task completion gate](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#task-completion-gate).
 

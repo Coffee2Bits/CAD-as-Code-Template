@@ -8,7 +8,7 @@ sidebar_position: 1
 
 1. Change geometry in `cad/parts/` or `cad/assemblies/`
 2. Point `main.py` at the model if needed
-3. `just view` — visual verify in OCP CAD Viewer
+3. `just view` — visual verify in OCP CAD Viewer ([agents](/workflows/visual-verification#agent-loop-live-updates): start in the **background** immediately before step 4)
 4. `just test-unit` — fast feedback while editing ([Testing strategy](/modeling/testing))
 5. `just test-integration` or `just test-render` when your change touches CAD export or PNG release paths
 6. `just quality` — lint + **full** pytest before pushing
