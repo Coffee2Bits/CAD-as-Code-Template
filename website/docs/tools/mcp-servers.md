@@ -108,8 +108,9 @@ Edit the launcher scripts, then reload MCP (**Settings → MCP**):
 
 1. Use **build123d-mcp** `execute` to prototype geometry; verify with `measure` and `render_view`
 2. Move stable parts into `cad/parts/` with pytest coverage
-3. Run `just view` and display in OCP CAD Viewer
-4. Use **ocp-viewer-mcp** `capture_ocp_screenshot` for visual confirmation
+3. Assemble parts into broader assemblies for more complex models
+4. Run `just view` and display in OCP CAD Viewer
+5. Use **ocp-viewer-mcp** `capture_ocp_screenshot` for visual confirmation
 
 After a container rebuild: `just sync`, then reload MCP in the IDE.
 

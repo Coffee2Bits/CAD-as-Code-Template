@@ -20,7 +20,7 @@ Use this path for a new CAD project, product repo, lab repo, or internal part li
 2. Click [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate).
 3. Choose your owner, repository name, and visibility.
 4. Create the repository from the `main` branch.
-5. Clone your new repository and open it in the [Dev Container](/getting-started/dev-container) or [Codespaces](/getting-started/quick-start#option-a-codespaces).
+5. Clone your new repository and open it in the [Dev Container](/getting-started/dev-container) or [Codespaces](/getting-started/quick-start#option-a-online-codespaces).
 
 Success state: you have your own repository with the template files, and your editor terminal is running inside the container.
 

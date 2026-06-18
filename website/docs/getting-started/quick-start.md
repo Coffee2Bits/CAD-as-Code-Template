@@ -4,9 +4,9 @@ sidebar_position: 1
 
 # Quick start
 
-This page gets the template from GitHub to a running model. It assumes you are new to at least some of the tooling, so it keeps the first path narrow.
+This page gets the template from GitHub to a running model. It assumes you are new to at least some of the tooling, so it keeps the first path narrow. If a technical term is new, check the [glossary](/reference/glossary).
 
-[CAD-as-Code](/reference/glossary#cad-as-code) means the model is source code. You edit Python in `cad/`, then use tests, viewer feedback, exports, and the CI/CD pipeline to prove the model still works. If a setup term is new, check the [glossary](/reference/glossary) and keep moving.
+[CAD-as-Code](/reference/glossary#cad-as-code) means the model is source code. You edit Python in `cad/`, then use tests, viewer feedback, exports, and the CI/CD pipeline to prove the model still works.
 
 :::tip Created your own repo from the template?
 Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`. Or run `just init --owner acme --repo widget-cad`. See [Create and initialize your repository](/getting-started/template-and-init).
@@ -14,7 +14,7 @@ Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/
 
 ## Choose a workspace
 
-### Option A: Codespaces
+### Option A: Online Codespaces
 
 Use this when you want the least local setup.
 
@@ -22,7 +22,7 @@ Use this when you want the least local setup.
 2. Click Code, then Codespaces, then Create codespace.
 3. Wait for the Dev Container build to finish.
 
-Success state: you have a browser-based VS Code window with a terminal inside the container.
+You should have a browser-based VS Code window with a terminal inside the container.
 
 ### Option B: Local VS Code or Cursor
 
@@ -39,7 +39,7 @@ Steps:
 2. Choose Reopen in Container when prompted.
 3. Wait for the Dev Container build to finish.
 
-Success state: your editor is attached to the container, not just the host folder.
+Your editor should be attached to the container, not just the host folder.
 
 ## First commands
 
@@ -50,7 +50,7 @@ just sync
 just docs-serve-bg
 ```
 
-Success state: dependencies are installed and the local docs site is available at [http://localhost:3000](http://localhost:3000).
+Dependencies should be installed and the local docs site should be available on localhost. Your IDE should show the forwarded docs port.
 
 ### 1. Run the tests
 
@@ -58,7 +58,7 @@ Success state: dependencies are installed and the local docs site is available a
 just test
 ```
 
-Success state: pytest runs and reports passing tests. This proves the demo model and export checks are working.
+Pytest should run and report passing tests, proving the demo model and export checks are working.
 
 If you prefer the direct command:
 
@@ -74,9 +74,9 @@ Open the OCP CAD Viewer panel in the activity bar, then run:
 just view
 ```
 
-Success state: the demo sphere appears in the viewer.
+The demo sphere should appear in the OCP CAD Viewer panel.
 
-If the panel or extension is missing, use the [OCP CAD Viewer guide](/getting-started/ocp-viewer).
+If the panel or extension is missing, use the [OCP CAD Viewer guide](/getting-started/ocp-viewer). Because we install from VSIX on cursor, if the extension crashes as often happens then cursor will uninstall the extension; you will need to reinstall the extension in order to run it again.
 
 ### 3. List and export artifacts
 
@@ -86,7 +86,7 @@ just mr-export sphere /tmp/out step
 just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'
 ```
 
-Success state: MakerRepo lists exportable artifacts and writes generated files under `/tmp/out`.
+MakerRepo should list exportable artifacts and write generated files under `/tmp/out`.
 
 For programmatic exports in tests or scripts, use `cad_tooling.export.export_part()`. See [CAD tooling export](/tools/cad-tooling/export).
 
@@ -95,7 +95,7 @@ For programmatic exports in tests or scripts, use `cad_tooling.export.export_par
 The container includes [build123d-mcp](/tools/mcp-servers) and [ocp-viewer-mcp](/tools/mcp-servers). They let AI agents run geometry code and inspect viewer feedback while the Python files remain the source of truth.
 
 - Cursor: servers connect from [`.cursor/mcp.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.cursor/mcp.json). After a rebuild, reload MCP in Settings → MCP.
-- VS Code / Codespaces + Copilot: copy the server entries from `.cursor/mcp.json` into your [MCP settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers).
+- VS Code / Codespaces: copy the server entries from `.cursor/mcp.json` into your [MCP settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers) if you use an MCP-capable assistant in that workspace.
 
 If an MCP server fails to connect, see [MCP troubleshooting](/troubleshooting/mcp).
 

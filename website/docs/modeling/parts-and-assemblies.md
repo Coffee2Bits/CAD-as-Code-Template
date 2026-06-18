@@ -45,14 +45,7 @@ One module per part family: `cad/parts/sphere.py`, `cad/assemblies/demo_widget.p
 
 ## Cutout / reference alignment
 
-When embedding hardware (nuts, bearings, inserts):
-
-1. **Shared seat** — one origin + axis for pocket cutter and reference solid; never compute placement from different faces
-2. **Hex prism cutter** — derive plane and rotation from the positioned reference nut; margin in mm → larger hex profile (`across_flats + 2 × margin`)
-3. **Never** scale or offset the visual reference solid; never use face offset if it rounds a hex into a circular pocket
-4. **Test** — zero-margin cutter matches reference pose; positioned reference fits inside cutout with no solid overlap
-
-After geometry edits, run `just view` and confirm the reference sits flush in its cutout.
+When embedding hardware (nuts, bearings, inserts, any other parts), generate a volumetric solid based on the part and scale the volume to achieve a desired margin between the surfaces to account for margin of error in manufacturing processes. It's important that the part and its cutout volume reference and reflect the properties of the part; never compute placement from different faces, avoid volumes not sharing alignment with their parts, etc.
 
 Live example: [`cad/parts/sphere.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/parts/sphere.py)
 
