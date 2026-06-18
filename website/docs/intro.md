@@ -6,7 +6,7 @@ title: Introduction
 
 # CAD-as-Code, in a box
 
-This template is a complete starting point for parametric CAD as software. The model is Python source code. The generated files are outputs. The workflow around the model uses the same tools software teams use to make work repeatable: source control, tests, linting, CI, releases, and documentation.
+This template is a complete starting point for parametric CAD as software. The model is Python source code. The generated files are outputs. The workflow around the model uses the same tools software teams use to make work repeatable: source control, tests, linting, CI/CD pipelines, releases, and documentation.
 
 If that sounds like a lot for CAD, here is the reason: the extra pieces make models easier to review, regenerate, automate, and hand off. A bracket, enclosure, jig, or assembly can be changed by editing a parameter, tested before release, exported in known formats, and published from the same source every time.
 
@@ -20,7 +20,7 @@ CAD-as-Code does not mean "write code because code is fashionable." It means the
 - Reusable parts live under `cad/parts/`.
 - Assemblies compose those parts under `cad/assemblies/`.
 - Tests check that important geometry still exists and exports still work.
-- CI reruns the checks when the repo changes.
+- The CI/CD pipeline reruns the checks when the repo changes.
 - Release workflows regenerate manufacturing artifacts from source.
 
 That is why this template includes tools that may not look like CAD at first: `just`, `uv`, pytest, ruff, mypy, Dagger, GitHub Actions, MakerRepo, and MCP launchers. They form the software layer around the CAD model.
@@ -67,7 +67,7 @@ flowchart TB
     UV["uv"]
   end
 
-  subgraph ci["CI"]
+  subgraph ci["CI/CD pipeline"]
     DAGGER["Dagger"]
     GHA["GitHub Actions"]
   end
@@ -121,7 +121,7 @@ Start shallow, then go deeper as needed.
 
 - [just commands](/tools/just) — the common command surface.
 - [uv and quality](/tools/uv-and-quality) — dependencies, formatting, linting, typing, and dead-code checks.
-- [CI and Dagger](/workflows/ci-and-dagger) — run the pipeline locally or in GitHub Actions.
+- [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) — run the pipeline locally or in GitHub Actions.
 - [MakerRepo](/tools/makerrepo) — discover and export CAD artifacts.
 - [MCP servers](/tools/mcp-servers) — give agents controlled access to geometry and viewer feedback.
 
@@ -130,7 +130,7 @@ Start shallow, then go deeper as needed.
 - [Troubleshooting](/troubleshooting/) — route by symptom.
 - [Dev Container troubleshooting](/troubleshooting/dev-container) — container and dependency problems.
 - [OCP Viewer troubleshooting](/troubleshooting/ocp-viewer) — viewer setup and display problems.
-- [Export and CI troubleshooting](/troubleshooting/export-and-ci) — artifact, lint, release, and pipeline issues.
+- [Export and CI/CD pipeline troubleshooting](/troubleshooting/export-and-ci) — artifact, lint, release, and pipeline issues.
 
 ## New repo from the template?
 

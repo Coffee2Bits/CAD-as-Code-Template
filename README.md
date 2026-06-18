@@ -4,11 +4,11 @@
 [![Documentation](https://img.shields.io/github/deployments/Coffee2Bits/CAD-as-Code-Template/github-pages?label=docs)](https://coffee2bits.github.io/CAD-as-Code-Template/)
 <!-- template:pages-badge:end -->
 
-Parametric CAD works best when the model is treated like software: versioned source, repeatable builds, tests, reviewable changes, and release artifacts that can be regenerated instead of hand-managed.
+This is a highly-opinionated turn-key workspace that brings software practices to parametric CAD like linting, testing, containerized workspaces, and CI/CD pipeline practices to give you versioned source files, repeatable builds, tests, reviewable changes, and release artifacts with the benefits of automation.
 
-This template gives you that workflow for Python CAD. Start from a Dev Container, model with [build123d](https://build123d.readthedocs.io/), preview in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), test with pytest, export STEP/STL/GLB files, and publish releases through CI. The Python in `cad/` is the source of truth. Meshes and manufacturing files are outputs.
+This template gives you that workflow for Python CAD. Start from a Dev Container, model with [build123d](https://build123d.readthedocs.io/), preview in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), test with pytest, export STEP/STL/GLB files, and publish releases through the CI/CD pipeline. The Python in `cad/` is the source of truth. Meshes and manufacturing files are outputs.
 
-If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are here so your CAD work becomes repeatable, inspectable, and easier to automate.
+If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling.
 
 ![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](repo_preview.png)
 
@@ -27,7 +27,7 @@ CAD-as-Code puts the model definition in readable source code. A radius, hole pa
 - Source control tracks every change to the model.
 - Tests catch broken geometry before a release.
 - Linting and type checks keep the codebase maintainable.
-- CI runs the same checks locally and on GitHub.
+- The CI/CD pipeline runs the same checks locally and on GitHub.
 - Release jobs regenerate manufacturing artifacts from source.
 - Agents can inspect the code, run commands, and use viewer feedback without guessing at hidden CAD state.
 
@@ -42,7 +42,7 @@ This repo is not just a quick AI CAD sandbox. It is an opinionated starter kit f
 - Geometry tests, linting, type checks, and dead-code detection.
 - STEP, STL, GLB, and release artifact workflows.
 - [MakerRepo](https://coffee2bits.github.io/CAD-as-Code-Template/tools/makerrepo) decorators and CLI support for artifact discovery and export.
-- [Dagger + GitHub Actions](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/ci-and-dagger) for portable CI.
+- [Dagger + GitHub Actions](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/ci-and-dagger) for a portable CI/CD pipeline.
 - Agent-ready hooks through [MCP servers](https://coffee2bits.github.io/CAD-as-Code-Template/tools/mcp-servers) inside the container.
 
 ## One-click get started
@@ -76,8 +76,8 @@ Full setup, local Docker notes, MCP notes, and first-release setup live in the [
 - [Parts and assemblies](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/parts-and-assemblies) — structure reusable parts and composed models.
 - [Testing](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/testing) — validate geometry instead of eyeballing every change.
 - [Export and formats](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/export-and-formats) — generate STEP, STL, GLB, and release outputs.
-- [CI and Dagger](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/ci-and-dagger) — run the same pipeline locally and in GitHub Actions.
-- [Troubleshooting](https://coffee2bits.github.io/CAD-as-Code-Template/troubleshooting/) — common container, viewer, export, and CI problems.
+- [CI/CD pipeline and Dagger](https://coffee2bits.github.io/CAD-as-Code-Template/workflows/ci-and-dagger) — run the same pipeline locally and in GitHub Actions.
+- [Troubleshooting](https://coffee2bits.github.io/CAD-as-Code-Template/troubleshooting/) — common container, viewer, export, and CI/CD pipeline problems.
 
 ## For agents
 

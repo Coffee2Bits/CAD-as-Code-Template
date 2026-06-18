@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # IDEs and workspaces
 
-This template is built around a single [`.devcontainer/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.devcontainer) directory. Any editor or service that implements the [Development Container Specification](https://containers.dev/) reads the same `devcontainer.json`, runs the same lifecycle hooks, and lands in the same [Open CASCADE](/reference/open-cascade) environment as CI.
+This template is built around a single [`.devcontainer/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.devcontainer) directory. Any editor or service that implements the [Development Container Specification](https://containers.dev/) reads the same `devcontainer.json`, runs the same lifecycle hooks, and lands in the same [Open CASCADE](/reference/open-cascade) environment as the CI/CD pipeline.
 
 That is the portability story: **clone once, reopen in a container anywhere** — laptop, cloud VM, or a teammate's machine — and get build123d, pytest, ruff, the OCP CAD Viewer installer, and `just` recipes without hand-tuning a host OS.
 
@@ -26,12 +26,12 @@ Regardless of which client attaches, the container provides:
 
 | Capability | Source |
 |------------|--------|
-| Open CASCADE / Mesa parity with CI | `.devcontainer/Dockerfile` |
+| Open CASCADE / Mesa parity with the CI/CD pipeline | `.devcontainer/Dockerfile` |
 | Python deps + dev tools | `postStartCommand` → `post-start.sh` → `uv sync` |
 | Documentation site | `postStartCommand` → `post-start.sh` → `start-docs.sh` (port 3000, auto-forwarded) |
 | OCP CAD Viewer VSIX download/install | `.devcontainer/install-ocp-cad-viewer.sh` |
 | Ruff format-on-save settings | `customizations.vscode` in `devcontainer.json` |
-| Local Dagger CI (`just ci`) | Docker socket mount + `docker-outside-of-docker` feature |
+| Local Dagger CI/CD pipeline (`just ci`) | Docker socket mount + `docker-outside-of-docker` feature |
 | Docs site tooling | Node 20 feature + `just docs-install` |
 | MCP servers | `uv sync` + [`.cursor/mcp.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.cursor/mcp.json) launchers — run **inside** the container |
 
@@ -67,13 +67,13 @@ Cloud hosts run the same `devcontainer.json` on a remote VM. You connect from a 
 |---------|------|--------------------------|
 | [GitHub Codespaces](https://github.com/features/codespaces) | Managed VS Code in the cloud | **Code** → **Create codespace on main**, or `gh codespace create` — reads `.devcontainer/` automatically |
 | [vscode.dev](https://vscode.dev/) | Lightweight browser editor | Best for quick edits; full dev container + viewer workflow usually needs Codespaces or a desktop client |
-| [GitHub Copilot coding agent](https://docs.github.com/en/copilot/concepts/agents/coding-agent) | Agent runs against the repo on GitHub | Works with the same repo layout; environment parity comes from Actions / containerized CI rather than your local UI |
+| [GitHub Copilot coding agent](https://docs.github.com/en/copilot/concepts/agents/coding-agent) | Agent runs against the repo on GitHub | Works with the same repo layout; environment parity comes from Actions / containerized CI/CD pipeline rather than your local UI |
 | [Ona](https://www.ona.com/) (formerly Gitpod) | Spec-compliant cloud environments | Import repo; environment from `devcontainer.json` |
 | [CodeSandbox](https://codesandbox.io/) | Cloud dev environments (Podman-backed) | Import GitHub repo; uses [dev container spec](https://containers.dev/supporting) with `.codesandbox/` task config |
 | [DevPod](https://devpod.sh/) | Client for local, SSH, Kubernetes, or cloud backends | `devpod up <repo-url>` — provisions from `devcontainer.json` on your chosen provider |
 
 :::info Codespaces and Docker
-[GitHub Codespaces](https://containers.dev/supporting) allows the Docker socket bind mount used in this template, so `just ci` (Dagger) can work in a codespace when the host provides Docker. Other cloud hosts may restrict socket mounts — run CI via GitHub Actions if local Dagger is unavailable.
+[GitHub Codespaces](https://containers.dev/supporting) allows the Docker socket bind mount used in this template, so `just ci` (Dagger) can work in a codespace when the host provides Docker. Other cloud hosts may restrict socket mounts — run the CI/CD pipeline via GitHub Actions if local Dagger is unavailable.
 :::
 
 ### Connecting desktop VS Code or Cursor to Codespaces
@@ -91,7 +91,7 @@ The [containers.dev supporting tools](https://containers.dev/supporting) list gr
 
 | Tool | Notes for this repo |
 |------|---------------------|
-| [Dev Container CLI](https://github.com/devcontainers/cli) | `devcontainer up --workspace-folder .` — headless bring-up; used by CI and other services |
+| [Dev Container CLI](https://github.com/devcontainers/cli) | `devcontainer up --workspace-folder .` — headless bring-up; used by the CI/CD pipeline and other services |
 | [Visual Studio 2022](https://devblogs.microsoft.com/cppblog/dev-containers-for-c-in-visual-studio/) | C++ focused; Python CAD workflow is better suited to VS Code family clients |
 | [IntelliJ IDEA](https://www.jetbrains.com/idea/) | Early dev container support via SSH/Docker — viable if your team standardizes on JetBrains |
 | [DevPod](https://devpod.sh/) | Good when you want the same spec on a bare VM or Kubernetes without installing Docker Desktop locally |

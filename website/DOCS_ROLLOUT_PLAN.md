@@ -9,7 +9,7 @@ The documentation should follow an iceberg shape:
 1. README sells the project, explains the CAD-as-Code idea, and gives the shortest start path.
 2. Docs intro explains the concept and routes readers by intent.
 3. Quick start gets users to a running model with clear success states.
-4. Deeper docs cover modeling, export, automation, CI, troubleshooting, and agent workflows.
+4. Deeper docs cover modeling, export, automation, CI/CD pipeline, troubleshooting, and agent workflows.
 
 Avoid duplicating whole sections across pages. Repeat only what helps a reader choose the next link.
 

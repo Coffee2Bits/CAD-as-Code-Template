@@ -6,7 +6,7 @@ sidebar_position: 1
 
 This page gets the template from GitHub to a running model. It assumes you are new to at least some of the tooling, so it keeps the first path narrow.
 
-CAD-as-Code means the model is source code. You edit Python in `cad/`, then use tests, viewer feedback, exports, and CI to prove the model still works.
+CAD-as-Code means the model is source code. You edit Python in `cad/`, then use tests, viewer feedback, exports, and the CI/CD pipeline to prove the model still works.
 
 :::tip Created your own repo from the template?
 Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`. Or run `just init --owner acme --repo widget-cad`. See [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
@@ -114,4 +114,4 @@ If you are only contributing back to this template repo, you can usually skip re
 - [Daily development](/workflows/daily-development) — the normal edit/test/view loop.
 - [Modeling conventions](/modeling/conventions) — how to keep `cad/` clean and reusable.
 - [Export and formats](/workflows/export-and-formats) — choose STEP, STL, GLB, or release bundles.
-- [Troubleshooting](/troubleshooting/) — container, viewer, MCP, export, and CI fixes.
+- [Troubleshooting](/troubleshooting/) — container, viewer, MCP, export, and CI/CD pipeline fixes.
