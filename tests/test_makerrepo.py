@@ -15,6 +15,7 @@ def test_artifacts_discovered():
     assert "sphere" in names
     assert "sphere_with_nut" in names
     assert "m3_hex_nut" in names
+    assert "m3_socket_head_cap_screw" in names
 
 
 def test_generators_discovered():

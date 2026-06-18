@@ -225,9 +225,9 @@ def test_render_artifact_preserves_part_colors(tmp_path: Path, repo_root: Path):
 
     shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
     solids = _colored_solids(shape, (0.31, 0.63, 1.0))
-    assert len(solids) == 2
+    assert len(solids) == 3
     colors = {tuple(round(channel, 2) for channel in face_color) for _, face_color in solids}
-    assert len(colors) == 2
+    assert len(colors) == 3
 
 
 def test_render_input_artifact_uses_python_shape_not_stl(tmp_path: Path, repo_root: Path):
@@ -243,7 +243,7 @@ def test_render_input_artifact_uses_python_shape_not_stl(tmp_path: Path, repo_ro
     )
     assert written
     shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
-    assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 2
+    assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 3
 
 
 def test_render_cli(tmp_path: Path, repo_root: Path):
@@ -276,7 +276,7 @@ def test_load_viewer_script_reads_main_py(repo_root: Path):
     assert artifact_name == "sphere_with_nut"
     assert artifact_func is not None
     assert artifact_func.__name__ == "sphere_with_nut"
-    assert len(shape.children) == 2
+    assert len(shape.children) == 3
     assert shape.volume > 0
 
 

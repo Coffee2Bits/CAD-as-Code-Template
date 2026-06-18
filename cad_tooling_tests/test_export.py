@@ -41,7 +41,9 @@ def test_list_release_artifacts_requires_render(repo_root: Path):
     assert "sphere" in release_names
     assert "sphere_with_nut" in release_names
     assert "m3_hex_nut" in all_names
+    assert "m3_socket_head_cap_screw" in all_names
     assert "m3_hex_nut" not in release_names
+    assert "m3_socket_head_cap_screw" not in release_names
 
 
 def test_list_generators_discovers_sphere_generator(repo_root: Path):
