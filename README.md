@@ -12,7 +12,11 @@ If you are new to software-style workflows, that is the point of the template: t
 
 ![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](repo_preview.png)
 
+<small><em>The default workspace: source code, live model preview, and agent assistance sharing the same containerized CAD environment.</em></small>
+
 ![OCP CAD Viewer clip view: Z-axis section through the demo sphere showing the nut pocket and embedded hardware](website/static/img/ocp_clip_z.png)
+
+<small><em>A Z-axis section cut through the demo sphere, showing how the viewer exposes embedded hardware, pockets, and interior clearances.</em></small>
 
 ## Start here
 
