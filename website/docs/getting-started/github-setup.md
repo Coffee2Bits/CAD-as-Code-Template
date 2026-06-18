@@ -22,6 +22,12 @@ After this page, continue to [Releases](/getting-started/releases) to publish ge
 | 5 | [Merge settings](#merge-settings) | Settings → General → Pull Requests | clean release-please changelog parsing |
 | 6 | [Workflow inventory](#workflow-inventory) | `.github/workflows/` | know what automation is already committed |
 
+## Optional: GitHub CLI authentication
+
+Repository settings still happen on GitHub.com, but the Dev Container also includes GitHub CLI (`gh`) for issue, PR, and release inspection workflows. Codespaces may already be authenticated. Local Dev Container users should run `gh auth login` once before using terminal-based GitHub commands.
+
+Keep the command reference in one place: [Dev container → GitHub CLI](/getting-started/dev-container#github-cli). For releases, use `gh` to inspect only; normal publishing goes through [release-please and the release workflow](/getting-started/releases).
+
 ## Enable GitHub Actions
 
 Path: Repository → Settings → Actions → General
@@ -196,5 +202,3 @@ After configuration:
 - [Release Please troubleshooting](/troubleshooting/release-please) — missing assets, stale labels, workflow recovery
 - [CI/CD pipeline and Dagger](/workflows/ci-and-dagger)
 - [Documentation site](/) (local: `just docs-build`)
-
-**In-repo copy:** [`.github/GITHUB_SETUP.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/GITHUB_SETUP.md)

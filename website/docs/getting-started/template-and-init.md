@@ -124,6 +124,8 @@ git push
 
 Use whatever branch policy your repo requires. If this is a brand-new private repo with no branch protection yet, pushing the initialization commit to `main` is common. Once GitHub is configured, prefer pull requests for normal work.
 
+If you plan to create PRs, manage issues, or inspect releases from the terminal, authenticate GitHub CLI once inside the container. See [Dev container → GitHub CLI](/getting-started/dev-container#github-cli).
+
 ## Next step
 
 Continue to [Set up GitHub](/getting-started/github-setup). That page covers the GitHub.com settings that cannot be copied by the template or written by `just init`.
