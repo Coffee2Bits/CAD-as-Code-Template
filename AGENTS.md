@@ -663,6 +663,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Formatter and linter**: keep [Ruff aligned](#formatter-and-linter-alignment) across editor, pre-commit, and CI — mismatches cause endless format regressions.
 - **Completion gate**: run `just ci` (or `just quality && just export-smoke`) and confirm success before marking any task complete.
 - **Doc sync**: when changing behavior, names, or commands, search docs for stale references and update them in the same change — see [Keep docs in sync (mandatory)](#keep-docs-in-sync-mandatory).
+- **Troubleshooting**: when a task debugs a tool with a troubleshooting page, document new reproducible failures and fixes there — see [Troubleshooting documentation](#troubleshooting-documentation).
 - **Units**: millimeters unless a part docstring says otherwise.
 - **Return types**: `Part` or `Compound` from builders; MR wrappers return the same.
 - **Imports**: `from mr import artifact, customizable, cached` — not `import makerrepo`.
@@ -738,6 +739,45 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | CI / Dagger / workflows | `website/docs/workflows/ci-and-dagger.md`, `website/docs/reference/ci-functions.md`, `website/docs/getting-started/github-setup.md`, `.github/GITHUB_SETUP.md` |
 | Dev container / viewer / MCP | Matching page under `website/docs/getting-started/` or `website/docs/tools/` |
 | New template-user setup step | `website/docs/getting-started/` (usually `quick-start.md`, `github-setup.md`, or `releases.md`) and `.github/GITHUB_SETUP.md` |
+| Novel failure mode or fix for a tool below | Matching page under `website/docs/troubleshooting/` (see [Troubleshooting documentation](#troubleshooting-documentation)); add a row to [`troubleshooting/index.md`](website/docs/troubleshooting/index.md) quick-routing table when the symptom is new |
+
+### Troubleshooting documentation
+
+When a task involves **diagnosing, fixing, or working around** a tool or workflow failure, check whether it maps to a troubleshooting page **before** marking work complete. If you discover a **new** symptom, root cause, or fix that future users or agents are likely to hit again, document it in the same change.
+
+**When to update**
+
+- You debugged a non-obvious error and found a reproducible fix.
+- You changed setup, config, or commands that make an existing troubleshooting entry wrong or incomplete.
+- You added or removed a failure mode (new MCP launcher behavior, CI gate, export format, container mount, etc.).
+
+**When to skip**
+
+- One-off environment issues (typo, wrong directory, transient network) with no template-wide lesson.
+- The entry already exists on the matching page — improve it only if your fix adds missing steps or corrects stale prose.
+
+**Routing table** — match the task area to the canonical troubleshooting page:
+
+| Task touches… | Troubleshooting page |
+|---------------|----------------------|
+| Dev container, `uv sync`, permissions, hooks, rebuild | [`website/docs/troubleshooting/dev-container.md`](website/docs/troubleshooting/dev-container.md) |
+| OCP CAD Viewer extension, `just view`, blank panel, ESM crash | [`website/docs/troubleshooting/ocp-viewer.md`](website/docs/troubleshooting/ocp-viewer.md) |
+| MCP servers, `.cursor/mcp.json`, agent tools in container | [`website/docs/troubleshooting/mcp.md`](website/docs/troubleshooting/mcp.md) |
+| `just ci`, Dagger, Docker socket, CI module | [`website/docs/troubleshooting/dagger-and-docker.md`](website/docs/troubleshooting/dagger-and-docker.md) |
+| Export, `mr artifacts`, release PNGs, ruff/mypy/vulture in CI, artifact discovery | [`website/docs/troubleshooting/export-and-ci.md`](website/docs/troubleshooting/export-and-ci.md) |
+| release-please, GitHub Pages, branch protection, repo identity | [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md) (`## Troubleshooting`) |
+
+Index and cross-links: [`website/docs/troubleshooting/index.md`](website/docs/troubleshooting/index.md). Tool guides link here from their own **Troubleshooting** sections — keep those links; put detailed fixes on the troubleshooting page, not duplicated in long form on tool pages.
+
+**How to write entries**
+
+- Match existing style: short `##` headings, symptom → fix tables, or numbered recovery sequences.
+- State the **symptom** first, then the **fix** (commands must match current `justfile` / scripts).
+- One row or bullet per distinct failure mode; link to the canonical guide (e.g. [MCP servers](website/docs/tools/mcp-servers.md)) for architecture, not the reverse.
+- If the symptom is new, add a row to the quick-routing table in `troubleshooting/index.md`.
+- Keep each troubleshooting page under ~300–400 lines; split if a topic grows.
+
+Run `just docs-build` when you change `website/docs/troubleshooting/**` or pages that link to it.
 
 ### Agent rules when editing docs
 

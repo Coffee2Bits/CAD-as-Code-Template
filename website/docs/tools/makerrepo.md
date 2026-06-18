@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # MakerRepo
 
-[MakerRepo](https://docs.makerrepo.com/makerrepo-library/) adds Manufacturing-as-Code metadata to build123d functions. Decorators are **non-intrusive** — they register metadata for discovery and export without changing builder behavior.
+[MakerRepo](https://docs.makerrepo.com/makerrepo-library/) adds [Manufacturing-as-Code](https://docs.makerrepo.com/manufacturing-as-code/) metadata to build123d functions. Decorators are **non-intrusive** — they register metadata for discovery and export without changing builder behavior.
 
 ```python
 from mr import artifact, customizable, cached
@@ -83,7 +83,7 @@ just mr-export-generator sphere_generator /tmp/out '{"radius": 15}'
 
 Full reference: [MakerRepo CLI docs](https://docs.makerrepo.com/makerrepo-cli/).
 
-## Worked example (sphere)
+## Code example (sphere)
 
 ```python
 from build123d import Align, BuildPart, Part, Sphere

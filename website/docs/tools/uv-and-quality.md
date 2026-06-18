@@ -39,7 +39,7 @@ uv run pytest
 - **ignore_decorators** — MakerRepo (`@artifact`, `@customizable`, `@cached`, `@render`), Dagger (`@function`), pytest (`@pytest.fixture`)
 - **min_confidence** — `80` (default threshold; lowers false positives from framework entry points)
 
-If vulture reports a false positive, add the name to `ignore_names` or create a `whitelist.py` entry — do not delete real dead code to silence the check.
+If vulture reports a false positive, add the name to `ignore_names` or create a `whitelist.py` entry — do not delete real code to silence the check.
 
 ### mypy scope
 
