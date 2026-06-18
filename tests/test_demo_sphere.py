@@ -1,6 +1,6 @@
 from cad.parts.m3_hex_nut import PART_COLOR as NUT_PART_COLOR
 from cad.parts.m3_socket_head_cap_screw import PART_COLOR as SCREW_PART_COLOR
-from cad.parts.sphere import PART_COLOR as SPHERE_PART_COLOR
+from cad.parts.sphere import EMBOSSED_TEXT_COLOR, PART_COLOR as SPHERE_PART_COLOR
 from cad.parts.sphere_tripod_support import PART_COLOR as SUPPORT_PART_COLOR
 import pytest
 
@@ -40,7 +40,11 @@ class TestDemoSphereAssembly:
         assert assembly.children[1].label == "m3_hex_nut_reference"
         assert assembly.children[2].label == "m3_socket_head_cap_screw_reference"
         assert assembly.children[3].label == "sphere_tripod_support"
-        assert tuple(assembly.children[0].color)[:3] == tuple(SPHERE_PART_COLOR)[:3]
+        sphere_body, embossed_text = assembly.children[0].children
+        assert sphere_body.label == "sphere_body"
+        assert embossed_text.label == "embossed_text"
+        assert tuple(sphere_body.color)[:3] == tuple(SPHERE_PART_COLOR)[:3]
+        assert tuple(embossed_text.color)[:3] == tuple(EMBOSSED_TEXT_COLOR)[:3]
         assert tuple(assembly.children[1].color)[:3] == tuple(NUT_PART_COLOR)[:3]
         assert tuple(assembly.children[2].color)[:3] == tuple(SCREW_PART_COLOR)[:3]
         assert tuple(assembly.children[3].color)[:3] == tuple(SUPPORT_PART_COLOR)[:3]

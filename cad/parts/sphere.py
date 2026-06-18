@@ -31,6 +31,7 @@ from cad_tooling.render_decorator import render
 EMBOSSED_TEXT = "Example Text"
 EMBOSS_DEPTH = 0.5
 PART_COLOR = Color(0.82, 0.62, 0.18)
+EMBOSSED_TEXT_COLOR = Color(0.08, 0.18, 0.55)
 # -Y equator point on the XY great circle (OCCT back view)
 TEXT_POSITION_ON_PATH = 0.75
 
@@ -171,8 +172,66 @@ def _subtract_hex_nut_pocket(
     return cut.part
 
 
-def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
-    """Build a centered sphere with embossed text and the NE quadrant removed."""
+def _build_sphere_body(
+    *,
+    radius: float,
+    cut_offset: float,
+    hex_nut_margin: float,
+) -> Part:
+    """Sphere shell with NE cut, hex pocket, and screw clearance — no embossed text."""
+    with BuildPart() as part:
+        Sphere(radius=radius, align=(Align.CENTER, Align.CENTER, Align.CENTER))
+
+    cut_part = _subtract_northeast_quadrant(
+        part.part,
+        radius=radius,
+        offset=cut_offset,
+    )
+    body = _subtract_hex_nut_pocket(
+        cut_part,
+        cut_offset=cut_offset,
+        radius=radius,
+        hex_nut_margin=hex_nut_margin,
+    )
+    body = subtract_m3_screw_clearance_hole(
+        body,
+        cut_offset=cut_offset,
+        radius=radius,
+    )
+    body.color = PART_COLOR
+    body.label = "sphere_body"
+    return body
+
+
+def _build_embossed_text_part(
+    *,
+    radius: float,
+    cut_offset: float,
+    path: Edge,
+    path_length: float,
+) -> Part:
+    """Extruded equator lettering, clipped by the same NE quadrant cut as the body."""
+    embossed_solids = _embossed_letter_solids(
+        radius=radius,
+        path=path,
+        path_length=path_length,
+    )
+    with BuildPart() as text:
+        for embossed_solid in embossed_solids:
+            add(embossed_solid)
+
+    part = _subtract_northeast_quadrant(
+        text.part,
+        radius=radius,
+        offset=cut_offset,
+    )
+    part.color = EMBOSSED_TEXT_COLOR
+    part.label = "embossed_text"
+    return part
+
+
+def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Compound:
+    """Build a centered sphere with dark-blue embossed text and the NE quadrant removed."""
     path = _equator_circle_edge(radius)
     path_length = path.length
     embossed_solids = _embossed_letter_solids(
@@ -182,30 +241,18 @@ def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
     )
     cut_offset = _northeast_cut_offset(embossed_solids)
 
-    with BuildPart() as part:
-        Sphere(radius=radius, align=(Align.CENTER, Align.CENTER, Align.CENTER))
-
-        for embossed_solid in embossed_solids:
-            add(embossed_solid, mode=Mode.ADD)
-
-    cut_part = _subtract_northeast_quadrant(
-        part.part,
+    body = _build_sphere_body(
         radius=radius,
-        offset=cut_offset,
-    )
-    part = _subtract_hex_nut_pocket(
-        cut_part,
         cut_offset=cut_offset,
-        radius=radius,
         hex_nut_margin=hex_nut_margin,
     )
-    part = subtract_m3_screw_clearance_hole(
-        part,
-        cut_offset=cut_offset,
+    text = _build_embossed_text_part(
         radius=radius,
+        cut_offset=cut_offset,
+        path=path,
+        path_length=path_length,
     )
-    part.color = PART_COLOR
-    return part
+    return Compound(label="sphere", children=[body, text])
 
 
 @artifact(short_desc="Demo sphere for workspace smoke tests")
@@ -215,7 +262,7 @@ def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
         {"camera": "iso", "width": 800, "height": 600},
     ]
 )
-def sphere() -> Part:
+def sphere() -> Compound:
     """Default-radius sphere published as a MakerRepo artifact."""
     return make_sphere()
 
@@ -230,7 +277,7 @@ class SphereParameters(BaseModel):
 
 
 @customizable(sample_parameters=SphereParameters())
-def sphere_generator(parameters: SphereParameters) -> Part:
+def sphere_generator(parameters: SphereParameters) -> Compound:
     """Parametric sphere — customize radius via MakerRepo generators or CLI."""
     return make_sphere(
         radius=parameters.radius,

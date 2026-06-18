@@ -2,6 +2,7 @@ import math
 
 import pytest
 
+from cad.parts.sphere import EMBOSSED_TEXT_COLOR
 from pytest_support import cached_make_sphere
 
 pytestmark = pytest.mark.integration
@@ -38,3 +39,8 @@ class TestSphereGeometry:
 
     def test_sphere_has_embossed_text_faces(self, default_sphere):
         assert len(default_sphere.faces()) > 1
+
+    def test_embossed_text_is_dark_blue(self, default_sphere):
+        embossed_text = default_sphere.children[1]
+        assert embossed_text.label == "embossed_text"
+        assert tuple(embossed_text.color)[:3] == tuple(EMBOSSED_TEXT_COLOR)[:3]
