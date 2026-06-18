@@ -25,6 +25,7 @@ from cad.parts.m3_hex_nut import (
     make_m3_hex_nut_pocket_cutter,
     positioned_m3_hex_nut_at_seat,
 )
+from cad.parts.m3_socket_head_cap_screw import subtract_m3_screw_clearance_hole
 from cad_tooling.render_decorator import render
 
 EMBOSSED_TEXT = "Example Text"
@@ -197,6 +198,11 @@ def make_sphere(radius: float = 10, *, hex_nut_margin: float = 0.2) -> Part:
         cut_offset=cut_offset,
         radius=radius,
         hex_nut_margin=hex_nut_margin,
+    )
+    part = subtract_m3_screw_clearance_hole(
+        part,
+        cut_offset=cut_offset,
+        radius=radius,
     )
     part.color = PART_COLOR
     return part

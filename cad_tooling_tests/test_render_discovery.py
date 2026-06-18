@@ -28,6 +28,7 @@ def test_expand_composition_modules_includes_assembly_parts(repo_root: Path):
     assert "cad.assemblies.sphere_with_nut" in modules
     assert "cad.parts.sphere" in modules
     assert "cad.parts.m3_hex_nut" in modules
+    assert "cad.parts.m3_socket_head_cap_screw" in modules
 
 
 def test_discover_viewer_render_targets_includes_sub_parts(repo_root: Path):
