@@ -26,7 +26,7 @@ M3_SCREW_SIZE = "M3-0.5"
 SCREW_LENGTH_MM = 8.0
 SCREW_AXIS_ROTATION = (0, -90, 0)
 CLEARANCE_FIT = "Close"
-SCREW_HEAD_CLEARANCE_MARGIN_MM = 0.1
+SCREW_HEAD_CLEARANCE_MARGIN_MM = 0.3
 PART_COLOR = Color(0.72, 0.72, 0.76)
 
 
@@ -63,9 +63,10 @@ def make_m3_socket_head_cap_screw(
     *,
     rotation: tuple[float, float, float] = SCREW_AXIS_ROTATION,
     length: float = SCREW_LENGTH_MM,
+    simple: bool = False,
 ) -> Part:
     """Build an ISO 4762 M3 socket head cap screw from bd_warehouse."""
-    screw = SocketHeadCapScrew(M3_SCREW_SIZE, length=length, simple=True)
+    screw = SocketHeadCapScrew(M3_SCREW_SIZE, length=length, simple=simple)
     with BuildPart() as builder:
         add(Rot(*rotation) * screw)
     part = builder.part

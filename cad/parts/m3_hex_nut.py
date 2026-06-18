@@ -26,16 +26,20 @@ POCKET_HEX_ROTATION_DEG = 30.0
 PART_COLOR = Color(0.1, 0.1, 0.1)
 
 
-def make_m3_hex_nut(*, rotation: tuple[float, float, float] = (0, 0, 0)) -> Part:
+def make_m3_hex_nut(
+    *,
+    rotation: tuple[float, float, float] = (0, 0, 0),
+    simple: bool = False,
+) -> Part:
     """Build an ISO 4032 M3 hex nut from bd_warehouse."""
-    nut = Part(Rot(*rotation) * HexNut(M3_HEX_NUT_SIZE))
+    nut = Part(Rot(*rotation) * HexNut(M3_HEX_NUT_SIZE, simple=simple))
     nut.color = PART_COLOR
     return nut
 
 
-def make_m3_hex_nut_for_pocket() -> Part:
+def make_m3_hex_nut_for_pocket(*, simple: bool = False) -> Part:
     """Return an M3 nut oriented for flush seating in the sphere +X pocket."""
-    return make_m3_hex_nut(rotation=POCKET_AXIS_ROTATION)
+    return make_m3_hex_nut(rotation=POCKET_AXIS_ROTATION, simple=simple)
 
 
 def hex_nut_pocket_seat(*, cut_offset: float, radius: float) -> tuple[float, float, float]:
@@ -66,14 +70,19 @@ def position_flush_in_x_pocket(
     )
 
 
-def positioned_m3_hex_nut_at_seat(*, cut_offset: float, radius: float) -> Part:
+def positioned_m3_hex_nut_at_seat(
+    *,
+    cut_offset: float,
+    radius: float,
+    simple: bool = False,
+) -> Part:
     """Return a reference nut flush in the pocket defined by the shared seat."""
     cut_x, center_y, center_z = hex_nut_pocket_seat(
         cut_offset=cut_offset,
         radius=radius,
     )
     return position_flush_in_x_pocket(
-        make_m3_hex_nut_for_pocket(),
+        make_m3_hex_nut_for_pocket(simple=simple),
         cut_x=cut_x,
         center_y=center_y,
         center_z=center_z,
@@ -143,7 +152,11 @@ def make_m3_hex_nut_pocket_cutter(
     hex_nut_margin: float,
 ) -> Part:
     """Hex prism cutter in the same pose as the reference nut, enlarged by margin."""
-    nut = positioned_m3_hex_nut_at_seat(cut_offset=cut_offset, radius=radius)
+    nut = positioned_m3_hex_nut_at_seat(
+        cut_offset=cut_offset,
+        radius=radius,
+        simple=True,
+    )
     base_across_flats = _nut_hex_envelope_across_flats(nut)
     cutter_across_flats = hex_margin_to_across_flats(
         base_across_flats=base_across_flats,
