@@ -5,7 +5,7 @@ title: Set up GitHub for your repository
 
 # Set up GitHub for your repository
 
-After you **[use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)** or fork the repo, several settings live **only on GitHub.com** — they are not in git. Configure them once per repository so CI, releases, and documentation deploy correctly.
+After you **[use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)** or fork the repo, several settings live **only on GitHub.com** — they are not in git. Configure them once per repository so the CI/CD pipeline, releases, and documentation deploy correctly.
 
 This page is for **your** repository after you use the template or fork — not for configuring the upstream [Coffee2Bits/CAD-as-Code-Template](https://github.com/Coffee2Bits/CAD-as-Code-Template) source repo itself.
 
@@ -16,7 +16,7 @@ This page is for **your** repository after you use the template or fork — not 
 | 1 | [Actions enabled](#enable-github-actions) | Settings → Actions → General | all workflows |
 | 2 | [Actions workflow permissions](#actions-workflow-permissions) | Settings → Actions → General | release-please Release PRs |
 | 3 | [GitHub Pages source](#github-pages) | Settings → Pages | Docusaurus docs site |
-| 4 | [Branch protection on `main`](#branch-protection) | Settings → Branches (or Rules → Rulesets) | CI gate before merge |
+| 4 | [Branch protection on `main`](#branch-protection) | Settings → Branches (or Rules → Rulesets) | CI/CD pipeline gate before merge |
 | 5 | [Squash merge as default](#merge-settings) | Settings → General → Pull Requests | release-please changelog parsing |
 | 6 | [Replace template identity](#replace-template-identity-in-your-repo) | Edit `template.repo.toml` or pass `just init --owner … --repo …` | correct Pages URL and release version |
 | 7 | [Workflows present in repo](#workflows-inventory) | `.github/workflows/` (committed) | automation itself |
@@ -41,7 +41,7 @@ After GitHub settings, follow [Releases](/getting-started/releases) for the firs
 
 ### Replace template identity in your repo
 
-Your new repository is a copy of the template — it still contains upstream names until you run `just init`. CI workflows use `${{ github.repository }}` automatically — **no edits** under `.github/workflows/`.
+Your new repository is a copy of the template — it still contains upstream names until you run `just init`. The pipeline workflows use `${{ github.repository }}` automatically — **no edits** under `.github/workflows/`.
 
 `just init` reads **`template.repo.toml`** and applies it to the workspace (versions, Docusaurus config, README/docs). Two ways to set identity:
 
@@ -224,7 +224,7 @@ Apply to branch: **`main`**
 
 | Rule | Setting | Why |
 |------|---------|-----|
-| Require a pull request before merging | Enabled | Keeps `main` stable; pairs with CI |
+| Require a pull request before merging | Enabled | Keeps `main` stable; pairs with the CI/CD pipeline |
 | Required status checks | **`Dagger CI`** (required) | Matches job name in `ci.yml` |
 | | **`build`** from Documentation PR check (optional) | When changing `website/` — job name in `docs-pr.yml` |
 | Require branches to be up to date before merging | Enabled (recommended) | Avoid merging stale green PRs |
@@ -237,13 +237,13 @@ Apply to branch: **`main`**
 
 ### Status check names
 
-GitHub shows exact check names on a merged PR’s **Checks** tab. If protection does not list **Dagger CI**, open a PR, wait for CI, then pick the check from the dropdown when editing the rule.
+GitHub shows exact check names on a merged PR’s **Checks** tab. If protection does not list **Dagger CI**, open a PR, wait for the CI/CD pipeline to run, then pick the check from the dropdown when editing the rule.
 
 `ci.yml` path filters — CI runs only when these paths change:
 
 - `cad/**`, `tests/**`, `ci/**`, `.github/workflows/**`, `pyproject.toml`, `uv.lock`, `.makerrepo/**`
 
-Docs-only or README-only PRs may not run Dagger CI; that is intentional.
+Docs-only or README-only PRs may not run the Dagger CI check; that is intentional.
 
 Direct link: `https://github.com/YOUR_ORG/YOUR_REPO/settings/branches`
 
@@ -313,7 +313,7 @@ After configuration:
 
 - [Releases](/getting-started/releases) — first release and day-to-day versioning
 - [Releases workflow](/workflows/releases) — deeper reference (Conventional Commits, dry-run, manual tags)
-- [CI & Dagger](/workflows/ci-and-dagger)
+- [CI/CD pipeline and Dagger](/workflows/ci-and-dagger)
 - [Documentation site](/) (local: `just docs-build`)
 
 **In-repo copy:** [`.github/GITHUB_SETUP.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/GITHUB_SETUP.md)

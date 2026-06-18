@@ -93,7 +93,7 @@ uv run python -m cad_tooling.export release-notes \
 1. `release-please.yml` — Release PRs + git tag on merge (`skip-github-release: true`)
 2. `release.yml` — export and GitHub Release on tag push
 
-Do not use `gh release create` for normal publishes. See [Cleaning up mistaken releases](/getting-started/releases#cleaning-up-mistaken-releases).
+Do not use `gh release create` for normal publishes. Release assets should come from the configured CI/CD pipeline so exports stay reproducible.
 
 ## Release note URLs
 

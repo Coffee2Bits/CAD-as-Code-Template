@@ -37,7 +37,7 @@ flowchart TB
 - **OCP CAD Viewer** — displays `TopoDS_Shape` via the AIS pipeline
 - **`cad_tooling.render`** — headless PNG export through OCP (`V3d_Viewer`, `AIS_Shape`)
 - **Export** — STEP and STL writers in Open CASCADE
-- **Dev container / CI** — `.devcontainer/Dockerfile` installs OCCT system libs and Mesa so local, viewer, and Dagger environments match
+- **Dev container / CI/CD pipeline** — `.devcontainer/Dockerfile` installs OCCT system libs and Mesa so local, viewer, and Dagger environments match
 
 ## Official resources
 
@@ -53,10 +53,10 @@ flowchart TB
 
 - **STEP** is the most faithful interchange format OCCT offers; STL is a tessellated snapshot.
 - Selector-based operations (faces, edges) depend on stable topology — refactors that change face order can break selectors.
-- Headless rendering in CI uses Xvfb when `DISPLAY` is unset; see [CAD tooling render](/tools/cad-tooling/render).
+- Headless rendering in the CI/CD pipeline uses Xvfb when `DISPLAY` is unset; see [CAD tooling render](/tools/cad-tooling/render).
 
 ## Related
 
 - [Glossary](/reference/glossary) — OCP vs build123d terms
 - [Stack architecture](/) — full workspace diagram
-- [Dev container](/getting-started/dev-container) — OCCT/Mesa parity with CI
+- [Dev container](/getting-started/dev-container) — OCCT/Mesa parity with the CI/CD pipeline

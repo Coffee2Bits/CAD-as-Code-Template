@@ -12,13 +12,13 @@ sidebar_position: 1
 4. `just test` — geometry and export tests
 5. `just quality` — lint + pytest before pushing
 
-## When to run full CI
+## When to run the full CI/CD pipeline
 
 ```bash
 just ci    # requires Docker socket in devcontainer
 ```
 
-Use before merging significant changes or when touching CI/tooling.
+Use before merging significant changes or when touching the CI/CD pipeline or tooling.
 
 ## Commits
 

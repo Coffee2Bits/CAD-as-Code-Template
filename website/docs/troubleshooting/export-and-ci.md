@@ -2,7 +2,7 @@
 sidebar_position: 6
 ---
 
-# Export & CI troubleshooting
+# Export and CI/CD pipeline troubleshooting
 
 ## Artifact not discovered
 

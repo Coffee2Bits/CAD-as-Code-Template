@@ -6,9 +6,11 @@ title: Introduction
 
 # CAD-as-Code, in a box
 
-A turnkey workspace for **parametric CAD in Python**. Reopen this repo in any **Dev Containers–capable editor or cloud workspace** — [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), [GitHub Codespaces](https://github.com/features/codespaces), [GitHub Copilot](https://github.com/features/copilot) in VS Code, and [many other clients](/getting-started/ide-and-workspaces) — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and CI, already wired together.
+A turnkey workspace for [parametric CAD as software](/reference/glossary#cad-as-code). Reopen this repo in any Dev Containers-capable editor or cloud workspace — [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), [GitHub Codespaces](https://github.com/features/codespaces), and [many other clients](/getting-started/ide-and-workspaces) — and you get a complete modeling environment: IDE, live 3D viewer, automated tests, export tooling, and a CI/CD pipeline already wired together.
 
-Define geometry with [build123d](https://build123d.readthedocs.io/), preview it in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), validate with pytest, and export to STEP, STL, and GLB. Publish artifacts through [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) (`mr`). Python is the source of truth; mesh files are generated, not hand-edited.
+Define geometry with [build123d](https://build123d.readthedocs.io/), preview it in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), validate it with pytest and quality checks, then export STEP, STL, GLB, and release assets from the same source. Python in `cad/` is the [source of truth](/reference/glossary#source-of-truth); generated files are outputs, not files you hand-manage.
+
+If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling. If a term is unfamiliar, start with the [glossary](/reference/glossary) and follow the linked guide from there.
 
 ![Dev environment with build123d code, OCP CAD Viewer, and a parametric sphere](/img/repo_preview.png)
 
@@ -16,128 +18,156 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
 | Layer | What you get |
 |-------|--------------|
-| **IDE** | Dev container (`.devcontainer/`) — portable across [VS Code, Cursor, Codespaces, Copilot, and more](/getting-started/ide-and-workspaces); dependencies and docs site (port 3000) start on container start |
-| **Modeling** | build123d parts and assemblies under `cad/` |
-| **Visualization** | OCP CAD Viewer + `ocp-vscode` bridge for `show_object` |
-| **Quality** | pytest geometry tests, ruff, mypy, vulture |
-| **Make** | [just](https://github.com/casey/just) command runner (`justfile`) for dev, export, and CI |
-| **CI** | [Dagger](https://dagger.io/) — portable CI from local to GitHub Actions |
-| **Agents** | AI coding assistants — Cursor, VS Code, Claude, GitHub Copilot |
-| **MCP** | Agent tools in the dev container ([build123d-mcp](/tools/mcp-servers), [ocp-viewer-mcp](/tools/mcp-servers)) — `uv sync` + committed launchers; IDE connects via [`.cursor/mcp.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.cursor/mcp.json) |
-| **Publish** | MakerRepo decorators and `mr` CLI for artifact discovery and export |
+| IDE | Dev container (`.devcontainer/`) for [VS Code, Cursor, Codespaces, and more](/getting-started/ide-and-workspaces); dependencies and docs site start with the workspace |
+| Modeling | build123d parts and assemblies under `cad/` |
+| Visualization | OCP CAD Viewer plus the `ocp-vscode` bridge for `show_object` |
+| Quality | [pytest geometry tests](/modeling/testing), [ruff linting, mypy type checks, and vulture dead-code detection](/tools/uv-and-quality) |
+| Commands | [just](/tools/just) command runner for development, export, and CI/CD pipeline tasks |
+| CI/CD pipeline | [Dagger](/workflows/ci-and-dagger) plus GitHub Actions for repeatable checks and releases |
+| Agents | Optional AI assistance from tools such as Cursor, Claude, and GitHub Copilot |
+| MCP | Agent tools in the dev container: [build123d-mcp](/tools/mcp-servers) and [ocp-viewer-mcp](/tools/mcp-servers) |
+| Publish | [MakerRepo](/tools/makerrepo) decorators and `mr` CLI for artifact discovery and export |
 
 ## Stack architecture
 
-**Source of truth** is always Python model code in `cad/` (the **CAD/** tree) — parametric code that generates models. **AI agents** (Cursor, VS Code, Claude, GitHub Copilot) work in the IDE like any developer. **MCP servers** run in the dev container and give agents tools to execute geometry, measure results, and capture viewer screenshots — without replacing the code artifacts under version control.
+The source of truth is always Python model code in `cad/`. Editors and AI tools work around that source, while commands, quality checks, export tools, and the CI/CD pipeline all regenerate results from it. That keeps changes reviewable: the model code changes first, and artifacts follow from repeatable automation.
 
 ```mermaid
 flowchart TB
-  subgraph agents["AI coding agents"]
-    CURSOR["Cursor"]
+  subgraph workspaces["Workspaces"]
     VSCODE["VS Code"]
-    CLAUDE["Claude"]
-    COPILOT["GitHub Copilot"]
-  end
-
-  subgraph ide["Dev environment"]
+    CURSOR["Cursor"]
+    CODESPACES["GitHub Codespaces"]
     DC["Dev container"]
   end
 
-  subgraph mcp["MCP — agent interface surface"]
+  subgraph assistance["Optional AI assistance"]
+    AGENTS["Agent/model tools"]
+    MCP["MCP servers"]
     B123MCP["build123d-mcp"]
     OCPMCP["ocp-viewer-mcp"]
   end
 
-  subgraph model["Modeling — source of truth"]
-    CAD_SRC["CAD/ Python code"]
-    B123D["build123d on Open CASCADE"]
+  subgraph source["Model source"]
+    CAD_SRC["cad/ Python files"]
+    B123D["build123d"]
+    OCC["Open CASCADE kernel"]
   end
 
-  subgraph viz["Visualization"]
-    OCP["OCP CAD Viewer"]
+  subgraph local["Local commands"]
+    JUST["just recipes"]
+    UV["uv environment"]
+  end
+
+  subgraph feedback["Design feedback"]
     BRIDGE["ocp-vscode"]
+    OCP["OCP CAD Viewer"]
   end
 
-  subgraph quality["Quality"]
-    PYTEST["pytest"]
-    RUFF["ruff + mypy + vulture"]
+  subgraph quality["Quality gates"]
+    PYTEST["pytest geometry tests"]
+    RUFF["ruff linting"]
+    MYPY["mypy typing"]
+    VULTURE["vulture dead-code checks"]
   end
 
-  subgraph make["Make"]
-    JUST["just"]
-    UV["uv"]
-  end
-
-  subgraph ci["CI"]
-    DAGGER["Dagger"]
-    GHA["GitHub Actions"]
-  end
-
-  subgraph publish["Publish"]
-    MR["MakerRepo"]
+  subgraph publish["Artifact generation"]
+    MR["MakerRepo decorators"]
     MRCLI["mr CLI"]
-    REL["GitHub Releases"]
+    EXPORTS["STEP / STL / GLB / PNG"]
   end
 
-  agents --> ide
-  agents -.->|"optional, alongside code"| mcp
-  ide --> CAD_SRC
-  mcp -.->|"access to artifacts"| CAD_SRC
-  mcp -.->|"viewer feedback"| OCP
+  subgraph pipeline["CI/CD pipeline"]
+    DAGGER["Dagger pipeline"]
+    GHA["GitHub Actions"]
+    RELEASES["GitHub Releases"]
+  end
+
+  VSCODE --> DC
+  CURSOR --> DC
+  CODESPACES --> DC
+  DC --> CAD_SRC
+  DC --> JUST
+  DC --> MCP
+
+  AGENTS -.->|"use from editor"| DC
+  AGENTS -.->|"tool calls"| MCP
+  MCP --> B123MCP
+  MCP --> OCPMCP
+  B123MCP -.->|"execute and inspect"| CAD_SRC
+  OCPMCP -.->|"capture viewer feedback"| OCP
+
   CAD_SRC --> B123D
-  B123D --> OCP
+  B123D --> OCC
+  B123D --> BRIDGE
   BRIDGE --> OCP
-  CAD_SRC --> PYTEST
+
   JUST --> UV
-  DAGGER --> GHA
+  JUST --> PYTEST
+  JUST --> RUFF
+  JUST --> MYPY
+  JUST --> VULTURE
+  JUST --> MRCLI
+  CAD_SRC --> PYTEST
+  CAD_SRC --> MR
   MR --> MRCLI
-  MR --> REL
+  MRCLI --> EXPORTS
+
+  JUST --> DAGGER
+  DAGGER --> GHA
+  GHA --> PYTEST
+  GHA --> RUFF
+  GHA --> MYPY
+  GHA --> VULTURE
+  GHA --> MRCLI
+  EXPORTS --> RELEASES
+  GHA --> RELEASES
 ```
 
 ## Stack
 
 | Tool | Role |
 |------|------|
-| [build123d](https://github.com/gumyr/build123d) | Parametric CAD-as-code on [Open CASCADE](/reference/open-cascade) |
+| [build123d](https://github.com/gumyr/build123d) | Parametric CAD-as-Code on [Open CASCADE](/reference/open-cascade) |
 | [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer) | Live 3D visualization in VS Code-based IDEs |
 | [ocp-vscode](https://github.com/bernhard-42/ocp_vscode) | Python bridge for `show_object` |
 | [uv](https://docs.astral.sh/uv/) | Dependency and virtualenv management |
-| [just](https://github.com/casey/just) | Command runner for dev, export, and CI |
+| [just](https://github.com/casey/just) | Command runner for development, export, and CI/CD pipeline tasks |
 | [pytest](https://docs.pytest.org/) | Geometry and export tests |
 | [ruff](https://docs.astral.sh/ruff/) / [mypy](https://mypy-lang.org/) / [vulture](https://github.com/jendrikseipp/vulture) | Linting, type checking, and dead-code detection |
-| [Dagger](https://dagger.io/) | Portable CI pipeline |
-| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP interface — sandboxed geometry execution for agents |
-| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP interface — viewer screenshots for agent visual feedback |
-| [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) | `@artifact`, `@customizable`, `@cached` decorators |
+| [Dagger](https://dagger.io/) | Portable CI/CD pipeline from local runs to GitHub Actions |
+| [build123d-mcp](https://github.com/pzfreo/build123d-mcp) | MCP interface for sandboxed geometry execution by agents |
+| [ocp-viewer-mcp](https://github.com/dmilad/ocp-viewer-mcp) | MCP interface for viewer screenshots and visual feedback |
+| [MakerRepo](https://docs.makerrepo.com/makerrepo-library/) | `@artifact`, `@customizable`, and `@cached` decorators |
 | [makerrepo-cli](https://docs.makerrepo.com/makerrepo-cli/) | Artifact discovery, export, and viewer integration |
 
 ## New repo from the template?
 
-If you used **[Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate)** on GitHub:
+If you used [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate):
 
-1. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml) for your org and repo name, then run **`just init`**. Or pass overrides: `just init --owner YOUR_ORG --repo YOUR_REPO`.
-2. Complete [Set up GitHub](/getting-started/github-setup) (Actions permissions, Pages, branch protection) and [Releases](/getting-started/releases).
+1. Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`.
+2. Complete [Set up GitHub](/getting-started/github-setup) for Actions, Pages, branch protection, and release settings.
+3. Read [Releases](/getting-started/releases) before publishing generated assets.
 
 Details: [Replace template identity](/getting-started/github-setup#replace-template-identity-in-your-repo).
 
 ## Explore the docs
 
-| | |
-|---|---|
-| **Getting started** | [Quick start](/getting-started/quick-start) · [GitHub setup](/getting-started/github-setup) · [Releases](/getting-started/releases) · [Project layout](/getting-started/project-layout) · [IDEs & workspaces](/getting-started/ide-and-workspaces) |
-| **Modeling** | [Conventions](/modeling/conventions) · [Parts & assemblies](/modeling/parts-and-assemblies) · [Testing](/modeling/testing) |
-| **Tools** | [just](/tools/just) · [MakerRepo](/tools/makerrepo) · [MCP servers](/tools/mcp-servers) · [CAD tooling](/tools/cad-tooling/) |
-| **Workflows** | [Daily development](/workflows/daily-development) · [CI & Dagger](/workflows/ci-and-dagger) · [Releases](/workflows/releases) |
-| **Help** | [Troubleshooting](/troubleshooting/) · [Open CASCADE](/reference/open-cascade) · [For agents](/contributing/for-agents) |
-
-**Repository:** [Coffee2Bits/CAD-as-Code-Template](https://github.com/Coffee2Bits/CAD-as-Code-Template)
+| Area | Start here |
+|------|------------|
+| Getting started | [Quick start](/getting-started/quick-start) · [GitHub setup](/getting-started/github-setup) · [Releases](/getting-started/releases) · [Project layout](/getting-started/project-layout) · [IDEs and workspaces](/getting-started/ide-and-workspaces) |
+| Modeling | [Conventions](/modeling/conventions) · [Parts and assemblies](/modeling/parts-and-assemblies) · [Testing](/modeling/testing) · [External libraries](/modeling/external-libraries) |
+| Tools | [just](/tools/just) · [uv and quality](/tools/uv-and-quality) · [MakerRepo](/tools/makerrepo) · [MCP servers](/tools/mcp-servers) · [CAD tooling](/tools/cad-tooling/) |
+| Workflows | [Daily development](/workflows/daily-development) · [Export and formats](/workflows/export-and-formats) · [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) · [Releases](/workflows/releases) |
+| Reference and help | [Glossary](/reference/glossary) · [Troubleshooting](/troubleshooting/) · [Open CASCADE](/reference/open-cascade) · [For agents](/contributing/for-agents) |
 
 ## Roadmap
 
-- Additional parts and real assemblies (constraints, patterns)
-- [build123d part libraries](/modeling/external-libraries)
-- [PartCAD](https://partcad.org/) integration
-- Bill of materials (BOM) from assemblies
-- 3MF, SVG, and DXF export helpers
-- Golden STEP/STL fixtures under `tests/fixtures/`
-- Topology optimization demo (e.g. [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/))
+- Additional parts and real assemblies: constraints, patterns, and reusable project structure.
+- [build123d part libraries](/modeling/external-libraries) and [PartCAD](https://partcad.org/) integration.
+- Bills of materials from assemblies.
+- Topology optimization demos, for example [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/).
+
+## Repository
+
+[Coffee2Bits/CAD-as-Code-Template](https://github.com/Coffee2Bits/CAD-as-Code-Template)

@@ -13,14 +13,14 @@ sidebar_position: 5
 ├── .makerrepo/config.yaml        # MakerRepo defaults
 ├── .github/
 │   ├── GITHUB_SETUP.md           # One-time GitHub.com settings (branch protection, Pages, …)
-│   └── workflows/                # CI, release, docs
+│   └── workflows/                # CI/CD pipeline, release, docs
 ├── ci/                           # Dagger module
 ├── .devcontainer/                # Dev container + OCP VSIX install
 ├── cad/
 │   ├── parts/                    # Reusable parametric parts
 │   └── assemblies/               # Composed products
 ├── cad_tooling/                  # Export, render, release helpers
-├── justfile                      # Dev, export, CI commands
+├── justfile                      # Dev, export, CI/CD pipeline/CD pipeline commands
 ├── main.py                       # Viewer entry (not model logic)
 ├── tests/                        # CAD model tests
 └── cad_tooling_tests/            # Tooling unit tests
@@ -40,7 +40,7 @@ sidebar_position: 5
 
 - **New reusable part** → `cad/parts/<name>.py`
 - **New product** → `cad/assemblies/<name>.py` (import from `cad.parts`)
-- **Export/CI helper** → `cad_tooling/` (not in `cad/`)
+- **Export/CI/CD pipeline helper** → `cad_tooling/` (not in `cad/`)
 
 See [Parts & assemblies](/modeling/parts-and-assemblies) for the three-layer pattern.
 

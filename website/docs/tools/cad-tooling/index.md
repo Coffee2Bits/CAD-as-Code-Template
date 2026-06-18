@@ -20,7 +20,7 @@ cad_tooling/
 | Task | Tool |
 |------|------|
 | Day-to-day artifact export | [`mr` CLI](/tools/makerrepo) |
-| CI smoke, release STL+PNG | [Export](/tools/cad-tooling/export) |
+| CI/CD pipeline smoke, release STL+PNG | [Export](/tools/cad-tooling/export) |
 | Headless preview PNG (OCP; not `mr snapshot`) | [Render](/tools/cad-tooling/render) |
 | Release body markdown | [Release notes](/tools/cad-tooling/release-notes) |
 

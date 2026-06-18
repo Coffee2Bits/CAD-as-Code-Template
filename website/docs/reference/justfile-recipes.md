@@ -11,7 +11,7 @@ Canonical reference. Run `just --list` in the repo for the live list.
 | Command | What it runs |
 |---------|--------------|
 | `just sync` | `uv sync` |
-| `just sync-frozen` | `uv sync --group dev --frozen` (matches CI) |
+| `just sync-frozen` | `uv sync --group dev --frozen` (matches the CI/CD pipeline) |
 | `just setup-hooks` | pre-commit install (commit + commit-msg hooks) |
 | `just init` | Apply `template.repo.toml` — reset versions, rebrand workspace |
 | `just init --owner acme --repo widget-cad` | CLI overrides instead of editing the TOML (all `--*` fields optional) |
@@ -50,7 +50,7 @@ Canonical reference. Run `just --list` in the repo for the live list.
 
 | Command | What it runs |
 |---------|--------------|
-| `just export-smoke` | Discover and export all artifacts (CI smoke) |
+| `just export-smoke` | Discover and export all artifacts (CI/CD pipeline smoke) |
 | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
 | `just export /tmp/out step sphere` | Export one artifact in a given format |
 | `just release dist/` | Alias for `just export dist/` |
@@ -85,7 +85,7 @@ Use `just version-bump minor` — not `just version-bump part=patch` (`just` tre
 | `just docs-serve-bg` | Background dev server via `.devcontainer/start-docs.sh` (idempotent) |
 | `just docs-build` | Production docs build |
 
-## CI (Dagger)
+## CI/CD pipeline (Dagger)
 
 | Command | What it runs |
 |---------|--------------|
