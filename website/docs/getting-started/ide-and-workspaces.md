@@ -56,7 +56,7 @@ The initial image build can take several minutes (Open CASCADE system packages, 
 
 ### Cursor-specific notes
 
-- **MCP** — servers run in the dev container; `.cursor/mcp.json` connects automatically. Reload MCP after container rebuilds ([quick start](/getting-started/quick-start#6-mcp-servers-included-in-the-container)).
+- **MCP** — servers run in the dev container; `.cursor/mcp.json` connects automatically. Reload MCP after container rebuilds ([quick start](/getting-started/quick-start#mcp-servers)).
 - **OCP CAD Viewer** — the devcontainer patches the VSIX for a Cursor extension-host ESM issue; VS Code is unaffected ([OCP viewer](/getting-started/ocp-viewer#cursor-esm-patch)).
 
 ## Cloud workspaces
