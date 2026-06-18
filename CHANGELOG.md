@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.4.0...v0.5.0) (2026-06-18)
+
+
+### Features
+
+* Refactor sphere creation to include embossed text and improve structure ([9d851dc](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/9d851dcaa3efd9bb63371e0f86292581cea7d111))
+
+
+### Documentation
+
+* expand OCP Viewer documentation with detailed instructions on using object color caps in clipping ([ef9ec66](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/ef9ec663f6b083ab2ca700521f6cb48d8873133d))
+* update OCP CAD Viewer installation instructions for Cursor and other VS Code forks ([c856487](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/c85648700471e4c4c0ea7c0dbe99487aa7970812))
+
 ## [0.4.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.3.0...v0.4.0) (2026-06-18)
 
 
