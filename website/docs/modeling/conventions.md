@@ -20,4 +20,4 @@ Keep thin — import builders from `cad/`, call `show_object`. No MakerRepo deco
 
 ## Testing
 
-Test validity, key dimensions, and export behavior for each reusable part. See [Testing](/modeling/testing).
+Test validity, key dimensions, and export behavior for each reusable part. See [Testing strategy](/modeling/testing).

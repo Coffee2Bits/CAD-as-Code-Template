@@ -12,7 +12,7 @@ If you only remember one command, use this one before you push:
 just quality
 ```
 
-It runs the local quality gate: linting plus tests. Use the rest of this page when you need to understand what failed, run a smaller check, or change the tool configuration on purpose.
+It runs the local quality gate: linting plus the full test suite. Use the rest of this page when you need to understand what failed, run a smaller check, or change the tool configuration on purpose.
 
 ## How the pieces fit
 
@@ -42,8 +42,10 @@ The practical idea: catch the cheap problems before they become geometry problem
 | Match the CI/CD pipeline install | `just sync-frozen` | The lockfile is current and installable without changing it. |
 | Format source files | `just format` | Ruff can rewrite formatting consistently. |
 | Run static checks | `just lint` | Ruff, mypy, and vulture agree the source is clean. |
-| Run geometry and export tests | `just test` | Pytest can build, inspect, and export the models under test. |
-| Run the normal pre-push gate | `just quality` | Static checks and tests both pass. |
+| Run all tests | `just test` | Pytest can build, inspect, and export the models under test. |
+| Run a fast test group | `just test-unit`, `just test-integration`, `just test-render`, or `just test-functional` | The relevant pytest marker group passes while you iterate. |
+| Run the normal pre-push gate | `just quality` | Static checks and the full test suite both pass. |
+| Run artifact export verification | `just export-smoke` | Registered artifacts can be discovered, realized, and exported. |
 | Run the containerized CI/CD gate | `just ci` | Dagger can reproduce the check in the same style as GitHub Actions. |
 
 For the full justfile reference, see [justfile recipes](/reference/justfile-recipes). For the Dagger side, see [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).
@@ -160,10 +162,21 @@ Run everything:
 just test
 ```
 
+Run marker groups while iterating:
+
+```bash
+just test-unit         # pure logic, config, discovery, template text
+just test-integration  # CAD geometry, export, release artifact behavior
+just test-render       # headless OCP PNG rendering
+just test-functional   # isolated just CLI recipes
+just test-v            # verbose full suite
+```
+
 Pass extra pytest arguments through `just`:
 
 ```bash
 just test -v tests/test_sphere.py
+just test-integration -k sphere
 ```
 
 Good CAD tests usually assert observable properties:
@@ -175,7 +188,7 @@ Good CAD tests usually assert observable properties:
 | Artifact discovery | Proves MakerRepo can find publishable objects. |
 | Scoped export checks | Proves manufacturing outputs still generate. |
 
-For modeling-specific examples, see [Testing](/modeling/testing).
+For markers, categorization, and the agent workflow, see [Testing strategy](/modeling/testing).
 
 ## Editor alignment
 
@@ -218,7 +231,7 @@ Use the failing tool name to choose the fix path.
 | `ruff format --check` | Run `just format`, then inspect the diff. |
 | `mypy` | Add or tighten types in your code. Avoid broad `# type: ignore` comments unless the library boundary really needs one. |
 | `vulture` | Delete truly unused code, or add a focused ignore/whitelist for framework-discovered entry points. |
-| `pytest` | Fix the model, expected dimensions, fixture, or export path. Do not loosen geometry assertions just to pass. |
+| `pytest` | Fix the model, expected dimensions, fixture, marker, or export path. Do not loosen geometry assertions just to pass. |
 | `just sync-frozen` | Regenerate or commit the correct `uv.lock` change, then rerun the frozen sync. |
 
 A good repair loop is:
@@ -242,7 +255,7 @@ Use `just ci` before merging larger changes, changing tooling, touching `.github
 ## Related docs
 
 - [Daily development](/workflows/daily-development) — where these checks fit in the edit/test/view loop.
-- [Testing](/modeling/testing) — what CAD model tests should assert.
+- [Testing strategy](/modeling/testing) — what CAD model tests should assert and how test groups are organized.
 - [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) — the containerized pipeline and GitHub Actions check.
 - [Export and CI/CD pipeline troubleshooting](/troubleshooting/export-and-ci) — export and pipeline failures.
 - [justfile recipes](/reference/justfile-recipes) — complete command reference.

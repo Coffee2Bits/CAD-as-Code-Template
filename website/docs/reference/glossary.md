@@ -10,7 +10,7 @@ Short definitions for terms that show up across the template. These are intentio
 
 Parametric CAD treated like a software project. The model lives in readable source files, changes are reviewed in Git, checks run locally and in the CI/CD pipeline, and manufacturing artifacts are regenerated from source instead of hand-managed.
 
-See [Modeling conventions](/modeling/conventions), [Testing](/modeling/testing), and [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).
+See [Modeling conventions](/modeling/conventions), [Testing strategy](/modeling/testing), and [CI/CD pipeline and Dagger](/workflows/ci-and-dagger).
 
 ## Source of truth
 

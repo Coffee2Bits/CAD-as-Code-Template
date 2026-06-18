@@ -32,6 +32,8 @@ from mr.utils import (
 
 logger = logging.getLogger(__name__)
 
+_registry_cache: dict[Path, Registry] = {}
+
 ExportFormat = Literal["step", "stl", "brep", "gltf", "3mf"]
 EXPORT_FORMATS: tuple[ExportFormat, ...] = ("step", "stl", "brep", "gltf", "3mf")
 DEFAULT_EXPORT_FORMAT: ExportFormat = "step"
@@ -48,6 +50,9 @@ def _scan_onerror(name: str) -> None:
 def load_registry(root: Path | None = None) -> Registry:
     """Discover @artifact / @customizable functions under a repo root."""
     cwd = (root or Path.cwd()).resolve()
+    cached = _registry_cache.get(cwd)
+    if cached is not None:
+        return cached
     packages = find_python_packages(cwd)
     modules = find_python_modules(cwd)
 
@@ -59,13 +64,15 @@ def load_registry(root: Path | None = None) -> Registry:
     try:
         config = load_repo_config(cwd / ".makerrepo" / "config.yaml")
         with apply_pythonpaths(config, repo_root=cwd):
-            return collect(
+            registry = collect(
                 [load_module(str(source)) for source in packages + modules],
                 onerror=_scan_onerror,
             )
     finally:
         if path_inserted:
             del sys.path[0]
+    _registry_cache[cwd] = registry
+    return registry
 
 
 def _items_flat(registry: Registry, attr: str) -> list[tuple[str, str, Artifact | Customizable]]:
@@ -309,6 +316,7 @@ def _main(argv: list[str] | None = None) -> int:
     notes.add_argument("--repo", required=True, help="GitHub repository (owner/name)")
     notes.add_argument("--tag", required=True, help="Release tag (e.g. v0.0.1)")
     notes.add_argument("--root", type=Path, default=None)
+    add_render_config_arguments(notes)
 
     export_cmd = sub.add_parser("export", help="Export artifacts by name (default: all)")
     export_cmd.add_argument("-o", "--output", type=Path, required=True)
@@ -326,7 +334,12 @@ def _main(argv: list[str] | None = None) -> int:
     elif args.command == "release-notes":
         from cad_tooling.release_notes import collect_release_assets, render_release_body
 
-        assets = collect_release_assets(args.assets_dir.resolve(), args.root)
+        render_overrides = render_config_from_namespace(args)
+        assets = collect_release_assets(
+            args.assets_dir.resolve(),
+            args.root,
+            render_overrides=render_overrides,
+        )
         args.output.write_text(render_release_body(args.repo, args.tag, assets))
     else:
         names = tuple(args.names) or None

@@ -14,7 +14,7 @@ Before editing, decide what kind of change you are making:
 
 | Change | Start here | Run before opening a PR |
 | --- | --- | --- |
-| CAD geometry, parameters, or assemblies | [Parts and assemblies](/modeling/parts-and-assemblies), [Testing CAD models](/modeling/testing) | `just quality`, then `just view` for visual review |
+| CAD geometry, parameters, or assemblies | [Parts and assemblies](/modeling/parts-and-assemblies), [Testing strategy](/modeling/testing) | `just quality`, then `just view` for visual review |
 | Export behavior or release artifacts | [Export and formats](/workflows/export-and-formats), [MakerRepo](/tools/makerrepo) | `just quality`, `just export-smoke` |
 | Tooling, `justfile`, or quality checks | [uv and quality tools](/tools/uv-and-quality), [Just commands](/tools/just) | `just ci` |
 | GitHub Actions, Dagger, or publishing | [CI/CD pipeline and Dagger](/workflows/ci-and-dagger), [Releases](/workflows/releases) | `just ci` |
@@ -24,13 +24,19 @@ Small PRs are easier to review. Keep each one focused on a single model change, 
 
 ## Local checks
 
-Run the fast gate for normal work:
+Use the smallest relevant test loop while editing, then run the broader gate before opening a PR:
 
 ```bash
-just quality
+just test-unit        # quick loop for pure logic, config, and discovery changes
+just test-integration # CAD geometry and export paths
+just test-render      # headless OCP PNG rendering
+just test-functional  # isolated just CLI recipes
+just quality          # lint + full pytest; run before opening a PR
 ```
 
-That checks formatting, linting, type hints, dead code, and tests. If you changed model geometry, also open the viewer:
+See [Testing strategy](/modeling/testing) for markers and test groups.
+
+If you changed model geometry, also open the viewer:
 
 ```bash
 just view

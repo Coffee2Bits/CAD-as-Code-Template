@@ -1,9 +1,9 @@
 from pathlib import Path
 from unittest.mock import patch
+import shutil
 
 import pytest
 
-from cad_tooling.export import export_release, list_artifacts
 from cad_tooling.release_notes import (
     ReleaseAsset,
     RenderPreview,
@@ -12,15 +12,22 @@ from cad_tooling.release_notes import (
     render_release_body,
 )
 from cad_tooling.render import CAMERA_PRESETS, _main, load_viewer_script, render_input, render_stl
+from pytest_support import (
+    TEST_RENDER_OVERRIDES,
+    TEST_RENDER_SIZE_TOKEN,
+    artifacts_list,
+)
 
 
+@pytest.mark.unit
 def test_release_download_url():
     url = release_download_url("acme/widgets", "v1.2.3", "sphere.stl")
     assert url == "https://github.com/acme/widgets/releases/download/v1.2.3/sphere.stl"
 
 
-def test_render_release_body_lists_artifacts_with_previews(repo_root: Path):
-    artifact = next(item for item in list_artifacts(repo_root) if item.name == "sphere")
+@pytest.mark.unit
+def test_render_release_body_lists_artifacts_with_previews(registry):
+    artifact = next(item for item in artifacts_list(registry) if item.name == "sphere")
     assets = [
         ReleaseAsset.from_png_paths(
             artifact,
@@ -62,8 +69,9 @@ def test_render_release_body_lists_artifacts_with_previews(repo_root: Path):
     )
 
 
-def test_render_release_body_sorts_cover_artifact_first():
-    artifact_a = next(item for item in list_artifacts() if item.name == "sphere")
+@pytest.mark.unit
+def test_render_release_body_sorts_cover_artifact_first(registry):
+    artifact_a = next(item for item in artifacts_list(registry) if item.name == "sphere")
 
     class FakeArtifact:
         name = "alpha"
@@ -99,207 +107,233 @@ def test_render_release_body_sorts_cover_artifact_first():
     assert body.index("## cover") < body.index("## sphere")
 
 
-def test_collect_release_assets(tmp_path: Path, repo_root: Path):
-    export_release(tmp_path, root=repo_root)
-    assets = collect_release_assets(tmp_path, root=repo_root)
-    assert len(assets) >= 1
-    assert any(asset.artifact.name == "sphere" for asset in assets)
-
-
-def test_collect_release_assets_can_scope_to_one_artifact(tmp_path: Path, repo_root: Path):
-    from cad_tooling.export import export_artifacts
-
-    export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-    (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-    assets = collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
-    assert [asset.artifact.name for asset in assets] == ["sphere"]
-
-
-def test_collect_release_assets_missing_stl(tmp_path: Path, repo_root: Path):
-    from cad_tooling.export import export_artifacts
-
-    export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-    (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-    (tmp_path / "sphere.stl").unlink()
-    with pytest.raises(FileNotFoundError, match="Missing release STL"):
-        collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
-
-
-def test_collect_release_assets_missing_png(tmp_path: Path, repo_root: Path):
-    from cad_tooling.export import export_artifacts
-
-    export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-    with pytest.raises(FileNotFoundError, match="Missing release preview"):
-        collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
-
-
-def test_collect_release_assets_accepts_legacy_png_name(tmp_path: Path, repo_root: Path):
-    from cad_tooling.export import export_artifacts
-
-    export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-    (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-    assets = collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
-    sphere_asset = next(asset for asset in assets if asset.artifact.name == "sphere")
-    assert sphere_asset.png_path.name == "sphere.png"
-
-
+@pytest.mark.unit
 def test_camera_presets_cover_all_config_choices():
     from cad_tooling.render_config import CAMERA_PRESET_CHOICES
 
     assert set(CAMERA_PRESET_CHOICES) == set(CAMERA_PRESETS.keys())
 
 
-def test_render_stl_writes_png(tmp_path: Path, repo_root: Path):
-    export_release(tmp_path, root=repo_root)
-    stl_path = tmp_path / "sphere.stl"
-    png_path = tmp_path / "custom.png"
-    render_stl(stl_path, png_path)
-    assert png_path.exists()
-    assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+@pytest.mark.integration
+class TestCollectReleaseAssets:
+    @pytest.fixture(scope="class")
+    def sphere_stl_export(self, tmp_path_factory, repo_root: Path) -> Path:
+        from cad_tooling.export import export_artifacts
+
+        out = tmp_path_factory.mktemp("sphere_stl_export")
+        export_artifacts(out, "stl", ("sphere",), root=repo_root)
+        return out
+
+    @pytest.fixture
+    def sphere_stl_workdir(self, sphere_stl_export: Path, tmp_path: Path) -> Path:
+        shutil.copytree(sphere_stl_export, tmp_path, dirs_exist_ok=True)
+        return tmp_path
+
+    def test_collect_release_assets(self, release_artifacts: Path, repo_root: Path):
+        assets = collect_release_assets(
+            release_artifacts,
+            root=repo_root,
+            render_overrides=TEST_RENDER_OVERRIDES,
+        )
+        assert len(assets) >= 1
+        assert any(asset.artifact.name == "sphere" for asset in assets)
+
+    def test_collect_release_assets_can_scope_to_one_artifact(
+        self, sphere_stl_workdir: Path, repo_root: Path
+    ):
+        (sphere_stl_workdir / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+        assets = collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
+        assert [asset.artifact.name for asset in assets] == ["sphere"]
+
+    def test_collect_release_assets_missing_stl(self, sphere_stl_workdir: Path, repo_root: Path):
+        (sphere_stl_workdir / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+        (sphere_stl_workdir / "sphere.stl").unlink()
+        with pytest.raises(FileNotFoundError, match="Missing release STL"):
+            collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
+
+    def test_collect_release_assets_missing_png(self, sphere_stl_workdir: Path, repo_root: Path):
+        with pytest.raises(FileNotFoundError, match="Missing release preview"):
+            collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
+
+    def test_collect_release_assets_accepts_legacy_png_name(
+        self, sphere_stl_workdir: Path, repo_root: Path
+    ):
+        (sphere_stl_workdir / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+        assets = collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
+        sphere_asset = next(asset for asset in assets if asset.artifact.name == "sphere")
+        assert sphere_asset.png_path.name == "sphere.png"
 
 
-def test_show_edges_draws_face_boundaries(tmp_path: Path, repo_root: Path):
-    from cad_tooling.render import render_artifact
-    from cad_tooling.render_config import RenderConfig
+@pytest.mark.integration
+@pytest.mark.render
+class TestReleaseRender:
+    def test_render_stl_writes_png(self, release_artifacts: Path, tmp_path: Path):
+        stl_path = release_artifacts / "sphere.stl"
+        png_path = tmp_path / "custom.png"
+        render_stl(stl_path, png_path)
+        assert png_path.exists()
+        assert png_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
 
-    plain = RenderConfig.model_validate({"show_edges": False, "camera": {"preset": "front"}})
-    edged = RenderConfig.model_validate(
-        {
-            "show_edges": True,
-            "edge_color": (0.0, 0.0, 0.0),
-            "edge_width": 1.5,
-            "camera": {"preset": "front"},
-        }
-    )
+    def test_lighting_presets_change_render_brightness(
+        self, release_artifacts: Path, tmp_path: Path
+    ):
+        import numpy as np
+        from PIL import Image
 
-    plain_png = tmp_path / "plain.png"
-    edged_png = tmp_path / "edged.png"
-    render_artifact("sphere", plain_png, overrides=plain, root=repo_root)
-    render_artifact("sphere", edged_png, overrides=edged, root=repo_root)
+        from cad_tooling.render_config import LightingConfig, RenderConfig
 
-    assert plain_png.read_bytes() != edged_png.read_bytes()
+        stl_path = release_artifacts / "sphere.stl"
+
+        def _face_mean_luma(png_path: Path) -> float:
+            pixels = np.array(Image.open(png_path).convert("RGB"), dtype=float)
+            mask = pixels.mean(axis=2) > 35
+            return float(pixels[mask].mean())
+
+        dark_config = RenderConfig(
+            lighting=LightingConfig.model_validate(
+                {
+                    "preset": "default",
+                    "intensity": 0.35,
+                    "ambient": 0.08,
+                    "headlight": 0.35,
+                    "fill": 0.15,
+                }
+            )
+        )
+        bright_config = RenderConfig(
+            lighting=LightingConfig.model_validate({"preset": "bright", "intensity": 1.5})
+        )
+
+        dark_png = tmp_path / "dark.png"
+        bright_png = tmp_path / "bright.png"
+        render_stl(stl_path, dark_png, config=dark_config)
+        render_stl(stl_path, bright_png, config=bright_config)
+
+        dark_luma = _face_mean_luma(dark_png)
+        bright_luma = _face_mean_luma(bright_png)
+        assert bright_luma > dark_luma
+        assert bright_luma - dark_luma > 12
+
+    def test_render_input_artifact_uses_python_shape_not_stl(
+        self, release_artifacts: Path, tmp_path: Path, repo_root: Path
+    ):
+        from cad_tooling.render import _build_artifact_shape, _colored_solids, render_input
+
+        stl_path = release_artifacts / "sphere_with_nut.stl"
+        written = render_input(
+            stl_path,
+            tmp_path / "previews",
+            artifact_name="sphere_with_nut",
+            root=repo_root,
+        )
+        assert written
+        shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
+        assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 3
+
+    def test_render_cli(self, release_artifacts: Path, tmp_path: Path):
+        stl_path = release_artifacts / "sphere.stl"
+        png_path = tmp_path / "cli.png"
+        assert _main([str(stl_path), "-o", str(png_path), "--artifact", "sphere"]) == 0
+        assert png_path.exists()
+
+    def test_render_cli_without_artifact_lookup(self, release_artifacts: Path, tmp_path: Path):
+        stl_path = release_artifacts / "sphere.stl"
+        png_path = tmp_path / "fallback.png"
+        assert _main([str(stl_path), "-o", str(png_path), "--camera", "top"]) == 0
+        assert png_path.exists()
+
+    def test_export_release_writes_descriptive_png_names(self, release_artifacts: Path):
+        size = TEST_RENDER_SIZE_TOKEN
+        assert (release_artifacts / f"sphere_front_{size}.png").exists()
+        assert (release_artifacts / f"sphere_iso_{size}.png").exists()
+        assert (release_artifacts / f"sphere_with_nut_front_{size}.png").exists()
+        assert (release_artifacts / f"sphere_with_nut_iso_{size}.png").exists()
+        assert not (release_artifacts / "sphere.png").exists()
 
 
-def test_lighting_presets_change_render_brightness(tmp_path: Path, repo_root: Path):
-    import numpy as np
-    from PIL import Image
+@pytest.mark.integration
+@pytest.mark.render
+class TestRenderArtifact:
+    def test_show_edges_draws_face_boundaries(self, tmp_path: Path, repo_root: Path):
+        from cad_tooling.render import render_artifact
+        from cad_tooling.render_config import RenderConfig
 
-    from cad_tooling.render_config import LightingConfig, RenderConfig
-
-    export_release(tmp_path, root=repo_root)
-    stl_path = tmp_path / "sphere.stl"
-
-    def _face_mean_luma(png_path: Path) -> float:
-        pixels = np.array(Image.open(png_path).convert("RGB"), dtype=float)
-        mask = pixels.mean(axis=2) > 35
-        return float(pixels[mask].mean())
-
-    dark_config = RenderConfig(
-        lighting=LightingConfig.model_validate(
+        plain = RenderConfig.model_validate({"show_edges": False, "camera": {"preset": "front"}})
+        edged = RenderConfig.model_validate(
             {
-                "preset": "default",
-                "intensity": 0.35,
-                "ambient": 0.08,
-                "headlight": 0.35,
-                "fill": 0.15,
+                "show_edges": True,
+                "edge_color": (0.0, 0.0, 0.0),
+                "edge_width": 1.5,
+                "camera": {"preset": "front"},
             }
         )
-    )
-    bright_config = RenderConfig(
-        lighting=LightingConfig.model_validate({"preset": "bright", "intensity": 1.5})
-    )
 
-    dark_png = tmp_path / "dark.png"
-    bright_png = tmp_path / "bright.png"
-    render_stl(stl_path, dark_png, config=dark_config)
-    render_stl(stl_path, bright_png, config=bright_config)
+        plain_png = tmp_path / "plain.png"
+        edged_png = tmp_path / "edged.png"
+        render_artifact("sphere", plain_png, overrides=plain, root=repo_root)
+        render_artifact("sphere", edged_png, overrides=edged, root=repo_root)
 
-    dark_luma = _face_mean_luma(dark_png)
-    bright_luma = _face_mean_luma(bright_png)
-    assert bright_luma > dark_luma
-    assert bright_luma - dark_luma > 12
+        assert plain_png.read_bytes() != edged_png.read_bytes()
 
+    def test_render_artifact_preserves_part_colors(self, repo_root: Path):
+        from cad_tooling.render import _build_artifact_shape, _colored_solids
 
-def test_render_artifact_preserves_part_colors(tmp_path: Path, repo_root: Path):
-    from cad_tooling.render import _build_artifact_shape, _colored_solids
-
-    shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
-    solids = _colored_solids(shape, (0.31, 0.63, 1.0))
-    assert len(solids) == 3
-    colors = {tuple(round(channel, 2) for channel in face_color) for _, face_color in solids}
-    assert len(colors) == 3
+        shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
+        solids = _colored_solids(shape, (0.31, 0.63, 1.0))
+        assert len(solids) == 3
+        colors = {tuple(round(channel, 2) for channel in face_color) for _, face_color in solids}
+        assert len(colors) == 3
 
 
-def test_render_input_artifact_uses_python_shape_not_stl(tmp_path: Path, repo_root: Path):
-    from cad_tooling.render import _build_artifact_shape, _colored_solids, render_input
-
-    export_release(tmp_path, root=repo_root)
-    stl_path = tmp_path / "sphere_with_nut.stl"
-    written = render_input(
-        stl_path,
-        tmp_path / "previews",
-        artifact_name="sphere_with_nut",
-        root=repo_root,
-    )
-    assert written
-    shape = _build_artifact_shape("sphere_with_nut", root=repo_root)
-    assert len(_colored_solids(shape, (0.31, 0.63, 1.0))) == 3
+@pytest.mark.integration
+class TestViewerScript:
+    def test_load_viewer_script_reads_main_py(self, repo_root: Path):
+        shape, artifact_name, artifact_func = load_viewer_script(
+            repo_root / "main.py", root=repo_root
+        )
+        assert artifact_name == "sphere_with_nut"
+        assert artifact_func is not None
+        assert artifact_func.__name__ == "sphere_with_nut"
+        assert len(shape.children) == 3
+        assert shape.volume > 0
 
 
-def test_render_cli(tmp_path: Path, repo_root: Path):
-    export_release(tmp_path, root=repo_root)
-    stl_path = tmp_path / "sphere.stl"
-    png_path = tmp_path / "cli.png"
-    assert _main([str(stl_path), "-o", str(png_path), "--artifact", "sphere"]) == 0
-    assert png_path.exists()
+@pytest.mark.integration
+@pytest.mark.render
+class TestRenderMainPy:
+    @pytest.fixture(scope="class")
+    def main_py_renders(self, tmp_path_factory, repo_root: Path):
+        out = tmp_path_factory.mktemp("main_py_renders")
+        written = render_input(
+            repo_root / "main.py",
+            out,
+            overrides=TEST_RENDER_OVERRIDES,
+            root=repo_root,
+        )
+        return written
+
+    def test_render_main_py_to_directory(self, main_py_renders):
+        size = TEST_RENDER_SIZE_TOKEN
+        assert len(main_py_renders) == 4
+        names = {path.name for path in main_py_renders}
+        assert names == {
+            f"sphere_with_nut_front_{size}.png",
+            f"sphere_with_nut_iso_{size}.png",
+            f"sphere_front_{size}.png",
+            f"sphere_iso_{size}.png",
+        }
+        assert all(path.exists() for path in main_py_renders)
+        assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in main_py_renders)
 
 
-def test_render_cli_without_artifact_lookup(tmp_path: Path, repo_root: Path):
-    export_release(tmp_path, root=repo_root)
-    stl_path = tmp_path / "sphere.stl"
-    png_path = tmp_path / "fallback.png"
-    assert _main([str(stl_path), "-o", str(png_path), "--camera", "top"]) == 0
-    assert png_path.exists()
+@pytest.mark.unit
+def test_resolve_input_path_finds_main_py_without_extension(repo_root: Path):
+    from cad_tooling.render import _resolve_input_path
+
+    assert _resolve_input_path(repo_root / "main") == (repo_root / "main.py").resolve()
 
 
-def test_export_release_writes_descriptive_png_names(tmp_path: Path, repo_root: Path):
-    export_release(tmp_path, root=repo_root)
-    assert (tmp_path / "sphere_front_800x600.png").exists()
-    assert (tmp_path / "sphere_iso_800x600.png").exists()
-    assert (tmp_path / "sphere_with_nut_front_800x600.png").exists()
-    assert (tmp_path / "sphere_with_nut_iso_800x600.png").exists()
-    assert not (tmp_path / "sphere.png").exists()
-
-
-def test_load_viewer_script_reads_main_py(repo_root: Path):
-    shape, artifact_name, artifact_func = load_viewer_script(repo_root / "main.py", root=repo_root)
-    assert artifact_name == "sphere_with_nut"
-    assert artifact_func is not None
-    assert artifact_func.__name__ == "sphere_with_nut"
-    assert len(shape.children) == 3
-    assert shape.volume > 0
-
-
-def test_render_main_py_to_directory(tmp_path: Path, repo_root: Path):
-    written = render_input(repo_root / "main.py", tmp_path)
-    assert len(written) == 4
-    names = {path.name for path in written}
-    assert names == {
-        "sphere_with_nut_front_800x600.png",
-        "sphere_with_nut_iso_800x600.png",
-        "sphere_front_800x600.png",
-        "sphere_iso_800x600.png",
-    }
-    assert all(path.exists() for path in written)
-    assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in written)
-
-
-def test_render_main_shorthand_without_extension(tmp_path: Path, repo_root: Path):
-    written = render_input(repo_root / "main", tmp_path)
-    assert len(written) == 4
-    assert all(path.exists() for path in written)
-
-
+@pytest.mark.unit
 def test_ensure_display_starts_xvfb_when_no_display():
     from cad_tooling.render import _ensure_display
 

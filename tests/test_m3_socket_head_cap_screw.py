@@ -20,6 +20,9 @@ from cad.parts.m3_socket_head_cap_screw import (
 )
 
 
+pytestmark = pytest.mark.integration
+
+
 def test_m3_socket_head_cap_screw_is_valid():
     assert make_m3_socket_head_cap_screw().is_valid
 
@@ -99,11 +102,12 @@ def test_clearance_hole_depth_spans_to_nut_opening():
 
 
 def test_reference_screw_passes_through_clearance_hole_in_sphere():
-    from cad.parts.sphere import make_sphere, northeast_quadrant_cut_offset
+    from cad.parts.sphere import northeast_quadrant_cut_offset
+    from pytest_support import cached_make_sphere
 
     radius = 10
     cut_offset = northeast_quadrant_cut_offset(radius=radius)
-    sphere = make_sphere(hex_nut_margin=0.2)
+    sphere = cached_make_sphere(hex_nut_margin=0.2, radius=radius)
     screw = positioned_m3_screw_at_seat(cut_offset=cut_offset, radius=radius)
 
     overlap = sphere.intersect(screw)
@@ -118,11 +122,12 @@ def test_reference_screw_passes_through_clearance_hole_in_sphere():
 
 
 def test_screw_can_retract_outward_without_sphere_overlap():
-    from cad.parts.sphere import make_sphere, northeast_quadrant_cut_offset
+    from cad.parts.sphere import northeast_quadrant_cut_offset
+    from pytest_support import cached_make_sphere
 
     radius = 10
     cut_offset = northeast_quadrant_cut_offset(radius=radius)
-    sphere = make_sphere(hex_nut_margin=0.2)
+    sphere = cached_make_sphere(hex_nut_margin=0.2, radius=radius)
     screw = positioned_m3_screw_at_seat(cut_offset=cut_offset, radius=radius)
     retracted = screw.translate((-screw_head_outward_relief_mm(), 0, 0))
 

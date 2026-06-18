@@ -21,7 +21,7 @@ If you are new to software-style workflows, that is the point of the template: t
 | IDE | Dev container (`.devcontainer/`) for [VS Code, Cursor, Codespaces, and more](/getting-started/ide-and-workspaces); dependencies and docs site start with the workspace |
 | Modeling | build123d parts and assemblies under `cad/` |
 | Visualization | OCP CAD Viewer plus the `ocp-vscode` bridge for `show_object` |
-| Quality | [pytest geometry tests](/modeling/testing), [ruff linting, mypy type checks, and vulture dead-code detection](/tools/uv-and-quality) |
+| Quality | [Testing strategy](/modeling/testing) (pytest markers and groups), [ruff linting, mypy type checks, and vulture dead-code detection](/tools/uv-and-quality) |
 | Commands | [just](/tools/just) command runner for development, export, and CI/CD pipeline tasks |
 | CI/CD pipeline | [Dagger](/workflows/ci-and-dagger) plus GitHub Actions for repeatable checks and releases |
 | Agents | Optional AI assistance from tools such as Cursor, Claude, and GitHub Copilot |
@@ -156,7 +156,7 @@ Details: [Replace the template identity](/getting-started/template-and-init#repl
 | Area | Start here |
 |------|------------|
 | Getting started | [Quick start](/getting-started/quick-start) · [Create and initialize](/getting-started/template-and-init) · [GitHub setup](/getting-started/github-setup) · [Releases](/getting-started/releases) · [Project layout](/getting-started/project-layout) · [IDEs and workspaces](/getting-started/ide-and-workspaces) |
-| Modeling | [Conventions](/modeling/conventions) · [Parts and assemblies](/modeling/parts-and-assemblies) · [Testing](/modeling/testing) · [External libraries](/modeling/external-libraries) |
+| Modeling | [Conventions](/modeling/conventions) · [Parts and assemblies](/modeling/parts-and-assemblies) · [Testing strategy](/modeling/testing) · [External libraries](/modeling/external-libraries) |
 | Tools | [just](/tools/just) · [uv and quality](/tools/uv-and-quality) · [MakerRepo](/tools/makerrepo) · [MCP servers](/tools/mcp-servers) · [CAD tooling](/tools/cad-tooling/) |
 | Workflows | [Daily development](/workflows/daily-development) · [Export and formats](/workflows/export-and-formats) · [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) · [Releases](/workflows/releases) |
 | Reference and help | [Glossary](/reference/glossary) · [Troubleshooting](/troubleshooting/) · [Open CASCADE](/reference/open-cascade) · [For agents](/contributing/for-agents) |

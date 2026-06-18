@@ -6,18 +6,19 @@ sidebar_position: 2
 
 :::info Read the repo contract first
 
-**[AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md)** is the authoritative agent guide. This page is a pointer — do not treat the docs site as a substitute.
+**[AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md)** is the authoritative agent guide. **[Testing strategy](/modeling/testing)** defines markers, test groups, and the `just test-unit` → full-suite workflow. This page is a pointer — do not treat the docs site as a substitute for AGENTS.md.
 
 :::
 
 ## Summary
 
 1. **Structure** — parts in `cad/parts/`, assemblies in `cad/assemblies/`, three-layer pattern (`make_*` → `@artifact` / `@customizable`)
-2. **Completion gate** — `just ci` or `just quality && just export-smoke` before marking work done
-3. **Visual verify** — `just view` after geometry edits to `cad/`
-4. **MakerRepo** — `from mr import artifact, customizable, cached`; decorators on entry points only
-5. **External libs** — use bd_warehouse, bd-vslot, etc. for catalog geometry; thin-wrap in `cad/parts/`
-6. **`just` command tests** — destructive recipes (`just init`, `just template-apply`, …) only in [`tests/functional/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests/functional) via `isolated_repo` + `run_just()` — never on the real repo root ([AGENTS.md → Testing just commands](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#testing-just-commands-agents))
+2. **Testing loop** — [`just test-unit`](/modeling/testing#recommended-workflow) while implementing; targeted `test-integration` / `test-render` / `test-functional` when those areas change; **full suite only at completion** ([Testing strategy](/modeling/testing))
+3. **Completion gate** — `just ci` or `just quality && just export-smoke` before marking work done
+4. **Visual verify** — `just view` after geometry edits to `cad/`
+5. **MakerRepo** — `from mr import artifact, customizable, cached`; decorators on entry points only
+6. **External libs** — use bd_warehouse, bd-vslot, etc. for catalog geometry; thin-wrap in `cad/parts/`
+7. **`just` command tests** — destructive recipes (`just init`, `just template-apply`, …) only in [`tests/functional/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests/functional) via `isolated_repo` + `run_just()` — never on the real repo root ([AGENTS.md → Testing just commands](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#testing-just-commands-agents); markers in [Testing strategy](/modeling/testing))
 
 ## Documentation work
 

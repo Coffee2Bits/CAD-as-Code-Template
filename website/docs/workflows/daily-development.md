@@ -9,8 +9,9 @@ sidebar_position: 1
 1. Change geometry in `cad/parts/` or `cad/assemblies/`
 2. Point `main.py` at the model if needed
 3. `just view` — visual verify in OCP CAD Viewer
-4. `just test` — geometry and export tests
-5. `just quality` — lint + pytest before pushing
+4. `just test-unit` — fast feedback while editing ([Testing strategy](/modeling/testing))
+5. `just test-integration` or `just test-render` when your change touches CAD export or PNG release paths
+6. `just quality` — lint + **full** pytest before pushing
 
 ## When to run the full CI/CD pipeline
 

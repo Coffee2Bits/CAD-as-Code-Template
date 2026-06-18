@@ -25,6 +25,9 @@ from cad_tooling.render_decorator import (
 )
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_render_decorator_stores_config():
     @render(width=640, camera="top", azimuth=10)
     def demo_part():

@@ -15,6 +15,10 @@ sidebar_position: 1
 | | `just setup-hooks` | pre-commit install |
 | **dev** | `just view` | Display `main.py` in OCP CAD Viewer |
 | | `just test` | `uv run pytest` (extra args: `just test -v tests/test_sphere.py`) |
+| | `just test-unit` | `uv run pytest -m unit` |
+| | `just test-integration` | `uv run pytest -m integration` |
+| | `just test-render` | `uv run pytest -m render` |
+| | `just test-functional` | `uv run pytest -m functional` |
 | **quality** | `just lint` | ruff check + format check + mypy + vulture |
 | | `just format` | `uv run ruff format .` |
 | | `just quality` | lint + test |

@@ -14,10 +14,12 @@ from cad.parts.m3_hex_nut import (
 )
 
 
+@pytest.mark.integration
 def test_m3_hex_nut_is_valid():
     assert make_m3_hex_nut().is_valid
 
 
+@pytest.mark.integration
 def test_m3_hex_nut_width_across_flats():
     nut = make_m3_hex_nut()
     bbox = nut.bounding_box()
@@ -25,6 +27,7 @@ def test_m3_hex_nut_width_across_flats():
     assert bbox.size.Y == pytest.approx(WIDTH_ACROSS_FLATS_MM, abs=0.05)
 
 
+@pytest.mark.integration
 def test_m3_hex_nut_thickness():
     nut = make_m3_hex_nut()
     bbox = nut.bounding_box()
@@ -32,6 +35,7 @@ def test_m3_hex_nut_thickness():
     assert bbox.size.Z == pytest.approx(NUT_THICKNESS_MM, abs=0.05)
 
 
+@pytest.mark.integration
 def test_m3_hex_nut_for_pocket_has_thickness_along_x():
     nut = make_m3_hex_nut_for_pocket()
     bbox = nut.bounding_box()
@@ -40,10 +44,12 @@ def test_m3_hex_nut_for_pocket_has_thickness_along_x():
     assert bbox.size.Y == pytest.approx(WIDTH_ACROSS_FLATS_MM, abs=0.05)
 
 
+@pytest.mark.unit
 def test_m3_hex_nut_uses_bd_warehouse_size():
     assert M3_HEX_NUT_SIZE == "M3-0.5"
 
 
+@pytest.mark.unit
 def test_hex_margin_to_across_flats_adds_clearance_in_mm():
     base = 6.35
     assert hex_margin_to_across_flats(base_across_flats=base, hex_nut_margin=0.2) == pytest.approx(
@@ -54,10 +60,12 @@ def test_hex_margin_to_across_flats_adds_clearance_in_mm():
     )
 
 
+@pytest.mark.unit
 def test_pocket_hex_rotation_matches_reference_nut():
     assert POCKET_HEX_ROTATION_DEG == 30.0
 
 
+@pytest.mark.integration
 def test_pocket_cutter_is_hex_prism_not_scaled_nut():
     cut_offset = 1.5
     radius = 10.0
@@ -75,6 +83,7 @@ def test_pocket_cutter_is_hex_prism_not_scaled_nut():
     assert cutter.volume != pytest.approx(reference.volume, rel=0.01)
 
 
+@pytest.mark.integration
 def test_pocket_cutter_encloses_reference_nut_when_margin_increases():
     cut_offset = 1.5
     radius = 10.0
@@ -89,6 +98,7 @@ def test_pocket_cutter_encloses_reference_nut_when_margin_increases():
     assert cutter.bounding_box().max.X == pytest.approx(reference.bounding_box().max.X, abs=0.01)
 
 
+@pytest.mark.integration
 def test_pocket_cutter_grows_with_margin_in_mm():
     cut_offset = 1.5
     radius = 10.0

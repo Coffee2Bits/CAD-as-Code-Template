@@ -6,7 +6,19 @@ sidebar_position: 3
 
 Testing in this template is meant to protect design intent, not just code style. A good test should make it clear what physical or workflow promise would break if it failed: a part became invalid, a clearance changed, an artifact stopped exporting, or a repository command no longer worked for a new user.
 
-Most day-to-day CAD changes should start with a focused model test and end with the normal quality gate. Broader workflow and export checks are there for changes that affect artifact registration, release output, or the template machinery itself.
+Most day-to-day CAD changes should start with a focused test group and end with the normal quality gate. Broader workflow and export checks are there for changes that affect artifact registration, release output, or the template machinery itself.
+
+Repo contract: [AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md) owns agent-only rules such as isolated `just` tests, completion gates, and cutout alignment. This page owns markers, test groups, and the daily test loop for humans and agents.
+
+## Test layout
+
+| Path | Role |
+|------|------|
+| `tests/` | CAD models, MakerRepo discovery/export, template identity, functional `just` recipes |
+| `cad_tooling_tests/` | Export, render, and release-notes tooling that mirrors `cad_tooling/` |
+| `conftest.py` | Shared session fixtures such as `registry` and `release_artifacts`, plus marker enforcement |
+| `pytest_support.py` | Shared constants and registry helpers importable from tests |
+| `tests/functional/` | Destructive `just` recipe tests; always use `isolated_repo` and `run_just()` |
 
 ## Run the normal test suite
 
@@ -17,10 +29,64 @@ just test -v tests/test_sphere.py   # pass extra pytest args
 
 `just test` runs `uv run pytest` across the project test suites.
 
-| Suite | What it covers |
-|-------|----------------|
-| [`tests/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests) | CAD models, MakerRepo registration, exports, template initialization, commit-message rules, and user-facing recipes. |
-| [`cad_tooling_tests/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/cad_tooling_tests) | The reusable `cad_tooling` library used for export, render configuration, render discovery, release notes, and release asset collection. |
+Use narrower commands while editing:
+
+| Command | Scope |
+|---------|-------|
+| `just test-unit` | Unit tests for config, discovery, pure logic, template replacement, and commit-message validation |
+| `just test-integration` | CAD geometry, export round-trips, release artifact behavior, and viewer script loading |
+| `just test-render` | Headless OCP PNG rendering subset |
+| `just test-functional` | Real `just` CLI recipes in isolated temporary copies of the repo |
+| `just test-v` | Full suite with verbose pytest output |
+| `just quality` | Lint plus the full pytest suite; use before opening a PR |
+
+## Test categories and markers
+
+Every test declares exactly one primary marker: `unit`, `integration`, or `functional`. Render paths also carry `render` alongside `integration`.
+
+Markers are registered in [`pyproject.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/pyproject.toml) and enforced in [`conftest.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/conftest.py) at collection time. Unmarked or doubly-marked tests fail immediately.
+
+| Marker | When to use | Examples |
+|--------|-------------|----------|
+| `unit` | Fast logic with no CAD solid builds and no subprocess-isolated `just` runs. | Render config merge, decorator metadata, MakerRepo discovery lists, template string replacement, commit-message validation. |
+| `integration` | CAD geometry, export round-trips, release artifact behavior, and viewer script loading. | `make_sphere()` validity, STL/STEP export, `export_artifacts()`, assembly bounds. |
+| `render` | Headless OCP PNG rendering, always with `integration`. | `render_stl()`, release preview PNG names. |
+| `functional` | Real `just` CLI behavior in a temporary copy of the repo. | `just init`, `just init-dry-run`, and template sync recipes under `tests/functional/`. |
+
+Choosing a marker:
+
+```text
+Touches just CLI in an isolated copy?     -> functional
+Builds CAD / exports meshes / release?   -> integration (+ render if PNG rendering runs)
+Otherwise                                -> unit
+```
+
+Mixed modules should mark per class or per function. Do not use a file-level `pytestmark` when the file contains different test types.
+
+Example:
+
+```python
+import pytest
+
+pytestmark = pytest.mark.unit  # entire module is unit
+
+
+@pytest.mark.integration
+class TestSphereGeometry:
+    ...
+
+
+@pytest.mark.integration
+@pytest.mark.render
+class TestReleaseRender:
+    ...
+```
+
+Functional suite module header:
+
+```python
+pytestmark = pytest.mark.functional
+```
 
 ## Testing pyramid for this template
 
@@ -80,7 +146,7 @@ If a change is really about `cad_tooling`, test it there. Use a model only as a 
 
 Functional tests cover workflows a user or agent runs from the command line. They should use temporary isolated workspaces and prove side effects, not just helper return values.
 
-Current functional coverage focuses on `just init`:
+Current functional coverage focuses on template initialization and `just` recipes:
 
 - dry-run output
 - docs sync behavior
@@ -88,7 +154,13 @@ Current functional coverage focuses on `just init`:
 - refusal to infer identity from git remotes
 - protection against modifying the real checkout during tests
 
-Add a functional test when the behavior depends on recipes, scripts, generated files, and repository layout interacting together.
+Destructive recipes such as `just init` and `just template-apply` belong in [`tests/functional/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests/functional):
+
+1. Use the `isolated_repo` fixture, which copies the repo under `tmp_path`.
+2. Invoke recipes only through `run_just(isolated_repo, "init", ...)`, which refuses the real repo root.
+3. Mark the module or tests with `@pytest.mark.functional`.
+
+Unit tests for init logic without the `just` CLI stay in `tests/test_template_identity.py`.
 
 ## Artifact export verification
 
@@ -111,6 +183,26 @@ Keep this coverage because it catches failures that narrow model tests can miss:
 
 If the command name changes later, preserve the invariant: the CI/CD pipeline should prove that publishable artifacts can be generated from source.
 
+## Recommended workflow
+
+While implementing, use the smallest relevant group for fast feedback:
+
+1. Use `just test-unit` for pure logic, config, discovery, and template text changes.
+2. Use `just test-integration` for CAD geometry, export paths, or release artifact behavior.
+3. Use `just test-render` for render or release PNG changes.
+4. Use `just test-functional` for `justfile`, initialization, or template recipe changes.
+
+Do not run the full suite on every iteration unless you are finishing work.
+
+Before marking work complete, run the completion gate:
+
+```bash
+just quality && just export-smoke
+# or: just ci
+```
+
+That runs lint, all pytest groups, and artifact export verification.
+
 ## Golden fixtures
 
 Commit STEP/STL fixtures under `tests/fixtures/` only when they are intentional regression fixtures. Generated release artifacts, routine exports, screenshots, and local render outputs should stay out of git.
@@ -119,10 +211,11 @@ Commit STEP/STL fixtures under `tests/fixtures/` only when they are intentional 
 
 | Situation | Run |
 |-----------|-----|
-| Editing one model or model test | `just test -v tests/test_<model>.py` |
+| Editing pure logic, config, discovery, or template text | `just test-unit` |
+| Editing one model or model test | `just test-integration -k <name>` or `just test -v tests/test_<model>.py` |
 | Changing `cad_tooling` behavior | `uv run pytest cad_tooling_tests -q` |
 | Changing artifact registration or export behavior | `just export-smoke` or `just ci-artifacts` |
-| Changing repo initialization or command recipes | `uv run pytest tests/functional -q` |
+| Changing repo initialization or command recipes | `just test-functional` |
 | Before pushing code or CAD changes | `just quality` |
 | Before merging tooling, CI/CD pipeline, or release changes | `just ci` |
 
