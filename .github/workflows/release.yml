@@ -11,7 +11,7 @@ permissions:
 jobs:
   check:
     name: Quality gate
-    if: github.ref_name =~ '^v[0-9]+\.[0-9]+\.[0-9]+$'
+    if: matches(github.ref_name, '^v[0-9]+\.[0-9]+\.[0-9]+$')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,7 +29,7 @@ jobs:
   release:
     name: Publish release assets
     needs: check
-    if: github.ref_name =~ '^v[0-9]+\.[0-9]+\.[0-9]+$'
+    if: matches(github.ref_name, '^v[0-9]+\.[0-9]+\.[0-9]+$')
     runs-on: ubuntu-latest
     permissions:
       contents: write

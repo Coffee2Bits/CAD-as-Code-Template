@@ -93,8 +93,8 @@ Pushing a **strict semver** tag (`v1.2.3` only — no suffixes) runs [`release.y
 | Step | Workflow | What it does |
 |------|----------|--------------|
 | Day-to-day merges | `release-please.yml` | Opens/updates Release PRs |
-| Merge Release PR | `release-please.yml` | Creates git tag (`skip-github-release: true`) |
-| Tag push `vX.Y.Z` | `release.yml` | Quality gate → export STL/PNG → GitHub Release |
+| Merge Release PR | `release-please.yml` | Creates git tag and baseline GitHub Release |
+| Tag push `vX.Y.Z` | `release.yml` | Quality gate → export STL/PNG → upload assets to release |
 
 Do **not** run `gh release create` for normal releases — that bypasses export and can duplicate tags. Use `gh release list` / `gh release view` to inspect only.
 
@@ -122,7 +122,8 @@ gh release view v0.1.0 --repo OWNER/REPO
 | No Release PR after merging `feat:` / `fix:` | [Workflow permissions](/getting-started/github-setup#actions-workflow-permissions); check Actions tab for failed `Release Please` run |
 | Release PR exists but will not update | Stale `autorelease: pending` label on an old Release PR — remove label and re-run workflow ([release-please docs](https://github.com/googleapis/release-please#why-are-there-multiple-release-prs)) |
 | `commit could not be parsed: Merge remote-tracking branch` | Non–Conventional Commit merge commit on `main` (harmless warning); prefer squash-merge or rebase, avoid merge commits on `main` |
-| Merge Release PR but no GitHub Release | Squash subject must match `chore: release X.Y.Z` exactly |
+| Merge Release PR but no GitHub Release | Squash subject must match `chore: release X.Y.Z` exactly; check `release.yml` for workflow syntax errors (invalid `if` expressions fail validation) |
+| `There are untagged, merged release PRs outstanding - aborting` | Merged Release PR without a matching `vX.Y.Z` tag — usually caused by `skip-github-release: true` (do not use) or a failed tag step. Remove stale `autorelease: pending` from the merged PR, tag the merge commit, add `autorelease: tagged`, re-run Release Please |
 | `Resource not accessible by integration` on create-a-release | Usually duplicate publish paths or pushing workflow changes without `workflow` OAuth scope locally — use release-please + `release.yml` only; refresh `gh auth` with `-s workflow` when editing workflows |
 | Release workflow fails on assets | Ensure at least one `@artifact` exports; run `just export-smoke` locally |
 | Wrong asset URLs in notes | Published notes need absolute `releases/download/{tag}/` URLs — see [release notes](/tools/cad-tooling/release-notes) |
