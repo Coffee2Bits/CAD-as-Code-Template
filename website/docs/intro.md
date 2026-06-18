@@ -166,8 +166,6 @@ Details: [Replace template identity](/getting-started/github-setup#replace-templ
 - Additional parts and real assemblies: constraints, patterns, and reusable project structure.
 - [build123d part libraries](/modeling/external-libraries) and [PartCAD](https://partcad.org/) integration.
 - Bills of materials from assemblies.
-- 3MF, SVG, and DXF export helpers.
-- Golden STEP/STL fixtures under `tests/fixtures/`.
 - Topology optimization demos, for example [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/).
 
 ## Repository

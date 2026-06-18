@@ -106,7 +106,6 @@ If you clicked [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Te
 1. [Set up GitHub](/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge, and template identity.
 2. [Releases](/getting-started/releases) — first automated GitHub Release with exported assets.
 
-If you are only contributing back to this template repo, you can usually skip release automation on your fork.
 
 ## Next steps
 

@@ -6,7 +6,7 @@
 
 This is a highly-opinionated turn-key workspace that brings software practices to parametric CAD like linting, testing, containerized workspaces, and CI/CD pipeline practices to give you versioned source files, repeatable builds, tests, reviewable changes, and release artifacts with the benefits of automation.
 
-Start from a Dev Container, model with [build123d](https://build123d.readthedocs.io/) and your choice of AI agent, preview in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), test with pytest, export STEP/STL/GLB files, and publish releases through the CI/CD pipeline. The Python in `cad/` is the source of truth. Meshes and manufacturing files are outputs.
+Start from a Dev Container, model with [build123d](https://build123d.readthedocs.io/) and your choice of AI agent, preview in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), test with pytest, export STEP/STL/GLB files, and publish releases through a CI/CD pipeline. The Python in `cad/` is the source of truth. Meshes, renders, BOMs, and other manufacturing files are automatically generated outputs.
 
 If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling.
 
@@ -22,7 +22,7 @@ If you are new to software-style workflows, that is the point of the template: t
 
 Traditional CAD files hide intent inside binary documents. That makes changes harder to review, test, automate, and reproduce.
 
-CAD-as-Code puts the model definition in readable source code. A radius, hole pattern, bracket height, or assembly relationship becomes a named parameter or function. That means a CAD project can use the same habits that make software projects reliable:
+CAD-as-Code puts the model definition in readable source code, a perfect format for LLM agents to interact and reason about your models. A radius, hole pattern, bracket height, or assembly of shapes becomes a series of relationships with properties, parameter, or functions. That means a parametric CAD project can use the same habits that make software projects reliable:
 
 - Source control tracks every change to the model.
 - Tests catch broken geometry before a release.
