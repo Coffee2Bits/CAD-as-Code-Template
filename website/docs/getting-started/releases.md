@@ -36,7 +36,7 @@ After [creating and initializing your repo](/getting-started/template-and-init) 
 
 1. **Confirm Actions settings** — Settings → Actions → General: **Read and write permissions** and **Allow GitHub Actions to create and approve pull requests** (see [workflow permissions](/getting-started/github-setup#actions-workflow-permissions)).
 2. **Merge a releasable change** — open a PR with a Conventional Commit squash title, e.g. `feat: initial customization`, and merge to `main`.
-3. **Wait for release-please** — within a few minutes, a Release PR should appear (title `chore: release 0.2.0` or similar). If it does not, see [troubleshooting](#troubleshooting).
+3. **Wait for release-please** — within a few minutes, a Release PR should appear (title `chore: release 0.2.0` or similar). If it does not, see [Release troubleshooting](/troubleshooting/release-please).
 4. **Merge the Release PR** — use the default squash title (`chore: release X.Y.Z`); do not edit it.
 5. **Verify the GitHub Release** — Repository → **Releases** → new tag `vX.Y.Z` with `dist/*.stl`, `dist/*.png`, and generated notes.
 
@@ -56,7 +56,13 @@ The **PR title** becomes the squash commit subject on `main` — that is what re
 
 ## What gets published
 
-On each release (Release PR merge or manual tag):
+**Release PR merge** (`release-please.yml`):
+
+1. **Tag + GitHub Release** — release-please creates the tag and changelog body
+2. **Export** — `release-assets.yml` exports `@artifact` models with `@render` as STL + PNG
+3. **Upload** — assets attached; artifact notes appended via [`cad_tooling.export release-notes`](/tools/cad-tooling/release-notes)
+
+**Manual tag push or `workflow_dispatch` repair** (`release.yml`):
 
 1. **Quality gate** — Dagger `check` (ruff, mypy, vulture, artifact export verification, pytest)
 2. **Export** — `@artifact` models that declare `@render` as STL + PNG
@@ -93,8 +99,9 @@ Pushing a **strict semver** tag (`v1.2.3` only — no suffixes) runs [`release.y
 | Step | Workflow | What it does |
 |------|----------|--------------|
 | Day-to-day merges | `release-please.yml` | Opens/updates Release PRs |
-| Merge Release PR | `release-please.yml` | Creates git tag and baseline GitHub Release |
-| Tag push `vX.Y.Z` | `release.yml` | Quality gate → export STL/PNG → upload assets to release |
+| Merge Release PR | `release-please.yml` | Creates git tag, GitHub Release, exports STL/PNG, uploads assets |
+| Tag push `vX.Y.Z` | `release.yml` | Manual fallback: quality gate → export STL/PNG → upload assets |
+| Repair missing assets | `release.yml` → **Run workflow** | `workflow_dispatch` with tag name (for example `v0.3.0`) |
 
 Do **not** run `gh release create` for normal releases — that bypasses export and can duplicate tags. Use `gh release list` / `gh release view` to inspect only.
 
@@ -117,15 +124,14 @@ gh release view v0.1.0 --repo OWNER/REPO
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| No Release PR after merging `feat:` / `fix:` | [Workflow permissions](/getting-started/github-setup#actions-workflow-permissions); check Actions tab for failed `Release Please` run |
-| Release PR exists but will not update | Stale `autorelease: pending` label on an old Release PR — remove label and re-run workflow ([release-please docs](https://github.com/googleapis/release-please#why-are-there-multiple-release-prs)) |
-| `commit could not be parsed: Merge remote-tracking branch` | Non–Conventional Commit merge commit on `main` (harmless warning); prefer squash-merge or rebase, avoid merge commits on `main` |
-| Merge Release PR but no GitHub Release | Squash subject must match `chore: release X.Y.Z` exactly; check `release.yml` for workflow syntax errors (invalid `if` expressions fail validation) |
-| `There are untagged, merged release PRs outstanding - aborting` | Merged Release PR without a matching `vX.Y.Z` tag — usually caused by `skip-github-release: true` (do not use) or a failed tag step. Remove stale `autorelease: pending` from the merged PR, tag the merge commit, add `autorelease: tagged`, re-run Release Please |
-| `Resource not accessible by integration` on create-a-release | Usually duplicate publish paths or pushing workflow changes without `workflow` OAuth scope locally — use release-please + `release.yml` only; refresh `gh auth` with `-s workflow` when editing workflows |
-| Release workflow fails on assets | Ensure at least one `@artifact` exports; run `just export-smoke` locally |
-| Wrong asset URLs in notes | Published notes need absolute `releases/download/{tag}/` URLs — see [release notes](/tools/cad-tooling/release-notes) |
+See **[Release Please & GitHub Releases troubleshooting](/troubleshooting/release-please)** for symptom-by-symptom fixes (missing STL/PNG assets, stale `autorelease` labels, untagged merges, workflow parse errors, and repair via `workflow_dispatch`).
 
-More detail: [Releases workflow](/workflows/releases) · [GitHub setup troubleshooting](/getting-started/github-setup#troubleshooting) · [Export and CI/CD pipeline troubleshooting](/troubleshooting/export-and-ci).
+Quick checks:
+
+| Symptom | First step |
+|---------|------------|
+| No Release PR | [Workflow permissions](/getting-started/github-setup#actions-workflow-permissions) |
+| Release without assets | **Release** workflow → `workflow_dispatch` with tag `vX.Y.Z` |
+| Export fails in CI | `just export-smoke` locally → [Export troubleshooting](/troubleshooting/export-and-ci) |
+
+More detail: [Releases workflow](/workflows/releases) · [GitHub setup](/getting-started/github-setup#troubleshooting).

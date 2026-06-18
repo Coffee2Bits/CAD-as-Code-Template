@@ -27,3 +27,5 @@ Ensure editor uses Ruff from project venv (`importStrategy: fromEnvironment`).
 
 - Add `@render` below `@artifact` on the published function
 - Run `just release dist/` locally to verify
+
+Release workflow failures (missing STL/PNG on GitHub Releases, `workflow_dispatch` repair): [Release Please troubleshooting](/troubleshooting/release-please).

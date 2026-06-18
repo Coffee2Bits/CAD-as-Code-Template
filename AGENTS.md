@@ -646,7 +646,9 @@ Releases are automated with [release-please](https://github.com/googleapis/relea
 2. [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml) opens or updates a **Release PR** (`chore: release ${version}`) that bumps `pyproject.toml`, updates `CHANGELOG.md`, and proposes the next semver.
 3. Merge the Release PR when ready. The workflow tags `v{version}` and publishes a GitHub Release with STL/PNG assets and generated artifact notes.
 
-Published assets use the same pipeline as manual releases: Dagger `check`, `release-artifact`, then `release-notes` for the GitHub Release body.
+Published assets use the same pipeline as manual releases: Dagger `release-artifact`, then `release-notes` appended to the release body (via [`release-assets.yml`](.github/workflows/release-assets.yml)). Release PR merges run export/upload in `release-please.yml` without a separate Dagger `check`; manual tag pushes and `workflow_dispatch` repair run Dagger `check` first in `release.yml`. If a release commit changes `.github/workflows/`, merge those changes separately before the Release PR — `GITHUB_TOKEN` cannot grant `workflows` scope in YAML (see [Release troubleshooting](website/docs/troubleshooting/release-please.md#resource-not-accessible-by-integration)).
+
+**Repair missing assets:** run [`.github/workflows/release.yml`](.github/workflows/release.yml) with `workflow_dispatch` and the release tag (for example `v0.3.0`).
 
 **Manual tag fallback:** pushing a semver tag (`v*.*.*`) still triggers [`.github/workflows/release.yml`](.github/workflows/release.yml) for ad-hoc releases.
 
@@ -779,6 +781,7 @@ When a task involves **diagnosing, fixing, or working around** a tool or workflo
 | MCP servers, `.cursor/mcp.json`, agent tools in container | [`website/docs/troubleshooting/mcp.md`](website/docs/troubleshooting/mcp.md) |
 | `just ci`, Dagger, Docker socket, CI module | [`website/docs/troubleshooting/dagger-and-docker.md`](website/docs/troubleshooting/dagger-and-docker.md) |
 | Export, `mr artifacts`, release PNGs, ruff/mypy/vulture in CI, artifact discovery | [`website/docs/troubleshooting/export-and-ci.md`](website/docs/troubleshooting/export-and-ci.md) |
+| release-please, missing release assets, Release workflow / `workflow_dispatch` | [`website/docs/troubleshooting/release-please.md`](website/docs/troubleshooting/release-please.md) |
 | release-please, GitHub Pages, branch protection, repo identity | [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md) (`## Troubleshooting`) |
 
 Index and cross-links: [`website/docs/troubleshooting/index.md`](website/docs/troubleshooting/index.md). Tool guides link here from their own **Troubleshooting** sections — keep those links; put detailed fixes on the troubleshooting page, not duplicated in long form on tool pages.

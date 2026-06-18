@@ -14,7 +14,8 @@ sidebar_position: 1
 | MCP won't start or connect | [MCP](/troubleshooting/mcp) |
 | `just ci` / Dagger fails | [Dagger & Docker](/troubleshooting/dagger-and-docker) |
 | Export / discovery / CI/CD pipeline lint failures | [Export and CI/CD pipeline](/troubleshooting/export-and-ci) |
-| release-please / Pages / branch protection | [Set up GitHub](/getting-started/github-setup) |
+| release-please / missing release assets / Release workflow | [Release Please & GitHub Releases](/troubleshooting/release-please) |
+| GitHub Pages / branch protection (not release workflow) | [Set up GitHub](/getting-started/github-setup) |
 
 ## Known limitations
 

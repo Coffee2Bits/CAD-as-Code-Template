@@ -56,10 +56,14 @@ The workflows also declare job-level permissions in git:
 
 | Workflow | Job permissions |
 |----------|-----------------|
-| `release-please.yml` | `contents: write`, `pull-requests: write`, `issues: write` |
-| `release.yml` | `contents: write` for release asset publishing |
+| `release-please.yml` | `contents: write`, `pull-requests: write`, `issues: write` (Release PRs, tag, and asset publish on merge) |
+| `release.yml` | `contents: write` (publish job; manual tag push or `workflow_dispatch` repair) |
 | `docs.yml` | `contents: read`, `pages: write`, `id-token: write` |
-| `ci.yml` | default read token for the Dagger check |
+| `ci.yml` | Default `GITHUB_TOKEN` (read) |
+
+Direct link (replace owner/repo): `https://github.com/YOUR_ORG/YOUR_REPO/settings/actions`
+
+---
 
 ## GitHub Pages
 
@@ -140,11 +144,12 @@ These workflows are already committed by the template. GitHub settings decide wh
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| [`ci.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/ci.yml) | PR + push to `main` with path filters | Dagger `check`: lint, artifact export verification, pytest |
-| [`release-please.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release-please.yml) | Push to `main` | Open/update Release PR; create tags for releases |
-| [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) | Push tag `v*.*.*` | Quality gate → export STL/PNG → GitHub Release |
-| [`docs.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/docs.yml) | Push to `main` with docs paths | Build and deploy Docusaurus to Pages |
-| [`docs-pr.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/docs-pr.yml) | PR to `main` with docs paths | Verify docs build |
+| [`ci.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/ci.yml) | PR + push to `main` (path filters) | Dagger `check`: lint, artifact smoke, pytest |
+| [`release-please.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release-please.yml) | Push to `main` | Open/update Release PR; on merged `chore: release …`, tag + export/upload STL/PNG |
+| [`release-assets.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release-assets.yml) | `workflow_call` | Shared export + upload job used by release-please and release |
+| [`release.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release.yml) | Push tag `v*.*.*` or `workflow_dispatch` | Manual tag fallback or repair: quality gate + release assets |
+| [`docs.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/docs.yml) | Push to `main` (`website/**`) | Build + deploy Docusaurus to Pages |
+| [`docs-pr.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/docs-pr.yml) | PR to `main` (`website/**`) | Verify docs build |
 
 No repository secrets are required for the default workflows. They use GitHub's `GITHUB_TOKEN` and the repository source.
 
@@ -169,6 +174,12 @@ After configuration:
 
 | Symptom | Likely fix |
 |---------|------------|
+| release-please does not open Release PR | Workflow permissions (read/write + allow PRs) — [details](/troubleshooting/release-please#release-pr-never-opens) |
+| Release PR merge does not create GitHub Release | Squash title must be `chore: release X.Y.Z` — [details](/troubleshooting/release-please#no-github-release-after-merge) |
+| Release exists but no STL/PNG | [Missing release assets](/troubleshooting/release-please#missing-release-assets) or `workflow_dispatch` on **Release** workflow |
+| Docs site 404 | Pages source must be **GitHub Actions**; wait for first `docs.yml` deploy |
+| Cannot merge PR — missing check | Add **Dagger CI** to branch protection; or push a commit that triggers `ci.yml` paths |
+| Wrong docs URL | Fix `[github] repo` and `[pages] url` in `template.repo.toml`, then `just init` or `just template-apply` |
 | Actions tab is empty | Enable Actions for the repository or check org policy |
 | release-please does not open a Release PR | Set workflow permissions to read/write and enable Action-created PRs |
 | Docs site is 404 | Set Pages source to GitHub Actions and wait for the first docs deploy |
@@ -181,6 +192,9 @@ After configuration:
 
 - [Create and initialize your repository](/getting-started/template-and-init) — Use this template, `template.repo.toml`, and `just init`
 - [Releases](/getting-started/releases) — first release and day-to-day versioning
-- [Release workflow reference](/workflows/releases) — deeper release mechanics
-- [CI/CD pipeline and Dagger](/workflows/ci-and-dagger) — what the required check runs
-- [Dev container GitHub CLI](/getting-started/dev-container#github-cli) — `gh` authentication inside the container
+- [Releases workflow](/workflows/releases) — deeper reference (Conventional Commits, dry-run, manual tags)
+- [Release Please troubleshooting](/troubleshooting/release-please) — missing assets, stale labels, workflow recovery
+- [CI/CD pipeline and Dagger](/workflows/ci-and-dagger)
+- [Documentation site](/) (local: `just docs-build`)
+
+**In-repo copy:** [`.github/GITHUB_SETUP.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/GITHUB_SETUP.md)

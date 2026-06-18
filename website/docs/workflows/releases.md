@@ -21,7 +21,7 @@ flowchart LR
 
 1. Merge PRs to `main` with [Conventional Commit](https://www.conventionalcommits.org/) squash titles (`feat:`, `fix:`, `docs:`, `deps:`)
 2. [`release-please.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/release-please.yml) opens or updates a **Release PR** (`chore: release X.Y.Z`)
-3. Merge the Release PR → workflow detects squash subject → exports assets → creates GitHub Release
+3. Merge the Release PR → `release-please.yml` creates the tag and GitHub Release, then exports STL/PNG assets in the same workflow run
 
 Config: [`release-please-config.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/release-please-config.json) (`release-type: python`).
 
@@ -56,11 +56,13 @@ Version lives in `pyproject.toml`; tags use `v` prefix (`0.1.1` → `v0.1.1`).
 
 ## What gets published
 
-On release (Release PR merge or manual tag):
+**Release PR merge** — tag, changelog release, then `release-assets.yml` export/upload (no Dagger `check` in that workflow; `ci.yml` already ran on the PR).
+
+**Manual tag or repair** — Dagger `check`, then the same export/upload job:
 
 1. **Quality gate** — Dagger `check` (lint, artifact export verification, pytest)
 2. **Export** — `@artifact` models that declare `@render` as STL + PNG
-3. **GitHub Release** — `dist/*.stl`, `dist/*.png`, generated body with embedded preview images
+3. **GitHub Release** — `dist/*.stl`, `dist/*.png`; artifact notes appended to the release body
 
 Release notes format: [`.github/release_template.md`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/release_template.md)
 
@@ -90,10 +92,14 @@ uv run python -m cad_tooling.export release-notes \
 
 ## Publish flow
 
-1. `release-please.yml` — Release PRs, git tag, and baseline GitHub Release on merge
-2. `release.yml` — quality gate, export STL/PNG, and update the release with assets on tag push
+1. `release-please.yml` — Release PRs; on merge, git tag, GitHub Release, and STL/PNG export/upload (`release-assets.yml`)
+2. `release.yml` — manual semver tag push or `workflow_dispatch` repair: quality gate, then the same asset publish job
+
+Release-please creates tags through the GitHub API, which does **not** emit a tag `push` event. Asset publishing must run inside `release-please.yml` (or via `workflow_dispatch` on `release.yml`), not rely on tag push alone.
 
 Do not use `gh release create` for normal publishes. Release assets should come from the configured CI/CD pipeline so exports stay reproducible.
+
+**Troubleshooting:** [Release Please & GitHub Releases](/troubleshooting/release-please) — missing assets, untagged merges, workflow errors, and `workflow_dispatch` repair.
 
 ## Release note URLs
 
