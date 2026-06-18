@@ -8,10 +8,10 @@ from cad.parts.m3_hex_nut import (
 )
 from cad.parts.sphere import (
     largest_x_cut_face,
-    make_sphere,
     northeast_quadrant_cut_offset,
     positioned_m3_hex_nut_reference,
 )
+from pytest_support import cached_make_sphere
 
 
 @pytest.mark.integration
@@ -63,16 +63,16 @@ class TestSphereHexNutPocket:
         return northeast_quadrant_cut_offset(radius=self.RADIUS)
 
     @pytest.fixture(scope="class")
-    def sphere_default(self):
-        return make_sphere(hex_nut_margin=0.2, radius=self.RADIUS)
-
-    @pytest.fixture(scope="class")
     def sphere_margins(self):
         return {
-            "tight": make_sphere(hex_nut_margin=0, radius=self.RADIUS),
-            "loose": make_sphere(hex_nut_margin=0.5, radius=self.RADIUS),
-            "default": make_sphere(hex_nut_margin=0.2, radius=self.RADIUS),
+            "tight": cached_make_sphere(hex_nut_margin=0, radius=self.RADIUS),
+            "loose": cached_make_sphere(hex_nut_margin=0.5, radius=self.RADIUS),
+            "default": cached_make_sphere(hex_nut_margin=0.2, radius=self.RADIUS),
         }
+
+    @pytest.fixture(scope="class")
+    def sphere_default(self, sphere_margins):
+        return sphere_margins["default"]
 
     def test_sphere_with_hex_nut_pocket_is_valid(self, sphere_default):
         assert sphere_default.is_valid

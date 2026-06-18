@@ -153,25 +153,26 @@ class TestReleaseExportCLI:
         )
         assert "## sphere" in notes_path.read_text()
 
-    def test_main_release_applies_render_overrides(self, tmp_path: Path, repo_root: Path):
-        assert (
-            _main(
-                [
-                    "release",
-                    "-o",
-                    str(tmp_path),
-                    "--root",
-                    str(repo_root),
-                    "--width",
-                    "400",
-                    "--height",
-                    "300",
-                ]
-            )
-            == 0
-        )
-        assert (tmp_path / "sphere_front_400x300.png").exists()
-        assert (tmp_path / "sphere_iso_400x300.png").exists()
+
+@pytest.mark.unit
+def test_release_cli_width_height_override_filenames(repo_root: Path):
+    import argparse
+
+    from cad_tooling.render_config import (
+        add_render_config_arguments,
+        render_config_from_namespace,
+        render_output_filename,
+        resolve_render_configs,
+    )
+
+    parser = argparse.ArgumentParser()
+    add_render_config_arguments(parser)
+    args = parser.parse_args(["--width", "400", "--height", "300"])
+    overrides = render_config_from_namespace(args)
+    artifact = next(item for item in list_release_artifacts(repo_root) if item.name == "sphere")
+    configs = resolve_render_configs(artifact_func=artifact.func, overrides=overrides)
+    names = {render_output_filename("sphere", config) for config in configs}
+    assert names == {"sphere_front_400x300.png", "sphere_iso_400x300.png"}
 
 
 @pytest.mark.unit

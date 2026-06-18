@@ -5,14 +5,14 @@ import trimesh
 from build123d import import_step
 
 from cad_tooling.export import export_part
-from cad.parts.sphere import make_sphere
+from pytest_support import cached_make_sphere
 
 pytestmark = pytest.mark.integration
 
 
 class TestAdHocExport:
     def test_stl_export(self, tmp_path: Path):
-        part = make_sphere()
+        part = cached_make_sphere()
         export_part(part, "sphere", tmp_path)
 
         stl_path = tmp_path / "sphere.stl"
@@ -30,7 +30,7 @@ class TestAdHocExport:
         assert mesh.volume > 0
 
     def test_step_round_trip_preserves_volume(self, tmp_path: Path):
-        part = make_sphere(radius=12)
+        part = cached_make_sphere(radius=12)
         export_part(part, "round_trip_sphere", tmp_path)
 
         step_path = tmp_path / "round_trip_sphere.step"

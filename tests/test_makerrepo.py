@@ -4,8 +4,12 @@ import pytest
 import trimesh
 
 from cad_tooling.export import export_artifacts
-from cad.parts.sphere import make_sphere
-from pytest_support import TEST_RENDER_SIZE_TOKEN, artifact_names, generator_names
+from pytest_support import (
+    TEST_RENDER_SIZE_TOKEN,
+    artifact_names,
+    cached_make_sphere,
+    generator_names,
+)
 
 
 @pytest.mark.unit
@@ -38,7 +42,7 @@ class TestArtifactExport:
         export_artifacts(stl_path, "stl", ("sphere",))
 
         mesh = trimesh.load_mesh(stl_path)
-        expected = make_sphere()
+        expected = cached_make_sphere()
 
         assert len(mesh.vertices) > 0
         assert mesh.volume == pytest.approx(expected.volume, rel=0.02)

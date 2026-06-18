@@ -1,5 +1,6 @@
 from pathlib import Path
 from unittest.mock import patch
+import shutil
 
 import pytest
 
@@ -115,6 +116,19 @@ def test_camera_presets_cover_all_config_choices():
 
 @pytest.mark.integration
 class TestCollectReleaseAssets:
+    @pytest.fixture(scope="class")
+    def sphere_stl_export(self, tmp_path_factory, repo_root: Path) -> Path:
+        from cad_tooling.export import export_artifacts
+
+        out = tmp_path_factory.mktemp("sphere_stl_export")
+        export_artifacts(out, "stl", ("sphere",), root=repo_root)
+        return out
+
+    @pytest.fixture
+    def sphere_stl_workdir(self, sphere_stl_export: Path, tmp_path: Path) -> Path:
+        shutil.copytree(sphere_stl_export, tmp_path, dirs_exist_ok=True)
+        return tmp_path
+
     def test_collect_release_assets(self, release_artifacts: Path, repo_root: Path):
         assets = collect_release_assets(
             release_artifacts,
@@ -125,37 +139,27 @@ class TestCollectReleaseAssets:
         assert any(asset.artifact.name == "sphere" for asset in assets)
 
     def test_collect_release_assets_can_scope_to_one_artifact(
-        self, tmp_path: Path, repo_root: Path
+        self, sphere_stl_workdir: Path, repo_root: Path
     ):
-        from cad_tooling.export import export_artifacts
-
-        export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-        (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-        assets = collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
+        (sphere_stl_workdir / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+        assets = collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
         assert [asset.artifact.name for asset in assets] == ["sphere"]
 
-    def test_collect_release_assets_missing_stl(self, tmp_path: Path, repo_root: Path):
-        from cad_tooling.export import export_artifacts
-
-        export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-        (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-        (tmp_path / "sphere.stl").unlink()
+    def test_collect_release_assets_missing_stl(self, sphere_stl_workdir: Path, repo_root: Path):
+        (sphere_stl_workdir / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+        (sphere_stl_workdir / "sphere.stl").unlink()
         with pytest.raises(FileNotFoundError, match="Missing release STL"):
-            collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
+            collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
 
-    def test_collect_release_assets_missing_png(self, tmp_path: Path, repo_root: Path):
-        from cad_tooling.export import export_artifacts
-
-        export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
+    def test_collect_release_assets_missing_png(self, sphere_stl_workdir: Path, repo_root: Path):
         with pytest.raises(FileNotFoundError, match="Missing release preview"):
-            collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
+            collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
 
-    def test_collect_release_assets_accepts_legacy_png_name(self, tmp_path: Path, repo_root: Path):
-        from cad_tooling.export import export_artifacts
-
-        export_artifacts(tmp_path, "stl", ("sphere",), root=repo_root)
-        (tmp_path / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
-        assets = collect_release_assets(tmp_path, root=repo_root, names=("sphere",))
+    def test_collect_release_assets_accepts_legacy_png_name(
+        self, sphere_stl_workdir: Path, repo_root: Path
+    ):
+        (sphere_stl_workdir / "sphere.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+        assets = collect_release_assets(sphere_stl_workdir, root=repo_root, names=("sphere",))
         sphere_asset = next(asset for asset in assets if asset.artifact.name == "sphere")
         assert sphere_asset.png_path.name == "sphere.png"
 
@@ -297,23 +301,36 @@ class TestViewerScript:
 @pytest.mark.integration
 @pytest.mark.render
 class TestRenderMainPy:
-    def test_render_main_py_to_directory(self, tmp_path: Path, repo_root: Path):
-        written = render_input(repo_root / "main.py", tmp_path)
-        assert len(written) == 4
-        names = {path.name for path in written}
-        assert names == {
-            "sphere_with_nut_front_800x600.png",
-            "sphere_with_nut_iso_800x600.png",
-            "sphere_front_800x600.png",
-            "sphere_iso_800x600.png",
-        }
-        assert all(path.exists() for path in written)
-        assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in written)
+    @pytest.fixture(scope="class")
+    def main_py_renders(self, tmp_path_factory, repo_root: Path):
+        out = tmp_path_factory.mktemp("main_py_renders")
+        written = render_input(
+            repo_root / "main.py",
+            out,
+            overrides=TEST_RENDER_OVERRIDES,
+            root=repo_root,
+        )
+        return written
 
-    def test_render_main_shorthand_without_extension(self, tmp_path: Path, repo_root: Path):
-        written = render_input(repo_root / "main", tmp_path)
-        assert len(written) == 4
-        assert all(path.exists() for path in written)
+    def test_render_main_py_to_directory(self, main_py_renders):
+        size = TEST_RENDER_SIZE_TOKEN
+        assert len(main_py_renders) == 4
+        names = {path.name for path in main_py_renders}
+        assert names == {
+            f"sphere_with_nut_front_{size}.png",
+            f"sphere_with_nut_iso_{size}.png",
+            f"sphere_front_{size}.png",
+            f"sphere_iso_{size}.png",
+        }
+        assert all(path.exists() for path in main_py_renders)
+        assert all(path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" for path in main_py_renders)
+
+
+@pytest.mark.unit
+def test_resolve_input_path_finds_main_py_without_extension(repo_root: Path):
+    from cad_tooling.render import _resolve_input_path
+
+    assert _resolve_input_path(repo_root / "main") == (repo_root / "main.py").resolve()
 
 
 @pytest.mark.unit

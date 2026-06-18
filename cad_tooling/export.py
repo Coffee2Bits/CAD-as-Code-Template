@@ -32,6 +32,8 @@ from mr.utils import (
 
 logger = logging.getLogger(__name__)
 
+_registry_cache: dict[Path, Registry] = {}
+
 ExportFormat = Literal["step", "stl", "brep", "gltf", "3mf"]
 EXPORT_FORMATS: tuple[ExportFormat, ...] = ("step", "stl", "brep", "gltf", "3mf")
 DEFAULT_EXPORT_FORMAT: ExportFormat = "step"
@@ -48,6 +50,9 @@ def _scan_onerror(name: str) -> None:
 def load_registry(root: Path | None = None) -> Registry:
     """Discover @artifact / @customizable functions under a repo root."""
     cwd = (root or Path.cwd()).resolve()
+    cached = _registry_cache.get(cwd)
+    if cached is not None:
+        return cached
     packages = find_python_packages(cwd)
     modules = find_python_modules(cwd)
 
@@ -59,13 +64,15 @@ def load_registry(root: Path | None = None) -> Registry:
     try:
         config = load_repo_config(cwd / ".makerrepo" / "config.yaml")
         with apply_pythonpaths(config, repo_root=cwd):
-            return collect(
+            registry = collect(
                 [load_module(str(source)) for source in packages + modules],
                 onerror=_scan_onerror,
             )
     finally:
         if path_inserted:
             del sys.path[0]
+    _registry_cache[cwd] = registry
+    return registry
 
 
 def _items_flat(registry: Registry, attr: str) -> list[tuple[str, str, Artifact | Customizable]]:

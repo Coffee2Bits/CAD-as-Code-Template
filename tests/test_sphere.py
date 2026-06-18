@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from cad.parts.sphere import make_sphere
+from pytest_support import cached_make_sphere
 
 pytestmark = pytest.mark.integration
 
@@ -10,15 +10,15 @@ pytestmark = pytest.mark.integration
 class TestSphereGeometry:
     @pytest.fixture(scope="class")
     def default_sphere(self):
-        return make_sphere()
+        return cached_make_sphere()
 
     @pytest.fixture(scope="class")
     def radius_ten_sphere(self):
-        return make_sphere(radius=10)
+        return cached_make_sphere(radius=10)
 
     @pytest.fixture(scope="class")
     def radius_eight_sphere(self):
-        return make_sphere(radius=8)
+        return cached_make_sphere(radius=8)
 
     def test_sphere_is_valid(self, default_sphere):
         assert default_sphere.is_valid
