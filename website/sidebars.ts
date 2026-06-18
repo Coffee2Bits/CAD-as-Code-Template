@@ -12,6 +12,7 @@ const sidebars: SidebarsConfig = {
         'getting-started/dev-container',
         'getting-started/ocp-viewer',
         'getting-started/project-layout',
+        'getting-started/template-and-init',
         'getting-started/github-setup',
         'getting-started/releases',
       ],

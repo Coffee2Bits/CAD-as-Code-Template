@@ -45,7 +45,7 @@ One module per part family: `cad/parts/sphere.py`, `cad/assemblies/demo_widget.p
 
 ## Cutout / reference alignment
 
-When embedding hardware (nuts, bearings, inserts, any other parts), generate a volumetric solid based on the part and scale the volume to achieve a desired margin between the surfaces to account for margin of error in manufacturing processes. It's important that the part and its cutout volume reference and reflect the properties of it part; never compute placement from different faces, avoid volumes not sharing alignment with their parts, etc.
+When embedding hardware (nuts, bearings, inserts, any other parts), generate a volumetric solid based on the part and scale the volume to achieve a desired margin between the surfaces to account for margin of error in manufacturing processes. It's important that the part and its cutout volume reference and reflect the properties of the part; never compute placement from different faces, avoid volumes not sharing alignment with their parts, etc.
 
 Live example: [`cad/parts/sphere.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/parts/sphere.py) (M3 nut pocket and screw clearance hole), [`cad/parts/m3_socket_head_cap_screw.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/parts/m3_socket_head_cap_screw.py), and [`cad/assemblies/sphere_with_nut.py`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/cad/assemblies/sphere_with_nut.py).
 

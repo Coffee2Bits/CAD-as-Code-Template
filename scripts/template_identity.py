@@ -34,7 +34,6 @@ INTEGRATION_SYNC_GLOBS = ("AGENTS.md",)
 DOCS_SYNC_GLOBS = (
     "README.md",
     "CHANGELOG.md",
-    ".github/GITHUB_SETUP.md",
     "website/README.md",
     "website/docs/**/*.md",
 )

@@ -45,7 +45,7 @@ just sync
 just docs-serve-bg
 ```
 
-Dependencies should be installed and the local docs site is available via localhost. Your IDE ought to show you the exposed for documentation.
+Dependencies should be installed and the local docs site should be available on localhost. Your IDE should show the forwarded docs port.
 
 ### 1. Run the tests
 
@@ -90,7 +90,7 @@ For programmatic exports in tests or scripts, use `cad_tooling.export.export_par
 The container includes [build123d-mcp](/tools/mcp-servers) and [ocp-viewer-mcp](/tools/mcp-servers). They let AI agents run geometry code and inspect viewer feedback while the Python files remain the source of truth.
 
 - Cursor: servers connect from [`.cursor/mcp.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.cursor/mcp.json). After a rebuild, reload MCP in Settings → MCP.
-- VS Code / Codespaces + Copilot: copy the server entries from `.cursor/mcp.json` into your [MCP settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers).
+- VS Code / Codespaces: copy the server entries from `.cursor/mcp.json` into your [MCP settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers) if you use an MCP-capable assistant in that workspace.
 
 If an MCP server fails to connect, see [MCP troubleshooting](/troubleshooting/mcp).
 
@@ -98,8 +98,9 @@ If an MCP server fails to connect, see [MCP troubleshooting](/troubleshooting/mc
 
 If you clicked [Use this template](https://github.com/Coffee2Bits/CAD-as-Code-Template/generate), a few settings live on GitHub.com and cannot be configured by the Dev Container alone:
 
-1. [Set up GitHub](/getting-started/github-setup) — Actions permissions, Pages, branch protection, squash merge, and template identity.
-2. [Releases](/getting-started/releases) — first automated GitHub Release with exported assets.
+1. [Create and initialize your repository](/getting-started/template-and-init) — Use this template, `template.repo.toml`, and `just init`.
+2. [Set up GitHub](/getting-started/github-setup) — Actions permissions, Pages, branch protection, and squash merge.
+3. [Releases](/getting-started/releases) — first automated GitHub Release with exported assets.
 
 
 ## Next steps

@@ -54,7 +54,7 @@ Canonical reference. Run `just --list` in the repo for the live list.
 
 | Command | What it runs |
 |---------|--------------|
-| `just export-smoke` | Discover and export all artifacts (CI/CD pipeline smoke) |
+| `just export-smoke` | Discover and export all artifacts as STEP and STL |
 | `just export` | STL + PNG release bundle to `dist/` (ready for `just release-notes`) |
 | `just export /tmp/out step sphere` | Export one artifact in a given format |
 | `just release dist/` | Alias for `just export dist/` |
@@ -96,7 +96,7 @@ Use `just version-bump minor` — not `just version-bump part=patch` (`just` tre
 | `just ci` | Full Dagger pipeline (lint + artifacts + test) |
 | `just ci-test` | Dagger pytest only |
 | `just ci-lint` | Dagger ruff + mypy + vulture only |
-| `just ci-artifacts` | Dagger artifact smoke export |
+| `just ci-artifacts` | Dagger artifact export verification |
 | `just ci-release dist/` | Dagger release STL + PNG export |
 
 See [just](/tools/just) for grouped overview and common workflows.

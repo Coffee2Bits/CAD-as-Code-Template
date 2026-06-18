@@ -86,7 +86,7 @@ Full setup, local Docker notes, MCP notes, and first-release setup live in the [
 The template starts small so the first model is easy to understand. The same workflow can grow into a much richer CAD automation stack:
 
 - Topology optimization tools, such as [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/), wired into the same repeatable CI/CD pipeline.
-- Printer-specific export profiles for Bambu, Prusa, or shop-specific manufacturing defaults.
+- Manufacturing export profiles that tune the same model for different processes: tighter clearances for CNC machining, printer-specific margins for Bambu or Prusa workflows, and shop defaults that can be regenerated instead of edited by hand.
 - Import helpers that turn STEP, STL, or other mesh references into reference objects for easier modeling.
 
 These are deliberately future-facing. The point is to show that CAD-as-Code is not only a cleaner way to write one part; it is a path toward repeatable, reviewable, automated design systems.

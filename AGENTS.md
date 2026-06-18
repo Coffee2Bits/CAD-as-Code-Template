@@ -725,8 +725,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | [`website/docs/`](website/docs/) | Deep guides: tools, workflows, troubleshooting, reference, and contributing docs. This is the canonical home for detailed user documentation. |
 | [`AGENTS.md`](AGENTS.md) | Agent contract only. Do **not** duplicate agent rules on the docs site; [`website/docs/contributing/for-agents.md`](website/docs/contributing/for-agents.md) summarizes and links here. |
 | [`cad_tooling/README.md`](cad_tooling/README.md) | Short pointer to `website/docs/tools/cad-tooling/` once that section exists. |
-| [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md) | Short checklist; canonical guide at `website/docs/getting-started/github-setup.md`. |
-| [`template.repo.toml`](template.repo.toml) | **Source of truth** for repo identity. `just init` reads this file (plus optional CLI overrides); `just template-apply` re-applies after edits. See [github-setup](website/docs/getting-started/github-setup.md#replace-template-identity-in-your-repo). **`cad_tooling/` is never modified.** |
+| [`template.repo.toml`](template.repo.toml) | **Source of truth** for repo identity. `just init` reads this file (plus optional CLI overrides); `just template-apply` re-applies after edits. See [Create and initialize your repository](website/docs/getting-started/template-and-init.md). **`cad_tooling/` is never modified.** |
 
 ### Keep docs in sync (mandatory)
 
@@ -738,7 +737,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 2. **Search for stale references** to anything you renamed, removed, or changed. At minimum search:
    - `website/docs/` (all `.md` files)
    - [`README.md`](README.md)
-   - [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md)
+   - [`AGENTS.md`](AGENTS.md)
    - [`cad_tooling/README.md`](cad_tooling/README.md)
    Use ripgrep for the **old** command string, recipe name, file path, env var, workflow name, status check name, config key, and any prose you replaced in code comments or docstrings.
 3. **Update every hit** — links, tables, mermaid labels, code blocks, and “jump to line” examples. Prefer relative links between Docusaurus pages; keep GitHub blob links pointed at the correct path on `main`.
@@ -751,9 +750,9 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | `justfile` recipe | `website/docs/tools/just.md`, `website/docs/reference/justfile-recipes.md`, any page that cites the command |
 | Pytest markers or test groups | `website/docs/modeling/testing.md`, `AGENTS.md` (TDD / workflow / expectations), `website/docs/contributing/for-agents.md` |
 | Export / release / render | `website/docs/tools/cad-tooling/`, `website/docs/workflows/export-and-formats.md`, `website/docs/workflows/releases.md` |
-| CI / Dagger / workflows | `website/docs/workflows/ci-and-dagger.md`, `website/docs/reference/ci-functions.md`, `website/docs/getting-started/github-setup.md`, `.github/GITHUB_SETUP.md` |
+| CI / Dagger / workflows | `website/docs/workflows/ci-and-dagger.md`, `website/docs/reference/ci-functions.md`, `website/docs/getting-started/github-setup.md` |
 | Dev container / viewer / MCP | Matching page under `website/docs/getting-started/` or `website/docs/tools/` |
-| New template-user setup step | `website/docs/getting-started/` (usually `quick-start.md`, `github-setup.md`, or `releases.md`) and `.github/GITHUB_SETUP.md` |
+| New template-user setup step | `website/docs/getting-started/` (usually `quick-start.md`, `template-and-init.md`, `github-setup.md`, or `releases.md`) |
 | Novel failure mode or fix for a tool below | Matching page under `website/docs/troubleshooting/` (see [Troubleshooting documentation](#troubleshooting-documentation)); add a row to [`troubleshooting/index.md`](website/docs/troubleshooting/index.md) quick-routing table when the symptom is new |
 
 ### Troubleshooting documentation
@@ -801,7 +800,7 @@ Run `just docs-build` when you change `website/docs/troubleshooting/**` or pages
 3. **Diagrams** — stack and architecture diagrams live under `website/static/img/` (SVG/PNG) or as Mermaid fenced blocks in markdown (enabled in `docusaurus.config.ts`). Regenerate static SVGs when the stack changes.
 4. **Code examples** — copy from working repo sources (`justfile`, `cad/parts/sphere.py`, workflows); verify commands against the current tree before publishing.
 5. **README sync** — when moving a README section to the site, replace it with a short paragraph + link to the new doc page. Do not delete template stack/quick-start content from README.
-6. **Tooling changes** — follow [Keep docs in sync (mandatory)](#keep-docs-in-sync-mandatory): same PR, same search-and-update pass for every doc reference. GitHub.com settings changes must update [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md) and [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md).
+6. **Tooling changes** — follow [Keep docs in sync (mandatory)](#keep-docs-in-sync-mandatory): same PR, same search-and-update pass for every doc reference. GitHub.com settings changes must update [`website/docs/getting-started/github-setup.md`](website/docs/getting-started/github-setup.md).
 7. **Local preview** — from `website/`: `npm ci && npm run start` (dev) or `npm run build` (production check). Fix broken links before merging.
 8. **Completion gate for doc-only work** — `npm run build` in `website/` must pass. For doc + code changes, still run `just ci` (or `just quality && just export-smoke`) per the [task completion gate](#task-completion-gate).
 9. **Deploy** — merging to `main` triggers the docs workflow when `website/**` or `.github/workflows/docs.yml` changes. No manual `gh-pages` branch commits.

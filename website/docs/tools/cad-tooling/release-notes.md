@@ -10,7 +10,7 @@ Generate GitHub Release markdown from exported `@render` release assets.
 just release-notes v0.1.0
 ```
 
-Repo slug defaults from [`template.repo.toml`](/getting-started/github-setup#replace-template-identity-in-your-repo). Override: `just release-notes v0.1.0 repo=OWNER/REPO`
+Repo slug defaults from [`template.repo.toml`](/getting-started/template-and-init#replace-the-template-identity). Override: `just release-notes v0.1.0 repo=OWNER/REPO`
 
 ```bash
 # explicit repo (without template.repo.toml)
