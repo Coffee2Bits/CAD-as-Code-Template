@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.3.0...v0.4.0) (2026-06-18)
+
+
+### Features
+
+* Added a tripod seat for the demo sphere. ([fc4de46](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/fc4de463c13dfcbd16191fe03e7a71befd29e0d4))
+
 ## [0.3.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.2.0...v0.3.0) (2026-06-18)
 
 
