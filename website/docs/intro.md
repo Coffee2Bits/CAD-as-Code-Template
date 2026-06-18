@@ -166,6 +166,7 @@ Details: [Replace template identity](/getting-started/github-setup#replace-templ
 - Additional parts and real assemblies: constraints, patterns, and reusable project structure.
 - [build123d part libraries](/modeling/external-libraries) and [PartCAD](https://partcad.org/) integration.
 - Bills of materials from assemblies.
+- Manufacturing export profiles that let one model target different processes: printer-specific margins for Bambu or Prusa workflows, tighter CNC machining clearances, and reusable shop defaults for generated release artifacts.
 - Topology optimization demos, for example [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/).
 
 ## Repository
