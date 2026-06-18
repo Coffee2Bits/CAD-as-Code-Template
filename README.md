@@ -6,7 +6,7 @@
 
 This is a highly-opinionated turn-key workspace that brings software practices to parametric CAD like linting, testing, containerized workspaces, and CI/CD pipeline practices to give you versioned source files, repeatable builds, tests, reviewable changes, and release artifacts with the benefits of automation.
 
-This template gives you that workflow for Python CAD. Start from a Dev Container, model with [build123d](https://build123d.readthedocs.io/), preview in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), test with pytest, export STEP/STL/GLB files, and publish releases through the CI/CD pipeline. The Python in `cad/` is the source of truth. Meshes and manufacturing files are outputs.
+Start from a Dev Container, model with [build123d](https://build123d.readthedocs.io/) and your choice of AI agent, preview in the [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer), test with pytest, export STEP/STL/GLB files, and publish releases through the CI/CD pipeline. The Python in `cad/` is the source of truth. Meshes and manufacturing files are outputs.
 
 If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling.
 
@@ -83,17 +83,15 @@ Full setup, local Docker notes, MCP notes, and first-release setup live in the [
 
 The template starts small so the first model is easy to understand. The same workflow can grow into a much richer CAD automation stack:
 
-- Real assemblies with constraints, part libraries, and reusable fastener or extrusion catalogs.
-- Golden export fixtures that catch unexpected STEP/STL changes during review.
+- Topology optimization tools, such as [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/), wired into the same repeatable CI/CD pipeline.
 - Printer-specific export profiles for Bambu, Prusa, or shop-specific manufacturing defaults.
-- Import helpers that turn STEP or mesh references into reviewed build123d source.
-- Topology optimization experiments, such as [dl4to4ocp](https://github.com/yeicor-3d/dl4to4ocp/), wired into the same repeatable CI/CD pipeline.
+- Import helpers that turn STEP, STL, or other mesh references into reference objects for easier modeling.
 
 These are deliberately future-facing. The point is to show that CAD-as-Code is not only a cleaner way to write one part; it is a path toward repeatable, reviewable, automated design systems.
 
 ## For agents
 
-Agent-facing rules belong in [AGENTS.md](AGENTS.md). The short version: keep `cad/` as the source of truth, test geometry changes, visually verify models, and use docs links instead of duplicating long setup notes in generated answers.
+Agent-facing rules belong in [AGENTS.md](AGENTS.md). The short version: keep `cad/` as the source of truth, test geometry changes, visually verify models, and use docs links for 1st class project references.
 
 ## License
 
