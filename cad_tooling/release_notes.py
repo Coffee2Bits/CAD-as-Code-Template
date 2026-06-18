@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from cad_tooling.render_config import (
+    RenderConfig,
     render_output_filename,
     render_preview_label,
     resolve_render_configs,
@@ -43,9 +44,15 @@ class ReleaseAsset:
         artifact: Artifact,
         stl_path: Path,
         png_paths: tuple[Path, ...] | list[Path],
+        *,
+        render_overrides: RenderConfig | None = None,
     ) -> ReleaseAsset:
         """Build a release asset by pairing exported PNGs with @render labels."""
-        previews = _render_previews_for_artifact(artifact, tuple(png_paths))
+        previews = _render_previews_for_artifact(
+            artifact,
+            tuple(png_paths),
+            render_overrides=render_overrides,
+        )
         return cls(artifact=artifact, stl_path=stl_path, render_previews=previews)
 
 
@@ -66,9 +73,14 @@ def _fallback_preview_label(artifact_name: str, png_path: Path) -> str:
 def _render_previews_for_artifact(
     artifact: Artifact,
     png_paths: tuple[Path, ...],
+    *,
+    render_overrides: RenderConfig | None = None,
 ) -> tuple[RenderPreview, ...]:
     """Pair exported PNG files with labels from @render annotations."""
-    configs = resolve_render_configs(artifact_func=artifact.func)
+    configs = resolve_render_configs(
+        artifact_func=artifact.func,
+        overrides=render_overrides,
+    )
     if configs:
         previews: list[RenderPreview] = []
         missing: list[tuple[str, str]] = []
@@ -179,6 +191,7 @@ def collect_release_assets(
     root: Path | None = None,
     *,
     names: tuple[str, ...] | None = None,
+    render_overrides: RenderConfig | None = None,
 ) -> list[ReleaseAsset]:
     """Pair discovered artifacts with exported STL and PNG files.
 
@@ -217,7 +230,14 @@ def collect_release_assets(
                 f"Missing release preview for artifact '{artifact.name}': "
                 f"{assets_dir / f'{artifact.name}_*.png'}"
             )
-        assets.append(ReleaseAsset.from_png_paths(artifact, stl_path, tuple(png_paths)))
+        assets.append(
+            ReleaseAsset.from_png_paths(
+                artifact,
+                stl_path,
+                tuple(png_paths),
+                render_overrides=render_overrides,
+            )
+        )
     if not assets:
         raise RuntimeError("No @render-decorated artifacts discovered for release notes")
     return assets

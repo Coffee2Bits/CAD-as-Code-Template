@@ -309,6 +309,7 @@ def _main(argv: list[str] | None = None) -> int:
     notes.add_argument("--repo", required=True, help="GitHub repository (owner/name)")
     notes.add_argument("--tag", required=True, help="Release tag (e.g. v0.0.1)")
     notes.add_argument("--root", type=Path, default=None)
+    add_render_config_arguments(notes)
 
     export_cmd = sub.add_parser("export", help="Export artifacts by name (default: all)")
     export_cmd.add_argument("-o", "--output", type=Path, required=True)
@@ -326,7 +327,12 @@ def _main(argv: list[str] | None = None) -> int:
     elif args.command == "release-notes":
         from cad_tooling.release_notes import collect_release_assets, render_release_body
 
-        assets = collect_release_assets(args.assets_dir.resolve(), args.root)
+        render_overrides = render_config_from_namespace(args)
+        assets = collect_release_assets(
+            args.assets_dir.resolve(),
+            args.root,
+            render_overrides=render_overrides,
+        )
         args.output.write_text(render_release_body(args.repo, args.tag, assets))
     else:
         names = tuple(args.names) or None

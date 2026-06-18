@@ -1,11 +1,16 @@
 from pathlib import Path
 
+import pytest
+
 from cad_tooling.render_discovery import (
     cad_modules_referenced_by_build_model,
     discover_render_artifact,
     discover_viewer_render_targets,
     expand_composition_modules,
 )
+
+
+pytestmark = pytest.mark.unit
 
 
 def test_cad_modules_referenced_by_main(repo_root: Path):

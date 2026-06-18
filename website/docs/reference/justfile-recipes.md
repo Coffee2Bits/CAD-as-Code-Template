@@ -26,6 +26,10 @@ Canonical reference. Run `just --list` in the repo for the live list.
 |---------|--------------|
 | `just view` | Display `main.py` in OCP CAD Viewer |
 | `just test` | `uv run pytest` (extra args: `just test -v tests/test_sphere.py`) |
+| `just test-unit` | `uv run pytest -m unit` |
+| `just test-integration` | `uv run pytest -m integration` |
+| `just test-render` | `uv run pytest -m render` |
+| `just test-functional` | `uv run pytest -m functional` |
 | `just test-v` | `uv run pytest -v` |
 
 ## Quality

@@ -65,6 +65,21 @@ Installs pre-commit (ruff check/format, vulture) and commit-msg (Conventional Co
 
 Agents: full formatter rules in [AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#formatter-and-linter-alignment).
 
+## Tests
+
+Full reference: [Testing strategy](/modeling/testing) (markers, categorization, agent workflow).
+
+```bash
+just test              # full pytest suite
+just test-unit         # unit tests only (config, discovery, pure logic) — default while editing
+just test-integration  # CAD geometry and export pipelines
+just test-render       # headless OCP PNG rendering
+just test-functional   # isolated just CLI recipes
+just test-v            # verbose
+```
+
+Use `just test-unit` for a quick loop while editing models or tooling. Run `just quality` (full suite) or `just ci` before marking work complete or opening a PR.
+
 ## Full CI/CD pipeline gate
 
 ```bash

@@ -1,6 +1,8 @@
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from cad_tooling.release_notes import (
     ReleaseAsset,
     RenderPreview,
@@ -8,6 +10,9 @@ from cad_tooling.release_notes import (
     _render_preview_links,
     render_release_body,
 )
+
+
+pytestmark = pytest.mark.unit
 
 
 def _fake_artifact(name: str, *, short_desc: str | None = None, desc: str | None = None):

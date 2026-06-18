@@ -1,6 +1,10 @@
 """Tests for Conventional Commit message validation."""
 
+import pytest
+
 from scripts.validate_commit_msg import validate_commit_message, validate_subject
+
+pytestmark = pytest.mark.unit
 
 
 def test_valid_releasable_subjects() -> None:

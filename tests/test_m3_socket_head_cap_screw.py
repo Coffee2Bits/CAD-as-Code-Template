@@ -20,6 +20,9 @@ from cad.parts.m3_socket_head_cap_screw import (
 )
 
 
+pytestmark = pytest.mark.integration
+
+
 def test_m3_socket_head_cap_screw_is_valid():
     assert make_m3_socket_head_cap_screw().is_valid
 

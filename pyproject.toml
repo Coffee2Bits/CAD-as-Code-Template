@@ -49,7 +49,10 @@ testpaths = ["tests", "cad_tooling_tests"]
 pythonpath = ["."]
 addopts = "-q"
 markers = [
-    "functional: runs just CLI recipes in an isolated temp copy of the repo",
+    "unit: fast logic, config, and discovery tests (no CAD build or subprocess isolation)",
+    "integration: CAD geometry, export pipelines, and release smoke paths",
+    "render: headless OCP PNG rendering (combine with integration on render tests)",
+    "functional: isolated just CLI recipes in a temp workspace copy",
 ]
 
 [tool.mypy]
@@ -58,7 +61,7 @@ explicit_package_bases = true
 ignore_missing_imports = true
 
 [tool.vulture]
-paths = ["cad", "cad_tooling", "tests", "cad_tooling_tests", "main.py", "scripts", "ci/src"]
+paths = ["cad", "cad_tooling", "tests", "cad_tooling_tests", "main.py", "scripts", "ci/src", "pytest_support.py"]
 exclude = [
   ".venv",
   "ci/.venv",

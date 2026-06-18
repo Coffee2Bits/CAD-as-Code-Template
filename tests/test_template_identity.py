@@ -32,6 +32,8 @@ from scripts.template_identity import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+pytestmark = pytest.mark.unit
+
 
 def test_parse_github_remote_url_accepts_https_and_ssh() -> None:
     assert parse_github_remote_url("https://github.com/acme/widget-cad.git") == (

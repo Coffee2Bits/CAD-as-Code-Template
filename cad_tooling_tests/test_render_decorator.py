@@ -1,7 +1,11 @@
 import functools
 
+import pytest
+
 from cad_tooling.render_config import RenderConfig
 from cad_tooling.render_decorator import RENDER_CONFIG_ATTR, get_render_config_from_func, render
+
+pytestmark = pytest.mark.unit
 
 
 def test_render_without_parens():

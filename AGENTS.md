@@ -2,7 +2,7 @@
 
 This file is the repo-level guide for AI agents working in this codebase. Read it before adding or changing CAD models, MakerRepo metadata, tests, or CI.
 
-Human-oriented setup and stack overview live in [README.md](README.md).
+Human-oriented setup and stack overview live in [README.md](README.md). **Testing markers, groups, and the agent test loop** are in [website/docs/modeling/testing.md](website/docs/modeling/testing.md) — use `just test-unit` while implementing; run the full suite only at the [completion gate](#task-completion-gate).
 
 **Before marking any task or plan complete**, run the [task completion gate](#task-completion-gate) and fix failures introduced by your changes.
 
@@ -351,6 +351,12 @@ Skip this only for edits that do not touch model geometry or display behavior (e
 
 ### Test-driven development
 
+**Testing strategy:** markers, test groups, and the daily loop are documented in [website/docs/modeling/testing.md](website/docs/modeling/testing.md) (site: [Testing strategy](https://coffee2bits.github.io/CAD-as-Code-Template/modeling/testing)). Read it before adding or reclassifying tests.
+
+**During implementation**, prefer `just test-unit` for fast feedback. When your change touches CAD builds, export, render, or `just` recipes, also run the matching group (`just test-integration`, `just test-render`, or `just test-functional`). **Do not** run the full suite on every edit.
+
+**Before marking work complete**, run the [completion gate](#task-completion-gate) (`just quality && just export-smoke` or `just ci`) — that runs lint plus the **full** pytest suite.
+
 Follow this order for feature work — do not weaken or delete tests just to land an implementation:
 
 1. **Define desired behavior first** — write or update tests that describe what the feature should do (geometry, discovery, export, margins, fit) before or alongside the model change.
@@ -387,11 +393,13 @@ Instead:
 4. Assert on files inside the isolated copy and, when relevant, that the real repo paths are unchanged.
 
 ```bash
-uv run pytest tests/functional/ -v          # just-command functional suite only
-uv run pytest tests/functional/test_just_init.py -v
+just test-functional                              # functional marker only
+just test tests/functional/test_just_init.py -v   # single module
 ```
 
-Unit tests for init logic without the `just` CLI stay in [`tests/test_template_identity.py`](tests/test_template_identity.py) (monkeypatched `REPO_ROOT` / `tmp_path`). New `just` recipe coverage belongs in `tests/functional/`.
+Marker rules, categorization, and the agent test loop: [Testing strategy](website/docs/modeling/testing.md).
+
+Unit tests for init logic without the `just` CLI stay in [`tests/test_template_identity.py`](tests/test_template_identity.py) (monkeypatched `REPO_ROOT` / `tmp_path`). New `just` recipe coverage belongs in `tests/functional/` and must use `@pytest.mark.functional`.
 
 ### Agent workflow checklist
 
@@ -399,10 +407,11 @@ When adding or changing a published model:
 
 1. Implement `make_*` builder in `cad/parts/` or `cad/assemblies/` (or wrap an [external part library](#external-part-libraries) when the geometry is catalog-standard).
 2. Add `@artifact` and/or `@customizable` wrappers in the same module.
-3. Add pytest tests (geometry + export).
-4. **Visual verify:** update `main.py` if needed, then `just view` (see [Visual verification](#visual-verification-after-cad-edits)).
-5. Confirm MR discovery: `just mr-artifacts` / `just mr-generators`.
-6. **Completion gate:** run `just ci` (or the [local equivalent](#task-completion-gate)) and do not finish until it passes.
+3. Add pytest tests (geometry + export) with the correct [markers](website/docs/modeling/testing.md#test-categories-pytest-markers).
+4. **Iterate:** `just test-unit`; add `just test-integration` (or `test-render`) when exercising CAD/export/render paths — see [Testing strategy](website/docs/modeling/testing.md#recommended-workflow).
+5. **Visual verify:** update `main.py` if needed, then `just view` (see [Visual verification](#visual-verification-after-cad-edits)).
+6. Confirm MR discovery: `just mr-artifacts` / `just mr-generators`.
+7. **Completion gate:** run `just ci` (or the [local equivalent](#task-completion-gate)) and do not finish until it passes.
 
 For any other code change (tooling, tests, CI, config), skip steps 1–5 as applicable but **always** [sync documentation](#keep-docs-in-sync-mandatory) when behavior, commands, paths, or names change, then run the completion gate before reporting done.
 
@@ -471,6 +480,8 @@ Skip only when the change cannot affect CI (e.g. typo in a comment with no tooli
 
 ## Testing expectations
 
+See [Testing strategy](website/docs/modeling/testing.md) for markers, test groups, and the recommended loop (`just test-unit` while working; full suite at completion).
+
 | Change | Required tests |
 |--------|----------------|
 | New part | Validity, key dimensions, volume/bbox; export round-trip where applicable |
@@ -479,6 +490,7 @@ Skip only when the change cannot affect CI (e.g. typo in a comment with no tooli
 | New `@artifact` | Will be picked up by `tests/test_makerrepo.py` — ensure the artifact name appears in `mr artifacts list`; do not require exclusive discovery (other artifacts may coexist) |
 | New `@customizable` | Same discovery test; consider a test that exports with non-default parameters |
 | `justfile` init / template / setup recipes | Add functional tests in [`tests/functional/`](tests/functional/) using `isolated_repo` + `run_just()` — never run destructive recipes on the real repo to verify behavior |
+| Any new test | Declare exactly one primary marker per [Testing strategy](website/docs/modeling/testing.md#test-categories-pytest-markers) |
 
 Keep files under **300–400 lines**. Split large parts into submodules if needed.
 
@@ -662,6 +674,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 - **Commits and PRs**: use [Conventional Commits](#commit-messages-release-please) (`feat:`, `fix:`, `deps:`, `docs:` for releasable work; squash-merge to `main`).
 - **Formatter and linter**: keep [Ruff aligned](#formatter-and-linter-alignment) across editor, pre-commit, and CI — mismatches cause endless format regressions.
 - **Completion gate**: run `just ci` (or `just quality && just export-smoke`) and confirm success before marking any task complete.
+- **Tests**: use `just test-unit` while implementing; run the full suite only at the [completion gate](#task-completion-gate). See [Testing strategy](website/docs/modeling/testing.md).
 - **Doc sync**: when changing behavior, names, or commands, search docs for stale references and update them in the same change — see [Keep docs in sync (mandatory)](#keep-docs-in-sync-mandatory).
 - **Troubleshooting**: when a task debugs a tool with a troubleshooting page, document new reproducible failures and fixes there — see [Troubleshooting documentation](#troubleshooting-documentation).
 - **Units**: millimeters unless a part docstring says otherwise.
@@ -675,6 +688,7 @@ Per-artifact PNG settings live on the `@render` decorator next to each `@artifac
 
 ## Reference
 
+- [Testing strategy](website/docs/modeling/testing.md) — markers, test groups, agent/human test loop
 - [MakerRepo library](https://docs.makerrepo.com/makerrepo-library/)
 - [MakerRepo CLI](https://docs.makerrepo.com/makerrepo-cli/)
 - [MakerRepo artifacts](https://docs.makerrepo.com/makerrepo-library/artifacts/)
@@ -735,6 +749,7 @@ Human-oriented documentation lives in [`website/`](website/) (Docusaurus). The p
 | You change… | Also update… |
 |-------------|--------------|
 | `justfile` recipe | `website/docs/tools/just.md`, `website/docs/reference/justfile-recipes.md`, any page that cites the command |
+| Pytest markers or test groups | `website/docs/modeling/testing.md`, `AGENTS.md` (TDD / workflow / expectations), `website/docs/contributing/for-agents.md` |
 | Export / release / render | `website/docs/tools/cad-tooling/`, `website/docs/workflows/export-and-formats.md`, `website/docs/workflows/releases.md` |
 | CI / Dagger / workflows | `website/docs/workflows/ci-and-dagger.md`, `website/docs/reference/ci-functions.md`, `website/docs/getting-started/github-setup.md`, `.github/GITHUB_SETUP.md` |
 | Dev container / viewer / MCP | Matching page under `website/docs/getting-started/` or `website/docs/tools/` |

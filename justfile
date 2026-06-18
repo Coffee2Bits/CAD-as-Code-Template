@@ -115,6 +115,22 @@ test *args:
     uv run pytest {{args}}
 
 [group('dev')]
+test-unit *args:
+    uv run pytest -m unit {{args}}
+
+[group('dev')]
+test-integration *args:
+    uv run pytest -m integration {{args}}
+
+[group('dev')]
+test-render *args:
+    uv run pytest -m render {{args}}
+
+[group('dev')]
+test-functional *args:
+    uv run pytest -m functional {{args}}
+
+[group('dev')]
 test-v:
     uv run pytest -v
 

@@ -4,29 +4,37 @@ import pytest
 
 from cad.parts.sphere import make_sphere
 
-
-def test_sphere_is_valid():
-    part = make_sphere()
-    assert part.is_valid
+pytestmark = pytest.mark.integration
 
 
-def test_sphere_radius_matches_bounding_box():
-    part = make_sphere(radius=10)
-    bbox = part.bounding_box()
+class TestSphereGeometry:
+    @pytest.fixture(scope="class")
+    def default_sphere(self):
+        return make_sphere()
 
-    assert bbox.size.X == pytest.approx(20, abs=0.01)
-    assert bbox.size.Z == pytest.approx(20, abs=0.01)
-    assert bbox.min.Y == pytest.approx(-10.52, abs=0.05)
+    @pytest.fixture(scope="class")
+    def radius_ten_sphere(self):
+        return make_sphere(radius=10)
 
+    @pytest.fixture(scope="class")
+    def radius_eight_sphere(self):
+        return make_sphere(radius=8)
 
-def test_sphere_volume_below_full_sphere_with_emboss():
-    radius = 8
-    part = make_sphere(radius=radius)
-    full_sphere_volume = (4 / 3) * math.pi * radius**3
+    def test_sphere_is_valid(self, default_sphere):
+        assert default_sphere.is_valid
 
-    assert part.volume < full_sphere_volume
+    def test_sphere_radius_matches_bounding_box(self, radius_ten_sphere):
+        bbox = radius_ten_sphere.bounding_box()
 
+        assert bbox.size.X == pytest.approx(20, abs=0.01)
+        assert bbox.size.Z == pytest.approx(20, abs=0.01)
+        assert bbox.min.Y == pytest.approx(-10.52, abs=0.05)
 
-def test_sphere_has_embossed_text_faces():
-    part = make_sphere()
-    assert len(part.faces()) > 1
+    def test_sphere_volume_below_full_sphere_with_emboss(self, radius_eight_sphere):
+        radius = 8
+        full_sphere_volume = (4 / 3) * math.pi * radius**3
+
+        assert radius_eight_sphere.volume < full_sphere_volume
+
+    def test_sphere_has_embossed_text_faces(self, default_sphere):
+        assert len(default_sphere.faces()) > 1

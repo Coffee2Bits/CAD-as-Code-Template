@@ -7,9 +7,12 @@ sidebar_position: 1
 ## Before opening a PR
 
 ```bash
-just quality          # lint + pytest
+just test-unit        # quick loop while editing (see Testing strategy)
+just quality          # lint + full pytest — run before opening a PR
 just ci               # full gate when touching the CI/CD pipeline or broad behavior
 ```
+
+See [Testing strategy](/modeling/testing) for markers and test groups.
 
 ## Commits
 
