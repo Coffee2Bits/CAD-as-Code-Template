@@ -6,11 +6,6 @@ sidebar_position: 1
 
 This page gets the template from GitHub to a running model. It assumes you are new to at least some of the tooling, so it keeps the first path narrow. If a technical term is new, check the [glossary](/reference/glossary).
 
-[CAD-as-Code](/reference/glossary#cad-as-code) means the model is source code. You edit Python in `cad/`, then use tests, viewer feedback, exports, and the CI/CD pipeline to prove the model still works.
-
-:::tip Created your own repo from the template?
-Edit [`template.repo.toml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/template.repo.toml), then run `just init`. Or run `just init --owner acme --repo widget-cad`. See [Create and initialize your repository](/getting-started/template-and-init).
-:::
 
 ## Choose a workspace
 
