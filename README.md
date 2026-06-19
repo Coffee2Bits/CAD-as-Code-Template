@@ -11,7 +11,7 @@ Start from a Dev Container, model with [build123d](https://build123d.readthedocs
 If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling.
 
 
-![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](website/static/repo_preview.png)
+![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](website/static/img/repo_preview.png)
 <small><em>The default workspace: source code, live model preview, and agent assistance sharing the same containerized CAD environment.</em></small>
 
 
@@ -28,11 +28,11 @@ If you are new to software-style workflows, that is the point of the template: t
 
 Traditional CAD files hide intent inside binary documents. That makes changes harder to review, test, automate, and reproduce. Parametric CAD captures models as structured text, a perfect format for LLM agents to interact and reason with, but parametric CAD by itself can still be quite limiting and difficult to interact with, like OpenSCAD. We decided to give our parametric CAD the "as-Code" approach to supercharge the modeling functionality, provide greater AI agent feedback surfaces, and to automate the production and release of model artifacts. A radius, hole pattern, bracket height, or assembly of shapes becomes a series of relationships with properties, parameter, or functions. That means a parametric CAD project can use the same habits that make software projects reliable:
 
-- Source control tracks every change to the model.
-- Tests catch broken geometry before a release.
+- [Source control tracks every change to the model.](https://github.com/Coffee2Bits/CAD-as-Code-Template/blame/main/cad/parts/sphere.py)
 - Linting and type checks keep the codebase maintainable.
+- [Tests to catch broken geometry are always being run.](https://github.com/Coffee2Bits/CAD-as-Code-Template/actions)
 - The CI/CD pipeline runs the same checks locally and on GitHub.
-- Release jobs regenerate manufacturing artifacts from source.
+- [Release jobs regenerate manufacturing artifacts from source.](https://github.com/Coffee2Bits/CAD-as-Code-Template/releases)
 - Agents can inspect the code, run commands, and use viewer feedback without guessing at hidden CAD state.
 
 This repo is not just a quick AI CAD sandbox. It is an opinionated starter kit for treating parametric CAD as a software project.
