@@ -53,4 +53,6 @@ After building the assembly, use the OCP CAD Viewer [Clip tab](/getting-started/
 
 ![Y-axis clip through the sphere assembly showing nut pocket alignment](/img/ocp_clip_y.png)
 
+<small><em>The Y-axis clip makes the nut pocket, clearance bore, and hardware reference alignment visible before export or printing.</em></small>
+
 Agents: full rules in [AGENTS.md](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md).

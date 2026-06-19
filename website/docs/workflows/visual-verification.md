@@ -14,6 +14,8 @@ sidebar_position: 2
 
 ![Section cut through the demo sphere assembly in OCP CAD Viewer](/img/ocp_clip_z.png)
 
+<small><em>Use section cuts to confirm interior features, not just the outside silhouette, when reviewing geometry changes.</em></small>
+
 ## Agent loop (live updates)
 
 When an agent edits model geometry, it should refresh the viewer **immediately after each edit** so you can watch changes in real time:

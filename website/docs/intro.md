@@ -14,7 +14,11 @@ If you are new to software-style workflows, that is the point of the template: t
 
 ![Dev environment with build123d code, OCP CAD Viewer, and a parametric sphere](/img/repo_preview.png)
 
+<small><em>The default workspace: source code, live model preview, and agent assistance sharing the same containerized CAD environment.</em></small>
+
 ![Section cut through the demo sphere assembly in OCP CAD Viewer](/img/ocp_clip_z.png)
+
+<small><em>A section cut through the demo sphere assembly, showing the kind of interior geometry the OCP CAD Viewer can inspect while you iterate.</em></small>
 
 ## What's in the box
 

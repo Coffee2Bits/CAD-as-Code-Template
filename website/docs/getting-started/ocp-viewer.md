@@ -8,6 +8,8 @@ Live 3D visualization for build123d models via `show_object()` and the [OCP CAD 
 
 ![Dev environment with OCP CAD Viewer](/img/repo_preview.png)
 
+<small><em>The OCP CAD Viewer runs beside the model source so changes can be inspected without leaving the workspace.</em></small>
+
 ## VSIX install
 
 The VSIX is **not committed**. Devcontainer hooks download and patch it to the workspace root as `ocp-cad-viewer-3.4.0.vsix` (gitignored).
@@ -91,9 +93,15 @@ Use the **Clip** tab when you need to see inside a solid — nut pockets, screw 
 
 ![Clip along X — screw head and socket section](/img/ocp_clip_x.png)
 
+<small><em>X-axis clipping exposes the screw head and socket profile through the side of the demo sphere.</em></small>
+
 ![Clip along Y — nut pocket and clearance bore](/img/ocp_clip_y.png)
 
+<small><em>Y-axis clipping shows the nut pocket and clearance bore alignment against the embedded hardware reference parts.</em></small>
+
 ![Clip along Z — sphere quadrant cut and embedded hardware](/img/ocp_clip_z.png)
+
+<small><em>Z-axis clipping cuts away a sphere quadrant so the internal hardware stack and pocket depth are visible.</em></small>
 
 ### Clip options
 
