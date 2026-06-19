@@ -12,13 +12,15 @@ Define geometry with [build123d](https://build123d.readthedocs.io/), preview it 
 
 If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling. If a term is unfamiliar, start with the [glossary](/reference/glossary) and follow the linked guide from there.
 
+<br/>
+
 ![Dev environment with build123d code, OCP CAD Viewer, and a parametric sphere](/img/repo_preview.png)
-
 <small><em>The default workspace: source code, live model preview, and agent assistance sharing the same containerized CAD environment.</em></small>
+<br/>
 
-![Section cut through the demo sphere assembly in OCP CAD Viewer](/img/ocp_clip_z.png)
-
+![Section cut through the demo sphere assembly in OCP CAD Viewer](/img/ocp_clip_y_object_color_cap.png)
 <small><em>A section cut through the demo sphere assembly, showing the kind of interior geometry the OCP CAD Viewer can inspect while you iterate.</em></small>
+<br/>
 
 ## What's in the box
 

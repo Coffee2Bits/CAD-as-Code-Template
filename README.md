@@ -10,12 +10,12 @@ Start from a Dev Container, model with [build123d](https://build123d.readthedocs
 
 If you are new to software-style workflows, that is the point of the template: the non-CAD pieces are all here and configured so your CAD work is repeatable, inspectable, and automated so that you can focus on design and modeling.
 
-![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](repo_preview.png)
 
+![Dev environment: VS Code-based IDE with build123d code, OCP CAD Viewer, and AI agent showing a parametric sphere with embossed text](website/static/repo_preview.png)
 <small><em>The default workspace: source code, live model preview, and agent assistance sharing the same containerized CAD environment.</em></small>
 
-![OCP CAD Viewer clip view: Z-axis section through the demo sphere showing the nut pocket and embedded hardware](website/static/img/ocp_clip_z.png)
 
+![OCP CAD Viewer clip view: Z-axis section through the demo sphere showing the nut pocket and embedded hardware](website/static/img/ocp_clip_y_object_color_cap.png)
 <small><em>A Z-axis section cut through the demo sphere, showing how the viewer exposes embedded hardware, pockets, and interior clearances.</em></small>
 
 ## Start here
