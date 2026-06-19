@@ -22,9 +22,7 @@ If you are new to software-style workflows, that is the point of the template: t
 
 ## Why CAD-as-Code?
 
-Traditional CAD files hide intent inside binary documents. That makes changes harder to review, test, automate, and reproduce.
-
-CAD-as-Code puts the model definition in readable source code, a perfect format for LLM agents to interact and reason about your models. A radius, hole pattern, bracket height, or assembly of shapes becomes a series of relationships with properties, parameter, or functions. That means a parametric CAD project can use the same habits that make software projects reliable:
+Traditional CAD files hide intent inside binary documents. That makes changes harder to review, test, automate, and reproduce. Parametric CAD captures models as structured text, a perfect format for LLM agents to interact and reason with, but parametric CAD by itself can still be quite limiting and difficult to interact with, like OpenSCAD. We decided to give our parametric CAD the "as-Code" approach to supercharge the modeling functionality, provide greater AI agent feedback surfaces, and to automate the production and release of model artifacts. A radius, hole pattern, bracket height, or assembly of shapes becomes a series of relationships with properties, parameter, or functions. That means a parametric CAD project can use the same habits that make software projects reliable:
 
 - Source control tracks every change to the model.
 - Tests catch broken geometry before a release.
