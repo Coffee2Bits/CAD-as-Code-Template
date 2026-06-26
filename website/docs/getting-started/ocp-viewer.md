@@ -61,9 +61,9 @@ v3.4.0 ships an ESM-only `proper-lockfile` dependency that crashes in Cursor's e
 |------|--------|
 | `onCreateCommand` | `install-ocp-cad-viewer.sh download` — fetch and patch VSIX to workspace root |
 | `postCreateCommand` | download again (after `uv sync`) |
-| `postStartCommand` | `post-start.sh` — optional `install-cli` via Cursor CLI (non-fatal), then `start-docs.sh` |
+| `postStartCommand` | `post-start.sh` — optional `install-cli` via Cursor CLI (non-fatal), `just view` to push the demo model, then `start-docs.sh` |
 
-Automated CLI install only runs when the **Cursor** command-line tool is available inside the container. If the extension is still missing after attach, use [manual VSIX install](#manual-vsix-install-cursor-and-other-forks) above.
+Automated CLI install only runs when the **Cursor** command-line tool is available inside the container. The startup `just view` step is also non-fatal; it prepares the demo model for the OCP CAD Viewer when the extension is available, but you can always open the viewer panel and run `just view` again manually. If the extension is still missing after attach, use [manual VSIX install](#manual-vsix-install-cursor-and-other-forks) above.
 
 ## Manual recovery
 

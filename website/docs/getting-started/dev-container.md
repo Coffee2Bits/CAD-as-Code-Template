@@ -16,9 +16,9 @@ From [`devcontainer.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/b
 |------|---------|
 | `onCreateCommand` | `bash .devcontainer/install-ocp-cad-viewer.sh download` |
 | `postCreateCommand` | `uv sync && just setup-hooks && just docs-install &&` VSIX download |
-| `postStartCommand` | `post-start.sh` — `uv sync`, hooks, VSIX `install-cli` (non-fatal), then `start-docs.sh` |
+| `postStartCommand` | `post-start.sh` — `uv sync`, hooks, VSIX `install-cli` (non-fatal), `just view` demo refresh, then `start-docs.sh` |
 
-`uv sync` installs dev dependencies including **ocp-viewer-mcp**. **build123d-mcp** runs via pinned [`.cursor/run-*.sh`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.cursor) launchers (Python 3.12 in the container image). Both MCP servers execute **inside** this container — see [MCP servers](/tools/mcp-servers).
+`uv sync` installs dev dependencies including **ocp-viewer-mcp**. The startup `just view` run pushes the template demo model to OCP CAD Viewer when the extension is available; it is non-fatal and time-limited so container startup continues even if the viewer panel is not ready. **build123d-mcp** runs via pinned [`.cursor/run-*.sh`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.cursor) launchers (Python 3.12 in the container image). Both MCP servers execute **inside** this container — see [MCP servers](/tools/mcp-servers).
 
 ## Common commands
 

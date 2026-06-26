@@ -157,7 +157,7 @@ When a part needs more than one material color, return a `Compound` of separatel
 
 **Approach:** assign colors in part builders, compose with `Compound(children=[...])` in assemblies, and validate release PNGs on the **published** top-level `@artifact` — not only on nested part artifacts or `make_*` builders alone.
 
-**Diagnose:** `_colored_solids` should return one entry per colored leaf. Unexpected default blue means a missing leaf `part.color` or incomplete compound flattening. See [Release PNG colors](/troubleshooting/ocp-viewer#release-png-colors).
+**Diagnose:** `_colored_solids` should return one entry per colored leaf. Unexpected default blue means a missing leaf `part.color` or incomplete compound flattening. See [Missing Model Render colors](/troubleshooting/ocp-viewer#missing-model-render-colors).
 
 PNG previews for named `@artifact` functions are rendered from **Python geometry** (same path as `export release`), not from exported STL. STL meshes do not carry per-part `Part.color` metadata, so STL-based previews appear as a single default color.
 

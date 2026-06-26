@@ -11,7 +11,7 @@ sidebar_position: 1
 |---------|------|
 | Container won't sync / permission errors | [Dev container](/troubleshooting/dev-container) |
 | OCP viewer missing / blank / ESM crash | [OCP viewer](/troubleshooting/ocp-viewer) |
-| Release PNG missing per-part colors / default blue blocks | [OCP viewer](/troubleshooting/ocp-viewer#release-png-colors) |
+| Release PNG missing per-part colors / default blue blocks | [OCP viewer](/troubleshooting/ocp-viewer#missing-model-render-colors) |
 | MCP won't start or connect | [MCP](/troubleshooting/mcp) |
 | `just ci` / Dagger fails | [Dagger & Docker](/troubleshooting/dagger-and-docker) |
 | Export / discovery / CI/CD pipeline lint failures | [Export and CI/CD pipeline](/troubleshooting/export-and-ci) |
