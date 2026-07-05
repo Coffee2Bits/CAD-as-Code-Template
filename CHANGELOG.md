@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.6.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.5.0...v0.6.0) (2026-07-05)
+
+
+### Features
+
+* add PR summary generation with embedded PNG previews in CI workflow ([a7cb3b5](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/a7cb3b58560964313cd0d2286919afa63b8f4577))
+
+
+### Bug Fixes
+
+* fixed inability to render compound parts and updated documentation for nested compounds and per-part color handling ([466f44b](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/466f44b813ec42d39e41500af16ae8555b9413d6))
+
+
+### Documentation
+
+* add documentation for third-party assets and update project layout to include asset directory ([e1f82d7](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/e1f82d76e7c64834a1d567c8e2f2e85003177766))
+* add GitHub CLI auth to setup flow ([#15](https://github.com/Coffee2Bits/CAD-as-Code-Template/issues/15)) ([dbb389e](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/dbb389e11873bb7cbef19caa6587f6cbb5bed2b7))
+* add image captions ([#17](https://github.com/Coffee2Bits/CAD-as-Code-Template/issues/17)) ([aed702a](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/aed702a8cf8d4dbd4def183e94aaedf9ffa58850))
+* Fix image paths and enhance README links ([071a09d](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/071a09d1995e014bdeff3956c9f8b435638f34b5))
+* update image references and styles in README and intro documentation ([6e6ab47](https://github.com/Coffee2Bits/CAD-as-Code-Template/commit/6e6ab47a673c983dc7107514b222ac3ce76ea906))
+
 ## [0.5.0](https://github.com/Coffee2Bits/CAD-as-Code-Template/compare/v0.4.0...v0.5.0) (2026-06-18)
 
 
