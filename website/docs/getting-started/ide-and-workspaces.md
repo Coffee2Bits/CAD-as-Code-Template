@@ -29,6 +29,7 @@ Regardless of which client attaches, the container provides:
 | Open CASCADE / Mesa parity with the CI/CD pipeline | `.devcontainer/Dockerfile` |
 | Python deps + dev tools | `postStartCommand` → `post-start.sh` → `uv sync` |
 | Documentation site | `postStartCommand` → `post-start.sh` → `start-docs.sh` (port 3000, auto-forwarded) |
+| OCP CAD Viewer startup model | `postStartCommand` → `post-start.sh` → `just view` (non-fatal, time-limited) |
 | OCP CAD Viewer VSIX download/install | `.devcontainer/install-ocp-cad-viewer.sh` |
 | Ruff format-on-save settings | `customizations.vscode` in `devcontainer.json` |
 | Local Dagger CI/CD pipeline (`just ci`) | Docker socket mount + `docker-outside-of-docker` feature |

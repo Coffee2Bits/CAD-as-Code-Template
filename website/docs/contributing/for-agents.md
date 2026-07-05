@@ -18,7 +18,7 @@ sidebar_position: 2
 4. **Visual verify** — after geometry edits to `cad/` (or `main.py` display wiring), start `just view` **in the background** immediately so the user sees live updates in OCP CAD Viewer; re-launch on every geometry edit (independent of test runs)
 5. **MakerRepo** — `from mr import artifact, customizable, cached`; decorators on entry points only
 6. **External libs** — use bd_warehouse, bd-vslot, etc. for catalog geometry; thin-wrap in `cad/parts/`
-7. **Part colors** — assign `part.color` on leaf `Part` solids; validate top-level `@artifact` PNGs when using nested multi-color compounds ([AGENTS.md — Part preview colors](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#part-preview-colors), [troubleshooting](/troubleshooting/ocp-viewer#release-png-colors))
+7. **Part colors** — assign `part.color` on leaf `Part` solids; validate top-level `@artifact` PNGs when using nested multi-color compounds ([AGENTS.md — Part preview colors](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#part-preview-colors), [troubleshooting](/troubleshooting/ocp-viewer#missing-model-render-colors))
 8. **`just` command tests** — destructive recipes (`just init`, `just template-apply`, …) only in [`tests/functional/`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/tests/functional) via `isolated_repo` + `run_just()` — never on the real repo root ([AGENTS.md → Testing just commands](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/AGENTS.md#testing-just-commands-agents); markers in [Testing strategy](/modeling/testing))
 
 ## Documentation work

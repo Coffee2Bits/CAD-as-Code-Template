@@ -15,4 +15,4 @@ just docs-serve-bg  # background dev server (idempotent; auto-started in devcont
 just docs-build     # production build → website/build/
 ```
 
-In the dev container, `postStartCommand` runs `post-start.sh`, which starts the Docusaurus dev server in the background via `start-docs.sh` and opens port **3000** in your browser.
+In the dev container, `postStartCommand` runs `post-start.sh`, which syncs Python dependencies, refreshes the demo model with `just view` for OCP CAD Viewer when available, starts the Docusaurus dev server in the background via `start-docs.sh`, and opens port **3000** in your browser.
