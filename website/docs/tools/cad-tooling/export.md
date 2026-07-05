@@ -27,6 +27,9 @@ uv run python -m cad_tooling.export release-notes \
   --repo Coffee2Bits/CAD-as-Code-Template \
   --tag v0.1.0 \
   -o dist/RELEASE_BODY.md
+
+# PR job summary — embedded PNG previews for GitHub Actions (see CI workflow)
+uv run python -m cad_tooling.export pr-summary --assets-dir dist
 ```
 
 Or via `just`:

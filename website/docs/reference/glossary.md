@@ -20,7 +20,7 @@ See [Project layout](/getting-started/project-layout) and [Export and formats](/
 
 ## Dev Container
 
-A containerized development environment that carries the project tools with the repo. It keeps Python, build123d, OCP viewer support, Node docs tooling, and command-line tools consistent across Codespaces, VS Code, Cursor, and compatible IDEs.
+A containerized development environment that carries the project tools with the repo. It keeps Python, build123d, OCP viewer support, Node docs tooling, and command-line tools consistent across Codespaces, VS Code, Cursor, and compatible IDEs. On a laptop you need Docker or Podman; see [host container runtime](/getting-started/dev-container#host-container-runtime). Cloud hosts run the container for you.
 
 See [Dev Container](/getting-started/dev-container) and [IDEs and workspaces](/getting-started/ide-and-workspaces).
 

@@ -20,6 +20,20 @@ From [`devcontainer.json`](https://github.com/Coffee2Bits/CAD-as-Code-Template/b
 
 `uv sync` installs dev dependencies including **ocp-viewer-mcp**. **build123d-mcp** runs via pinned [`.cursor/run-*.sh`](https://github.com/Coffee2Bits/CAD-as-Code-Template/tree/main/.cursor) launchers (Python 3.12 in the container image). Both MCP servers execute **inside** this container — see [MCP servers](/tools/mcp-servers).
 
+## Host container runtime
+
+**Reopen in Container** on a laptop needs Docker or Podman running on the host. Your editor builds the image from [`.devcontainer/Dockerfile`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.devcontainer/Dockerfile) and talks to that engine through the [Dev Containers](https://containers.dev/) tooling.
+
+**Docker** is what most people use: [Docker Desktop](https://www.docker.com/products/docker-desktop/) on macOS or Windows, or [Docker Engine](https://docs.docker.com/engine/) on Linux. Follow [quick start: local setup](/getting-started/quick-start#option-b-local-vs-code-or-cursor).
+
+**Podman** also works if you expose a Docker-compatible socket. On Linux, enable `podman.socket` and point `DOCKER_HOST` at it, or symlink it to `/var/run/docker.sock` (the path `devcontainer.json` mounts). On macOS or Windows, run [Podman Machine](https://podman.io/docs/installation) and use its socket.
+
+**Codespaces** and other [cloud workspaces](/getting-started/ide-and-workspaces#cloud-workspaces) run the engine remotely. No local install. See [quick start: Codespaces](/getting-started/quick-start#option-a-online-codespaces).
+
+Start the engine before **Reopen in Container**. The first build can take several minutes.
+
+`just ci` uses the host socket at `/var/run/docker.sock` for Dagger. See [Docker for Dagger CI](#docker-for-dagger-ci) and [Dagger troubleshooting](/troubleshooting/dagger-and-docker).
+
 ## Common commands
 
 ```bash

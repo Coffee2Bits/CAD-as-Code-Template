@@ -6,8 +6,10 @@ import pytest
 from cad_tooling.release_notes import (
     ReleaseAsset,
     RenderPreview,
+    _render_embedded_preview_images,
     _render_preview_images,
     _render_preview_links,
+    render_pr_summary_body,
     render_release_body,
 )
 
@@ -80,6 +82,35 @@ def test_render_preview_links_lists_each_annotation():
     assert lines[0] == "Previews:"
     assert "sphere_front_800x600.png" in lines[1]
     assert "sphere_iso_800x600.png" in lines[2]
+
+
+def test_render_embedded_preview_images_use_data_uris(tmp_path: Path):
+    png_path = tmp_path / "sphere_iso_800x600.png"
+    png_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    previews = (RenderPreview("iso (800×600)", png_path),)
+    lines = _render_embedded_preview_images(previews)
+    assert len(lines) == 1
+    assert 'src="data:image/png;base64,' in lines[0]
+    assert 'alt="iso (800×600)"' in lines[0]
+
+
+def test_render_pr_summary_body_includes_artifact_sections(tmp_path: Path):
+    png_path = tmp_path / "widget_iso_800x600.png"
+    png_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    artifact = _fake_artifact("widget", short_desc="Demo widget assembly")
+    body = render_pr_summary_body(
+        [
+            ReleaseAsset(
+                artifact,
+                tmp_path / "widget.stl",
+                (RenderPreview("iso (800×600)", png_path),),
+            )
+        ]
+    )
+    assert "## Artifact previews" in body
+    assert "### widget" in body
+    assert "Demo widget assembly" in body
+    assert "data:image/png;base64," in body
 
 
 def test_artifact_description_falls_back_to_name():

@@ -28,4 +28,10 @@ Ensure editor uses Ruff from project venv (`importStrategy: fromEnvironment`).
 - Add `@render` below `@artifact` on the published function
 - Run `just release dist/` locally to verify
 
+## PR job summary missing previews
+
+- Previews appear only on **pull_request** runs of [`ci.yml`](https://github.com/Coffee2Bits/CAD-as-Code-Template/blob/main/.github/workflows/ci.yml), after the Dagger check succeeds
+- Open the **Dagger CI** job and expand **Summary** — images are embedded from exported PNGs via `python -m cad_tooling.export pr-summary`
+- If the summary is empty, confirm the artifact has `@render` and that `release-artifact` exported PNGs to `dist/`
+
 Release workflow failures (missing STL/PNG on GitHub Releases, `workflow_dispatch` repair): [Release Please troubleshooting](/troubleshooting/release-please).

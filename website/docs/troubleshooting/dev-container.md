@@ -4,6 +4,14 @@ sidebar_position: 2
 
 # Dev container troubleshooting
 
+## Reopen in Container fails or hangs
+
+| Symptom | Fix |
+|---------|-----|
+| Build never starts | Install and start [Docker](https://www.docker.com/) or [Podman](https://podman.io/) on the host ([host container runtime](/getting-started/dev-container#host-container-runtime)) |
+| `docker.sock` / permission errors | On Podman, expose a Docker-compatible socket at `/var/run/docker.sock` ([host container runtime](/getting-started/dev-container#host-container-runtime)) |
+| Stale image after dependency changes | **Dev Containers: Rebuild Container** |
+
 ## `uv sync` fails
 
 - Rebuild container: **Dev Containers: Rebuild Container**

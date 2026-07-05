@@ -38,3 +38,30 @@ jobs:
           module: ./ci
           args: check --source=.
           dagger-flags: "--progress plain"
+
+      - name: Export artifact previews
+        if: github.event_name == 'pull_request'
+        uses: dagger/dagger-for-github@v8.4.0
+        with:
+          version: "0.21.4"
+          verb: call
+          module: ./ci
+          args: release-artifact --source=. export --path=./dist
+          dagger-flags: "--progress plain"
+
+      - name: Set up Python
+        if: github.event_name == 'pull_request'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        if: github.event_name == 'pull_request'
+        uses: astral-sh/setup-uv@v5
+
+      - name: Write artifact preview summary
+        if: github.event_name == 'pull_request'
+        run: |
+          uv sync --group dev --frozen
+          uv run python -m cad_tooling.export pr-summary \
+            --assets-dir dist >> "${GITHUB_STEP_SUMMARY}"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -112,6 +113,35 @@ def _render_previews_for_artifact(
     )
 
 
+def _encode_png_data_uri(png_path: Path) -> str:
+    """Return a PNG data URI for embedding in GitHub Actions job summaries."""
+    encoded = base64.b64encode(png_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+def _render_embedded_preview_images(
+    render_previews: tuple[RenderPreview, ...],
+    *,
+    image_width: int = 390,
+) -> list[str]:
+    """Render preview PNGs as inline HTML for GITHUB_STEP_SUMMARY."""
+    if not render_previews:
+        return []
+
+    if len(render_previews) == 1:
+        preview = render_previews[0]
+        uri = _encode_png_data_uri(preview.png_path)
+        return [
+            f'<p align="center"><img src="{uri}" alt="{preview.label}" width="{image_width}" /></p>'
+        ]
+
+    image_tags = []
+    for preview in render_previews:
+        uri = _encode_png_data_uri(preview.png_path)
+        image_tags.append(f'<img src="{uri}" alt="{preview.label}" width="{image_width}" />')
+    return ['<p align="center">' + "\n".join(image_tags) + "</p>"]
+
+
 def _render_preview_images(
     repo: str,
     tag: str,
@@ -147,6 +177,28 @@ def _render_preview_links(
 def _release_asset_sort_key(asset: ReleaseAsset) -> tuple[int, str]:
     cover = bool(getattr(asset.artifact, "cover", False))
     return (0 if cover else 1, asset.artifact.name)
+
+
+def render_pr_summary_body(assets: list[ReleaseAsset]) -> str:
+    """Render markdown for GitHub Actions job summaries with embedded PNG previews."""
+    lines = [
+        "## Artifact previews",
+        "",
+        "Headless OCCT renders from this pull request's `@artifact` / `@render` entry points.",
+        "",
+    ]
+
+    for asset in sorted(assets, key=_release_asset_sort_key):
+        name = asset.artifact.name
+        lines.extend([f"### {name}", ""])
+        lines.extend(_render_embedded_preview_images(asset.render_previews))
+        description = _artifact_description(asset.artifact)
+        if description != name:
+            lines.extend(["", description, ""])
+        else:
+            lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def render_release_body(repo: str, tag: str, assets: list[ReleaseAsset]) -> str:

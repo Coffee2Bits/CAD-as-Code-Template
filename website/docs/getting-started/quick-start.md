@@ -25,7 +25,7 @@ Use this when you want files on your machine.
 
 Prerequisites:
 
-- [Docker](https://www.docker.com/) running on the host.
+- [Docker](https://www.docker.com/) or [Podman](https://podman.io/) running on the host. Podman needs a Docker-compatible socket; see [host container runtime](/getting-started/dev-container#host-container-runtime).
 - [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.com/), or another [Dev Containers-compatible IDE](/getting-started/ide-and-workspaces).
 
 Steps:

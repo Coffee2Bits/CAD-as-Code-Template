@@ -318,6 +318,21 @@ def _main(argv: list[str] | None = None) -> int:
     notes.add_argument("--root", type=Path, default=None)
     add_render_config_arguments(notes)
 
+    pr_summary = sub.add_parser(
+        "pr-summary",
+        help="Write PR job summary markdown with embedded PNG previews",
+    )
+    pr_summary.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=None,
+        help="Output file (default: stdout)",
+    )
+    pr_summary.add_argument("--assets-dir", type=Path, required=True)
+    pr_summary.add_argument("--root", type=Path, default=None)
+    add_render_config_arguments(pr_summary)
+
     export_cmd = sub.add_parser("export", help="Export artifacts by name (default: all)")
     export_cmd.add_argument("-o", "--output", type=Path, required=True)
     export_cmd.add_argument("-f", "--format", default=DEFAULT_EXPORT_FORMAT)
@@ -341,6 +356,20 @@ def _main(argv: list[str] | None = None) -> int:
             render_overrides=render_overrides,
         )
         args.output.write_text(render_release_body(args.repo, args.tag, assets))
+    elif args.command == "pr-summary":
+        from cad_tooling.release_notes import collect_release_assets, render_pr_summary_body
+
+        render_overrides = render_config_from_namespace(args)
+        assets = collect_release_assets(
+            args.assets_dir.resolve(),
+            args.root,
+            render_overrides=render_overrides,
+        )
+        summary = render_pr_summary_body(assets)
+        if args.output is None:
+            print(summary, end="")
+        else:
+            args.output.write_text(summary)
     else:
         names = tuple(args.names) or None
         for path in export_artifacts(args.output, args.format, names, root=args.root):

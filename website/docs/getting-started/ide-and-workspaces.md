@@ -117,7 +117,7 @@ Source of truth remains Python under `cad/` — agents and MCP only help edit, e
 
 | You want… | Start here |
 |-----------|------------|
-| Lowest friction, full extensions | **VS Code** or **Cursor** + local Docker → [Quick start](/getting-started/quick-start) |
+| Lowest friction, full extensions | **VS Code** or **Cursor** with local [Docker or Podman](/getting-started/dev-container#host-container-runtime). [Quick start](/getting-started/quick-start). |
 | No local Docker install | **GitHub Codespaces** on this template repo |
 | Copilot as primary assistant | **VS Code** or **Codespaces** with Copilot extension |
 | Cursor agent + in-container MCP | **Cursor** + [MCP servers](/tools/mcp-servers) |

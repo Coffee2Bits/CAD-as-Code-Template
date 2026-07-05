@@ -11,6 +11,9 @@ flowchart LR
   DAG --> LINT["lint"]
   DAG --> ART["artifact export verification"]
   DAG --> TEST["pytest"]
+  FILTER --> PR["pull_request only"]
+  PR --> PREV["release-artifact export"]
+  PREV --> SUM["GITHUB_STEP_SUMMARY previews"]
 ```
 
 ## GitHub Actions
@@ -22,6 +25,8 @@ flowchart LR
 - `pyproject.toml`, `uv.lock`, `.makerrepo/**`
 
 Job name for branch protection: **Dagger CI**.
+
+On **pull requests**, after the quality gate passes, CI exports `@render` PNG previews and appends them to the job summary (`GITHUB_STEP_SUMMARY`) so reviewers can inspect geometry without checking out the branch. Push events to `main` skip the preview export step.
 
 ## Dagger functions
 
